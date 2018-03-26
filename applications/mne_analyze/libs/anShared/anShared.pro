@@ -82,12 +82,6 @@ SOURCES += \
     Management/analyzedata.cpp \
     Management/analyzesettings.cpp \
     Management/extensionmanager.cpp \
-    Management/analyzedata.cpp \
-    Management/analyzesettings.cpp \
-    Management/extensionmanager.cpp \
-    Management/analyzedata.cpp \
-    Management/analyzesettings.cpp \
-    Management/extensionmanager.cpp \
     Data/datastorage.cpp \
     Model/modelstorage.cpp \
     Data/abstractdata.cpp \
@@ -97,23 +91,11 @@ SOURCES += \
 
 HEADERS += \
     anshared_global.h \
-    Interfaces/IExtension.h \
     Management/analyzedata.h \
     Management/analyzesettings.h \
     Management/extensionmanager.h \
     Interfaces/IStandardView.h \
     Interfaces/IExtension.h \
-    Interfaces/IStandardView.h \
-    Management/analyzedata.h \
-    Management/analyzesettings.h \
-    Management/extensionmanager.h \
-    anshared_global.h \
-    Interfaces/IExtension.h \
-    Interfaces/IStandardView.h \
-    Management/analyzedata.h \
-    Management/analyzesettings.h \
-    Management/extensionmanager.h \
-    anshared_global.h \
     Data/datastorage.h \
     Model/modelstorage.h \
     Data/abstractdata.h \
