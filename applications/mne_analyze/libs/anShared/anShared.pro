@@ -91,7 +91,9 @@ SOURCES += \
     Data/datastorage.cpp \
     Model/modelstorage.cpp \
     Data/abstractdata.cpp \
-    Data/datasettings.cpp
+    Data/datasettings.cpp \
+    Data/surfacesetdata.cpp \
+    Data/surfacedata.cpp
 
 HEADERS += \
     anshared_global.h \
@@ -115,7 +117,9 @@ HEADERS += \
     Data/datastorage.h \
     Model/modelstorage.h \
     Data/abstractdata.h \
-    Data/datasettings.h
+    Data/datasettings.h \
+    Data/surfacesetdata.h \
+    Data/surfacedata.h
 
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
