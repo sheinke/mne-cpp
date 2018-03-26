@@ -90,6 +90,7 @@ SOURCES += \
     Management/extensionmanager.cpp \
     Data/datastorage.cpp \
     Model/modelstorage.cpp \
+    Data/abstractdata.cpp \
     Data/datasettings.cpp
 
 HEADERS += \
@@ -113,6 +114,7 @@ HEADERS += \
     anshared_global.h \
     Data/datastorage.h \
     Model/modelstorage.h \
+    Data/abstractdata.h \
     Data/datasettings.h
 
 
