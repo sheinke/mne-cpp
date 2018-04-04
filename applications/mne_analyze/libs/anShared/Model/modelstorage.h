@@ -1,15 +1,14 @@
 //=============================================================================================================
 /**
-* @file     main.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
+* @file     modelstorage.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     January, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh, Lorenz Esch and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,38 +29,32 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implements the mne_analyze GUI application.
+* @brief     ModelStorage class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_MODELSTORAGE_H
+#define ANSHAREDLIB_MODELSTORAGE_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <stdio.h>
-#include "info.h"
-#include "analyzecore.h"
+
+//*************************************************************************************************************
+//=============================================================================================================
+// QT INCLUDES
+//=============================================================================================================
+
+#include <QSharedPointer>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// Eigen INCLUDES
 //=============================================================================================================
-
-#include <QtGui>
-#include <QApplication>
-#include <QDateTime>
-#include <QSplashScreen>
-#include <QThread>
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// USED NAMESPACES
-//=============================================================================================================
-
-using namespace MNEANALYZE;
 
 
 //*************************************************************************************************************
@@ -71,28 +64,52 @@ using namespace MNEANALYZE;
 
 
 //*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE ANSHAREDLIB
+//=============================================================================================================
 
-AnalyzeCore *pAnalyzeCore;
+namespace ANSHAREDLIB {
 
-int main(int argc, char *argv[])
+
+//*************************************************************************************************************
+//=============================================================================================================
+// ANSHAREDLIB FORWARD DECLARATIONS
+//=============================================================================================================
+
+
+//=============================================================================================================
+/**
+* Description of what this class is intended to do (in detail).
+*
+* @brief Brief description of this class.
+*/
+class ModelStorage
 {
-    QApplication a(argc, argv);
 
-    //set application settings
-    QCoreApplication::setOrganizationName(CInfo::OrganizationName());
-    QCoreApplication::setApplicationName(CInfo::AppNameShort());
+public:
+    typedef QSharedPointer<ModelStorage> SPtr;            /**< Shared pointer type for ModelStorage. */
+    typedef QSharedPointer<const ModelStorage> ConstSPtr; /**< Const shared pointer type for ModelStorage. */
 
-    //show splash screen for 1 second
-    QPixmap pixmap(":/resources/images/splashscreen_mne_analyze.png");
-    QSplashScreen splash(pixmap);
-    splash.show();
-    QThread::sleep(1);
+    //=========================================================================================================
+    /**
+    * Constructs a ModelStorage object.
+    */
+    ModelStorage();
 
-    //New main window instance
-    pAnalyzeCore = new AnalyzeCore();
-    pAnalyzeCore->showMainWindow();
+protected:
 
-    splash.finish(pAnalyzeCore->getMainWindow());
+private:
 
-    return a.exec();
-}
+
+};
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
+
+} // namespace ANSHAREDLIB
+
+#endif // ANSHAREDLIB_MODELSTORAGE_H

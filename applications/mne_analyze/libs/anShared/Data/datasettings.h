@@ -1,15 +1,14 @@
 //=============================================================================================================
 /**
-* @file     main.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
+* @file     datasettings.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     January, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh, Lorenz Esch and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,38 +29,34 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implements the mne_analyze GUI application.
+* @brief     DataSettings class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_DATASETTINGS_H
+#define ANSHAREDLIB_DATASETTINGS_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <stdio.h>
-#include "info.h"
-#include "analyzecore.h"
+#include "../anshared_global.h"
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-#include <QtGui>
-#include <QApplication>
-#include <QDateTime>
-#include <QSplashScreen>
-#include <QThread>
+#include <QSharedPointer>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// Eigen INCLUDES
 //=============================================================================================================
-
-using namespace MNEANALYZE;
 
 
 //*************************************************************************************************************
@@ -71,28 +66,59 @@ using namespace MNEANALYZE;
 
 
 //*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE ANSHAREDLIB
+//=============================================================================================================
 
-AnalyzeCore *pAnalyzeCore;
+namespace ANSHAREDLIB {
 
-int main(int argc, char *argv[])
+
+//*************************************************************************************************************
+//=============================================================================================================
+// ANSHAREDLIB FORWARD DECLARATIONS
+//=============================================================================================================
+
+
+//=============================================================================================================
+/**
+* Description of what this class is intended to do (in detail).
+*
+* @brief Brief description of this class.
+*/
+class ANSHAREDSHARED_EXPORT DataSettings
 {
-    QApplication a(argc, argv);
 
-    //set application settings
-    QCoreApplication::setOrganizationName(CInfo::OrganizationName());
-    QCoreApplication::setApplicationName(CInfo::AppNameShort());
+public:
+    typedef QSharedPointer<DataSettings> SPtr;            /**< Shared pointer type for DataSettings. */
+    typedef QSharedPointer<const DataSettings> ConstSPtr; /**< Const shared pointer type for DataSettings. */
 
-    //show splash screen for 1 second
-    QPixmap pixmap(":/resources/images/splashscreen_mne_analyze.png");
-    QSplashScreen splash(pixmap);
-    splash.show();
-    QThread::sleep(1);
+    //=========================================================================================================
+    /**
+    * Constructs a DataSettings object.
+    */
+    DataSettings();
 
-    //New main window instance
-    pAnalyzeCore = new AnalyzeCore();
-    pAnalyzeCore->showMainWindow();
+    //=========================================================================================================
+    /**
+    * Destructor.
+    */
+    virtual ~DataSettings();
 
-    splash.finish(pAnalyzeCore->getMainWindow());
+protected:
 
-    return a.exec();
-}
+private:
+
+
+
+};
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
+
+} // namespace ANSHAREDLIB
+
+#endif // ANSHAREDLIB_DATASETTINGS_H

@@ -1,14 +1,14 @@
 //=============================================================================================================
 /**
-* @file     deepcntkmanager.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+* @file     surfacemodel.cpp
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,17 +29,18 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains the implementation of the DeepCNTKManager class.
+* @brief    SurfaceModel class definition.
 *
 */
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "deepcntkmanager.h"
-#include "IDeepCNTKNet.h"
+#include "surfacemodel.h"
+#include "../Utils/types.h"
 
 
 //*************************************************************************************************************
@@ -47,8 +48,11 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QDir>
-#include <QDebug>
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Eigen INCLUDES
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -56,7 +60,14 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace DEEPCNTKEXTENSION;
+using namespace ANSHAREDLIB;
+using namespace Eigen;
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE GLOBAL METHODS
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -64,9 +75,9 @@ using namespace DEEPCNTKEXTENSION;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-DeepCNTKManager::DeepCNTKManager(QObject *parent)
-: QPluginLoader(parent)
-, m_iCurrentConfiguration(0)
+SurfaceModel::SurfaceModel(SurfaceData* pSurfaceData, QObject *pParent)
+: QAbstractItemModel(pParent)
+, m_pSurfaceData(pSurfaceData)
 {
 
 }
@@ -74,119 +85,134 @@ DeepCNTKManager::DeepCNTKManager(QObject *parent)
 
 //*************************************************************************************************************
 
-DeepCNTKManager::~DeepCNTKManager()
+QVariant SurfaceModel::data(const QModelIndex &index, int role) const
 {
-    for(int i = 0; i < m_qVecDeepConfiguration.size(); ++i) {
-        delete m_qVecDeepConfiguration[i];
-    }
-}
-
-
-//*************************************************************************************************************
-
-void DeepCNTKManager::loadDeepConfigurations(const QString& dir)
-{
-    QDir deepConfigurationsDir(dir);
-
-    foreach(const QString &file, deepConfigurationsDir.entryList(QDir::Files))
-    {
-        fprintf(stderr,"Loading deep configuration %s... ",file.toUtf8().constData());
-
-        this->setFileName(deepConfigurationsDir.absoluteFilePath(file));
-        QObject *pDeepConfiguration = this->instance();
-
-        // IExtension
-        if(pDeepConfiguration) {
-            fprintf(stderr,"Deep configuration %s loaded.\n",file.toUtf8().constData());
-            m_qVecDeepConfiguration.push_back(qobject_cast<IDeepCNTKNet*>(pDeepConfiguration));
+    if(index.isValid() && role == Qt::DisplayRole) {
+        QVariant output;
+        // Vertices:
+        if(index.internalId() == InternalId::VerticeItem) {
+            output.setValue(m_pSurfaceData->vertexAt(index.column()));
+            return output;
         }
-        else {
-            fprintf(stderr,"Deep configuration %s could not be instantiated!\n",file.toUtf8().constData());
+
+        // Normals:
+        else if(index.internalId() == InternalId::NormalItem) {
+            output.setValue(m_pSurfaceData->normalAt(index.column()));
+            return output;
+        }
+
+        // Triangles:
+        else if(index.internalId() == InternalId::TriangleItem) {
+            output.setValue(m_pSurfaceData->triAt(index.column()));
+            return output;
+        }
+
+        // Curvature:
+        else if(index.internalId() == InternalId::CurvatureItem) {
+            output.setValue(m_pSurfaceData->curvAt(index.column()));
+            return output;
         }
     }
+
+   return QVariant();
 }
 
 
 //*************************************************************************************************************
 
-void DeepCNTKManager::initDeepConfigurations()
+Qt::ItemFlags SurfaceModel::flags(const QModelIndex &index) const
 {
-    foreach(IDeepCNTKNet* deepConfiguration, m_qVecDeepConfiguration)
-    {
-        deepConfiguration->init();
+    return Qt::NoItemFlags;
+}
+
+
+//*************************************************************************************************************
+
+QVariant SurfaceModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    return QVariant();
+}
+
+
+//*************************************************************************************************************
+
+QModelIndex SurfaceModel::index(int row, int column, const QModelIndex &parent) const
+{
+    if(!hasIndex(row, column, parent)) {
+        return QModelIndex();
+    }
+
+    //TODO rework this
+    if(!parent.isValid()) {
+        if(row == 0) {
+            return createIndex(row, column, InternalId::VerticeItem);
+        }
+        else if(row == 1) {
+            return createIndex(row, column, InternalId::NormalItem);
+        }
+        else if(row == 2) {
+            return createIndex(row, column, InternalId::TriangleItem);
+        }
+        else if(row == 3) {
+            return createIndex(row, column, InternalId::CurvatureItem);
+        }
     }
 }
 
 
 //*************************************************************************************************************
 
-int DeepCNTKManager::findByName(const QString& name)
+QModelIndex SurfaceModel::parent(const QModelIndex &index) const
 {
-    QVector<IDeepCNTKNet*>::const_iterator it = m_qVecDeepConfiguration.begin();
-    for(int i = 0; it != m_qVecDeepConfiguration.end(); ++i, ++it)
-        if((*it)->getName() == name)
-            return i;
-
-    return -1;
+    //Only the root node has childeren, therefore all parents are an invalid model index
+    return QModelIndex();
 }
 
 
 //*************************************************************************************************************
 
-QStringList DeepCNTKManager::getDeepConfigurationNames() const
+int SurfaceModel::rowCount(const QModelIndex &parent) const
 {
-    QStringList names;
-
-    foreach(IDeepCNTKNet* deepConfiguration, m_qVecDeepConfiguration)
-    {
-        names << deepConfiguration->getName();
+    //if parent == root node
+    if(!parent.isValid()) {
+        return 4;
     }
-
-    return names;
-}
-
-
-//*************************************************************************************************************
-
-IDeepCNTKNet *DeepCNTKManager::currentDeepConfiguration() const
-{
-    if(m_qVecDeepConfiguration.size() > 0) {
-        return m_qVecDeepConfiguration[m_iCurrentConfiguration];
-    }
-
-    return Q_NULLPTR;
-}
-
-
-//*************************************************************************************************************
-
-void DeepCNTKManager::selectDeepConfiguration(int idx)
-{
-    if(idx != m_iCurrentConfiguration && idx >= 0 && idx < m_qVecDeepConfiguration.size()) {
-        m_iCurrentConfiguration = idx;
-        emit currentConfigurationChanged_signal();
-        qDebug() << "void DeepCNTKManager::selectDeepConfiguration(int idx)" << idx;
-    }
-
-}
-
-
-//*************************************************************************************************************
-
-void DeepCNTKManager::trainCurrentConfiguration()
-{
-    if (m_iCurrentConfiguration < m_qVecDeepConfiguration.size()) {
-        m_qVecDeepConfiguration[m_iCurrentConfiguration]->train();
-        emit finishedTraining_signal();
+    else {
+        // only the root node has children
+        return 0;
     }
 }
 
 
 //*************************************************************************************************************
 
-void DeepCNTKManager::evalCurrentConfiguration()
+int SurfaceModel::columnCount(const QModelIndex &parent) const
 {
-    if (m_iCurrentConfiguration < m_qVecDeepConfiguration.size()) {
-        m_qVecDeepConfiguration[m_iCurrentConfiguration]->eval();
+    int col = 0;
+
+    switch(parent.internalId()) {
+        case InternalId::VerticeItem:
+            col = m_pSurfaceData->vertices().rows();
+            break;
+
+        case InternalId::NormalItem:
+            col = m_pSurfaceData->normals().rows();
+            break;
+
+        case InternalId::TriangleItem:
+            col = m_pSurfaceData->tris().rows();
+            break;
+
+        case InternalId::CurvatureItem:
+            col = m_pSurfaceData->curvature().rows();
+            break;
+
+        default:
+            break;
     }
+
+    return col;
 }
+
+
+//*************************************************************************************************************

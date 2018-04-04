@@ -1,15 +1,14 @@
 //=============================================================================================================
 /**
-* @file     main.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
+* @file     abstractdata.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     January, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh, Lorenz Esch and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,38 +29,34 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implements the mne_analyze GUI application.
+* @brief     AbstractData class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_ABSTRACTDATA_H
+#define ANSHAREDLIB_ABSTRACTDATA_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <stdio.h>
-#include "info.h"
-#include "analyzecore.h"
+#include "../anshared_global.h"
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-#include <QtGui>
-#include <QApplication>
-#include <QDateTime>
-#include <QSplashScreen>
-#include <QThread>
+#include <QSharedPointer>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// Eigen INCLUDES
 //=============================================================================================================
-
-using namespace MNEANALYZE;
 
 
 //*************************************************************************************************************
@@ -71,28 +66,64 @@ using namespace MNEANALYZE;
 
 
 //*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE ANSHAREDLIB
+//=============================================================================================================
 
-AnalyzeCore *pAnalyzeCore;
+namespace ANSHAREDLIB {
 
-int main(int argc, char *argv[])
+
+//*************************************************************************************************************
+//=============================================================================================================
+// ANSHAREDLIB FORWARD DECLARATIONS
+//=============================================================================================================
+
+class DataSettings;
+
+
+//=============================================================================================================
+/**
+* Description of what this class is intended to do (in detail).
+*
+* @brief Brief description of this class.
+*/
+class ANSHAREDSHARED_EXPORT AbstractData
 {
-    QApplication a(argc, argv);
 
-    //set application settings
-    QCoreApplication::setOrganizationName(CInfo::OrganizationName());
-    QCoreApplication::setApplicationName(CInfo::AppNameShort());
+public:
+    typedef QSharedPointer<AbstractData> SPtr;            /**< Shared pointer type for AbstractData. */
+    typedef QSharedPointer<const AbstractData> ConstSPtr; /**< Const shared pointer type for AbstractData. */
 
-    //show splash screen for 1 second
-    QPixmap pixmap(":/resources/images/splashscreen_mne_analyze.png");
-    QSplashScreen splash(pixmap);
-    splash.show();
-    QThread::sleep(1);
+    //=========================================================================================================
+    /**
+    * Constructs a AbstractData object.
+    */
+    AbstractData();
 
-    //New main window instance
-    pAnalyzeCore = new AnalyzeCore();
-    pAnalyzeCore->showMainWindow();
+    //=========================================================================================================
+    /**
+    * Destructor.
+    */
+    virtual ~AbstractData();
 
-    splash.finish(pAnalyzeCore->getMainWindow());
+    virtual void initiSettings() = 0;
 
-    return a.exec();
-}
+    virtual QSharedPointer<DataSettings> getSettings();
+
+protected:
+
+    QSharedPointer<DataSettings>            m_pSettings;
+
+
+};
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
+
+} // namespace ANSHAREDLIB
+
+#endif // ANSHAREDLIB_ABSTRACTDATA_H

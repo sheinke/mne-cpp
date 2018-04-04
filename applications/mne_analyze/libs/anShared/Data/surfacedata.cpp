@@ -1,15 +1,14 @@
 //=============================================================================================================
 /**
-* @file     main.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
+* @file     surfacedata.cpp
+* @author   Lars Debor <lars.debor@tu-ilmenaul.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     January, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh, Lorenz Esch and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,30 +29,31 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implements the mne_analyze GUI application.
+* @brief    SurfaceData class definition.
 *
 */
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <stdio.h>
-#include "info.h"
-#include "analyzecore.h"
+#include "surfacedata.h"
+#include <fs/surface.h>
+#include "surfacesettings.h"
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-#include <QtGui>
-#include <QApplication>
-#include <QDateTime>
-#include <QSplashScreen>
-#include <QThread>
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Eigen INCLUDES
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -61,38 +61,98 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace MNEANALYZE;
+using namespace ANSHAREDLIB;
+using namespace FSLIB;
+
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE GLOBAL METHODS
+//=============================================================================================================
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// FORWARD DECLARATIONS
+// DEFINE MEMBER METHODS
 //=============================================================================================================
 
-
-//*************************************************************************************************************
-
-AnalyzeCore *pAnalyzeCore;
-
-int main(int argc, char *argv[])
+SurfaceData::SurfaceData()
+: m_surface(Surface())
 {
-    QApplication a(argc, argv);
-
-    //set application settings
-    QCoreApplication::setOrganizationName(CInfo::OrganizationName());
-    QCoreApplication::setApplicationName(CInfo::AppNameShort());
-
-    //show splash screen for 1 second
-    QPixmap pixmap(":/resources/images/splashscreen_mne_analyze.png");
-    QSplashScreen splash(pixmap);
-    splash.show();
-    QThread::sleep(1);
-
-    //New main window instance
-    pAnalyzeCore = new AnalyzeCore();
-    pAnalyzeCore->showMainWindow();
-
-    splash.finish(pAnalyzeCore->getMainWindow());
-
-    return a.exec();
 }
+
+
+//*************************************************************************************************************
+
+SurfaceData::SurfaceData(const QString &p_sFile)
+: m_surface(Surface(p_sFile))
+{
+
+}
+
+
+//*************************************************************************************************************
+
+SurfaceData::SurfaceData(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+: m_surface(Surface(subject_id, hemi, surf, subjects_dir))
+{
+
+}
+
+
+//*************************************************************************************************************
+
+void SurfaceData::initiSettings()
+{
+    m_pSettings = QSharedPointer<SurfaceSettings>::create(&m_surface);
+}
+
+
+//*************************************************************************************************************
+
+
+Vector3f SurfaceData::vertexAt(int idx) const
+{
+    Eigen::Vector3f vector;
+    vector[0] = m_surface.rr()(idx, 0);
+    vector[1] = m_surface.rr()(idx, 1);
+    vector[2] = m_surface.rr()(idx, 2);
+
+    return vector;
+}
+
+
+//*************************************************************************************************************
+
+Vector3f SurfaceData::normalAt(int idx) const
+{
+    Eigen::Vector3f vector;
+    vector[0] = m_surface.nn()(idx, 0);
+    vector[1] = m_surface.nn()(idx, 1);
+    vector[2] = m_surface.nn()(idx, 2);
+
+    return vector;
+}
+
+
+//*************************************************************************************************************
+
+Vector3i SurfaceData::triAt(int idx) const
+{
+    Eigen::Vector3i vector;
+    vector[0] = m_surface.tris()(idx, 0);
+    vector[1] = m_surface.tris()(idx, 1);
+    vector[2] = m_surface.tris()(idx, 2);
+
+    return vector;
+}
+
+
+//*************************************************************************************************************
+
+float SurfaceData::curvAt(int idx) const
+{
+    return m_surface.curv()[idx];
+}
+
+
+//*************************************************************************************************************

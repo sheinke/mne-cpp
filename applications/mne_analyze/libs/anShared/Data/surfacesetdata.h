@@ -1,15 +1,14 @@
 //=============================================================================================================
 /**
-* @file     main.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
+* @file     surfacesetdata.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     January, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh, Lorenz Esch and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,38 +29,36 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implements the mne_analyze GUI application.
+* @brief     SurfaceSetData class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_SURFACESETDATA_H
+#define ANSHAREDLIB_SURFACESETDATA_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <stdio.h>
-#include "info.h"
-#include "analyzecore.h"
+#include "abstractdata.h"
+#include "../anshared_global.h"
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-#include <QtGui>
-#include <QApplication>
-#include <QDateTime>
-#include <QSplashScreen>
-#include <QThread>
+#include <QSharedPointer>
+#include <QMap>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// Eigen INCLUDES
 //=============================================================================================================
-
-using namespace MNEANALYZE;
 
 
 //*************************************************************************************************************
@@ -71,28 +68,70 @@ using namespace MNEANALYZE;
 
 
 //*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE ANSHAREDLIB
+//=============================================================================================================
 
-AnalyzeCore *pAnalyzeCore;
+namespace ANSHAREDLIB {
 
-int main(int argc, char *argv[])
+
+//*************************************************************************************************************
+//=============================================================================================================
+// ANSHAREDLIB FORWARD DECLARATIONS
+//=============================================================================================================
+
+class SurfaceData;
+
+//=============================================================================================================
+/**
+* This is a wrapper class for SurfaceSet.
+*
+* @brief This is a wrapper class for SurfaceSet.
+*/
+class ANSHAREDSHARED_EXPORT SurfaceSetData : public AbstractData
 {
-    QApplication a(argc, argv);
 
-    //set application settings
-    QCoreApplication::setOrganizationName(CInfo::OrganizationName());
-    QCoreApplication::setApplicationName(CInfo::AppNameShort());
+public:
+    typedef QSharedPointer<SurfaceSetData> SPtr;            /**< Shared pointer type for SurfaceSetData. */
+    typedef QSharedPointer<const SurfaceSetData> ConstSPtr; /**< Const shared pointer type for SurfaceSetData. */
 
-    //show splash screen for 1 second
-    QPixmap pixmap(":/resources/images/splashscreen_mne_analyze.png");
-    QSplashScreen splash(pixmap);
-    splash.show();
-    QThread::sleep(1);
+    //=========================================================================================================
+    /**
+    * Constructs a SurfaceSetData object.
+    */
+    SurfaceSetData();
 
-    //New main window instance
-    pAnalyzeCore = new AnalyzeCore();
-    pAnalyzeCore->showMainWindow();
+    //=========================================================================================================
+    /**
+    * Construts the surface set by reading it of the given files.
+    *
+    * @param[in] subject_id         Name of subject
+    * @param[in] hemi               Which hemisphere to load {0 -> lh, 1 -> rh, 2 -> both}
+    * @param[in] surf               Name of the surface to load (eg. inflated, orig ...)
+    * @param[in] subjects_dir       Subjects directory
+    */
+    explicit SurfaceSetData(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir);
 
-    splash.finish(pAnalyzeCore->getMainWindow());
+protected:
 
-    return a.exec();
-}
+private:
+
+    QMap<qint32, SurfaceData>       m_surfaceData;
+
+signals:
+
+
+    void newSurfaceLoaded();
+
+};
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
+
+} // namespace ANSHAREDLIB
+
+#endif // ANSHAREDLIB_SURFACESETDATA_H

@@ -1,15 +1,14 @@
 //=============================================================================================================
 /**
-* @file     main.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
+* @file     surfacesettings.cpp
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     January, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh, Lorenz Esch and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,30 +29,33 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implements the mne_analyze GUI application.
+* @brief    SurfaceSettings class definition.
 *
 */
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <stdio.h>
-#include "info.h"
-#include "analyzecore.h"
+#include "surfacesettings.h"
+#include "abstractdata.h"
+#include <fs/surface.h>
+
+#include <iostream>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-#include <QtGui>
-#include <QApplication>
-#include <QDateTime>
-#include <QSplashScreen>
-#include <QThread>
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Eigen INCLUDES
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -61,38 +63,72 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace MNEANALYZE;
+using namespace ANSHAREDLIB;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// FORWARD DECLARATIONS
+// DEFINE GLOBAL METHODS
 //=============================================================================================================
 
 
 //*************************************************************************************************************
+//=============================================================================================================
+// DEFINE MEMBER METHODS
+//=============================================================================================================
 
-AnalyzeCore *pAnalyzeCore;
-
-int main(int argc, char *argv[])
+SurfaceSettings::SurfaceSettings(FSLIB::Surface *pSurface)
+: m_pSurface(pSurface)
 {
-    QApplication a(argc, argv);
-
-    //set application settings
-    QCoreApplication::setOrganizationName(CInfo::OrganizationName());
-    QCoreApplication::setApplicationName(CInfo::AppNameShort());
-
-    //show splash screen for 1 second
-    QPixmap pixmap(":/resources/images/splashscreen_mne_analyze.png");
-    QSplashScreen splash(pixmap);
-    splash.show();
-    QThread::sleep(1);
-
-    //New main window instance
-    pAnalyzeCore = new AnalyzeCore();
-    pAnalyzeCore->showMainWindow();
-
-    splash.finish(pAnalyzeCore->getMainWindow());
-
-    return a.exec();
 }
+
+
+//*************************************************************************************************************
+
+qint32 SurfaceSettings::getHemi() const
+{
+    return m_pSurface->hemi();
+}
+
+
+//*************************************************************************************************************
+
+QString SurfaceSettings::getSurfaceType() const
+{
+    return m_pSurface->surf();
+}
+
+
+//*************************************************************************************************************
+
+Eigen::Vector3f SurfaceSettings::getOffset() const
+{
+    return m_pSurface->offset();
+}
+
+
+//*************************************************************************************************************
+
+QString SurfaceSettings::getFilePath() const
+{
+    return m_pSurface->filePath();
+}
+
+
+//*************************************************************************************************************
+
+QString SurfaceSettings::getFileName() const
+{
+    return m_pSurface->fileName();
+}
+
+
+//*************************************************************************************************************
+
+void SurfaceSettings::setOffset(const Eigen::Vector3f &vOffset)
+{
+    m_pSurface->offset() = vOffset;
+}
+
+
+//*************************************************************************************************************
