@@ -62,8 +62,6 @@
 
 #include <utils/mnemath.h>
 
-#include <iostream>
-
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -171,7 +169,7 @@ QWidget *Music::getView()
 
 //*************************************************************************************************************
 
-void Music::handleEvent(Event *e)
+void Music::handleEvent(Event e)
 {
 
 }
@@ -181,8 +179,7 @@ void Music::handleEvent(Event *e)
 
 QVector<Event::EVENT_TYPE> Music::getEventSubscriptions(void) const
 {
-    QVector<Event::EVENT_TYPE> temp;
-    return temp;
+    return QVector<Event::EVENT_TYPE>();
 }
 
 
