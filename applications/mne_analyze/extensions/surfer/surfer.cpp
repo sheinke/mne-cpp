@@ -75,7 +75,7 @@ Surfer::~Surfer()
 
 QSharedPointer<IExtension> Surfer::clone() const
 {
-    QSharedPointer<Surfer> pSurferClone(new Surfer);
+    QSharedPointer<Surfer> pSurferClone = QSharedPointer<Surfer>::create();
     return pSurferClone;
 }
 
@@ -135,7 +135,7 @@ QWidget *Surfer::getView()
         //
         //Pial surface
         //
-        m_pView = new View3DAnalyze(1);
+        m_pView = new View3DSurfer();
         m_pView->setWindowTitle("Pial surface");
     }
 
