@@ -1,14 +1,15 @@
 //=============================================================================================================
 /**
-* @file     dipolefit.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+* @file     communicator.cpp
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,7 +30,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains the implementation of the DipoleFit class.
+* @brief    Implementation of the Communicator class
 *
 */
 
@@ -38,8 +39,15 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "dipolefit.h"
-#include "FormFiles/dipolefitcontrol.h"
+#include "communicator.h"
+#include "eventmanager.h"
+#include "../Interfaces/IExtension.h"
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// QT INCLUDES
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -47,7 +55,6 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace DIPOLEFITEXTENSION;
 using namespace ANSHAREDLIB;
 
 
@@ -56,97 +63,90 @@ using namespace ANSHAREDLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-DipoleFit::DipoleFit()
-: m_pControl(Q_NULLPTR)
-, m_pDipoleFitControl(Q_NULLPTR)
+Communicator::Communicator(const QVector<Event::EVENT_TYPE> &subs)
+    : m_ID(nextID()),
+      m_EventSubscriptions(subs)
 {
-
+    EventManager::addCommunicator(this);
 }
-
 
 //*************************************************************************************************************
 
-DipoleFit::~DipoleFit()
+
+Communicator::Communicator(IExtension* extension)
+    : Communicator(extension->getEventSubscriptions())
 {
-
+    QObject::connect(this,
+                     SIGNAL(receivedEvent(Event)),
+                     extension,
+                     SLOT(handleEvent(Event)),
+                     Qt::DirectConnection);
 }
-
 
 //*************************************************************************************************************
 
-QSharedPointer<IExtension> DipoleFit::clone() const
-{
-    QSharedPointer<DipoleFit> pDipoleFitClone(new DipoleFit);
-    return pDipoleFitClone;
-}
 
+Communicator::~Communicator()
+{
+    EventManager::removeCommunicator(this);
+}
 
 //*************************************************************************************************************
 
-void DipoleFit::init()
-{
-    m_pDipoleFitControl = new DipoleFitControl;
-}
 
+void Communicator::publishEvent(Event::EVENT_TYPE etype, const QVariant &data) const
+{
+    // simply pass on to the EventManager
+    EventManager::issueEvent(Event(etype, this, data));
+}
 
 //*************************************************************************************************************
 
-void DipoleFit::unload()
+
+void Communicator::updateSubscriptions(const QVector<Event::EVENT_TYPE> &subs)
 {
-
+    // update routing table of event manager
+    EventManager::updateSubscriptions(this, subs);
+    // update own subscription list: This HAS to be done after the EventManager::updateSubscriptions,
+    // since the latter uses the old list in order to keep execution time low
+    m_EventSubscriptions.clear();
+    m_EventSubscriptions.append(subs);
 }
-
 
 //*************************************************************************************************************
 
-QString DipoleFit::getName() const
+void Communicator::addSubscriptions(const QVector<Event::EVENT_TYPE> &newsubs)
 {
-    return "Dipole Fit";
+    m_EventSubscriptions.append(newsubs);
+    // add new subscriptions to routing table of event manager
+    EventManager::addSubscriptions(this, newsubs);
 }
-
 
 //*************************************************************************************************************
 
-QMenu *DipoleFit::getMenu()
-{
-    return Q_NULLPTR;
-}
 
+void Communicator::addSubscriptions(Event::EVENT_TYPE newsub)
+{
+    // convenience function, simply wrap in vector
+    QVector<Event::EVENT_TYPE> temp;
+    temp.push_back(newsub);
+    addSubscriptions(temp);
+}
 
 //*************************************************************************************************************
 
-QDockWidget *DipoleFit::getControl()
+
+void Communicator::manualDisconnect(void)
 {
-    if(!m_pControl) {
-        m_pControl = new QDockWidget(tr("Dipole Fit"));
-        m_pControl->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-        m_pControl->setMinimumWidth(180);
-        m_pControl->setWidget(m_pDipoleFitControl);
-    }
-
-    return m_pControl;
+    // simply delegate to EventManager
+    EventManager::removeCommunicator(this);
 }
-
 
 //*************************************************************************************************************
 
-QWidget *DipoleFit::getView()
-{
-    return Q_NULLPTR;
-}
 
+//=============================================================================================================
+// DEFINE STATIC MEMBERS
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-void DipoleFit::handleEvent(Event e)
-{
-
-}
-
-
-//*************************************************************************************************************
-
-QVector<Event::EVENT_TYPE> DipoleFit::getEventSubscriptions(void) const
-{
-    return QVector<Event::EVENT_TYPE>();
-}
+Communicator::CommunicatorID Communicator::m_IDCounter;

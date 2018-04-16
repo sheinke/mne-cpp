@@ -1,14 +1,15 @@
 //=============================================================================================================
 /**
-* @file     dipolefit.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+* @file     event.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,124 +30,122 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains the implementation of the DipoleFit class.
+* @brief    Event class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_EVENT_H
+#define ANSHAREDLIB_EVENT_H
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "dipolefit.h"
-#include "FormFiles/dipolefitcontrol.h"
+#include "../anshared_global.h"
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// QT INCLUDES
 //=============================================================================================================
 
-using namespace DIPOLEFITEXTENSION;
-using namespace ANSHAREDLIB;
+#include <QSharedPointer>
+#include <QPointer>
+#include <QVariant>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE MEMBER METHODS
+// DEFINE NAMESPACE ANSHAREDLIB
 //=============================================================================================================
 
-DipoleFit::DipoleFit()
-: m_pControl(Q_NULLPTR)
-, m_pDipoleFitControl(Q_NULLPTR)
+namespace ANSHAREDLIB
 {
 
+
+//*************************************************************************************************************
+//=============================================================================================================
+// FORWARD DECLARATIONS
+//=============================================================================================================
+
+class Communicator;
+
+
+//=========================================================================================================
+/**
+* DECLARE CLASS Event
+*
+* @brief Event class for inter-Extension communication
+*/
+class ANSHAREDSHARED_EXPORT Event
+{
+public:
+    typedef QSharedPointer<Event> SPtr;            /**< Shared pointer type for Event. */
+    typedef QSharedPointer<const Event> ConstSPtr; /**< Const shared pointer type for Event. */
+
+    //=========================================================================================================
+    /**
+    * Public enum for all available Event types.
+    */
+    enum EVENT_TYPE
+    {
+        PING,
+        DEFAULT
+    };
+
+    //=========================================================================================================
+    /**
+    * Constructs an Event object.
+    */
+    Event(const EVENT_TYPE type, const Communicator* sender, const QVariant& data);
+
+    //=========================================================================================================
+    /**
+    * @brief Getter for Event type.
+    *
+    * @return Type of the Event.
+    */
+    inline EVENT_TYPE getType() const;
+
+    //=========================================================================================================
+    /**
+    * @brief Getter for Event Sender
+    *
+    * @return Sender of the Event.
+    */
+    inline const Communicator *getSender() const;
+
+    //=========================================================================================================
+    /**
+    * @brief Destructor
+    */
+    ~Event();
+
+private:
+    EVENT_TYPE m_eventType;             /**< Type of the respective Event instance. */
+    const Communicator* m_sender;       /**< Sender of the Event. */
+    const QVariant m_data;             /**< Attached Data (can be empty). */
+};
+
+//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
+inline Event::EVENT_TYPE Event::getType() const
+{
+    return m_eventType;
 }
 
 
 //*************************************************************************************************************
 
-DipoleFit::~DipoleFit()
+inline const Communicator* Event::getSender() const
 {
-
+    return m_sender;
 }
 
+} // NAMESPACE
 
-//*************************************************************************************************************
-
-QSharedPointer<IExtension> DipoleFit::clone() const
-{
-    QSharedPointer<DipoleFit> pDipoleFitClone(new DipoleFit);
-    return pDipoleFitClone;
-}
-
-
-//*************************************************************************************************************
-
-void DipoleFit::init()
-{
-    m_pDipoleFitControl = new DipoleFitControl;
-}
-
-
-//*************************************************************************************************************
-
-void DipoleFit::unload()
-{
-
-}
-
-
-//*************************************************************************************************************
-
-QString DipoleFit::getName() const
-{
-    return "Dipole Fit";
-}
-
-
-//*************************************************************************************************************
-
-QMenu *DipoleFit::getMenu()
-{
-    return Q_NULLPTR;
-}
-
-
-//*************************************************************************************************************
-
-QDockWidget *DipoleFit::getControl()
-{
-    if(!m_pControl) {
-        m_pControl = new QDockWidget(tr("Dipole Fit"));
-        m_pControl->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-        m_pControl->setMinimumWidth(180);
-        m_pControl->setWidget(m_pDipoleFitControl);
-    }
-
-    return m_pControl;
-}
-
-
-//*************************************************************************************************************
-
-QWidget *DipoleFit::getView()
-{
-    return Q_NULLPTR;
-}
-
-
-//*************************************************************************************************************
-
-void DipoleFit::handleEvent(Event e)
-{
-
-}
-
-
-//*************************************************************************************************************
-
-QVector<Event::EVENT_TYPE> DipoleFit::getEventSubscriptions(void) const
-{
-    return QVector<Event::EVENT_TYPE>();
-}
+#endif // ANSHAREDLIB_EVENT_H

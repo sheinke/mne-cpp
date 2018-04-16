@@ -89,7 +89,10 @@ SOURCES += \
     Data/surfacedata.cpp \
     Data/surfacesettings.cpp \
     Model/modelstorage.cpp \
-    Model/surfacemodel.cpp
+    Model/surfacemodel.cpp \
+    Management/event.cpp \
+    Management/communicator.cpp \
+    Management/eventmanager.cpp
 
 HEADERS += \
     anshared_global.h \
@@ -107,7 +110,10 @@ HEADERS += \
     Model/modelstorage.h \
     Model/surfacemodel.h \
     Utils/types.h \
-    anshared_global.h
+    anshared_global.h \
+    Management/event.h \
+    Management/communicator.h \
+    Management/eventmanager.h
 
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
