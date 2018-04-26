@@ -82,7 +82,6 @@ SOURCES += \
     Management/analyzedata.cpp \
     Management/analyzesettings.cpp \
     Management/extensionmanager.cpp \
-    Data/datastorage.cpp \
     Data/abstractdata.cpp \
     Data/datasettings.cpp \
     Data/surfacesetdata.cpp \
@@ -100,7 +99,6 @@ HEADERS += \
     Management/extensionmanager.h \
     Interfaces/IStandardView.h \
     Interfaces/IExtension.h \
-    Data/datastorage.h \
     Data/abstractdata.h \
     Data/datasettings.h \
     Data/surfacesetdata.h \
