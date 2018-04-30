@@ -1,14 +1,15 @@
 //=============================================================================================================
 /**
-* @file     modelstorage.cpp
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
+* @file     abstractmodel.h
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
+*           Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,9 +30,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    ModelStorage class definition.
+* @brief     AbstractModel class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_ABSTRACTMODEL_H
+#define ANSHAREDLIB_ABSTRACTMODEL_H
 
 
 //*************************************************************************************************************
@@ -39,13 +43,15 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "modelstorage.h"
-
+#include "../anshared_global.h"
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
+
+#include <QSharedPointer>
+#include <QAbstractItemModel>
 
 
 //*************************************************************************************************************
@@ -56,26 +62,90 @@
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
-//=============================================================================================================
-
-using namespace ANSHAREDLIB;
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// DEFINE GLOBAL METHODS
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE MEMBER METHODS
+// DEFINE NAMESPACE ANSHAREDLIB
 //=============================================================================================================
 
-ModelStorage::ModelStorage()
+namespace ANSHAREDLIB {
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// ANSHAREDLIB FORWARD DECLARATIONS
+//=============================================================================================================
+
+
+//=============================================================================================================
+/**
+* Description of what this class is intended to do (in detail).
+*
+* @brief Brief description of this class.
+*/
+class ANSHAREDSHARED_EXPORT AbstractModel : public QAbstractItemModel
 {
-}
+    Q_OBJECT
+
+public:
+    typedef QSharedPointer<AbstractModel> SPtr;            /**< Shared pointer type for AbstractModel. */
+    typedef QSharedPointer<const AbstractModel> ConstSPtr; /**< Const shared pointer type for AbstractModel. */
+
+    //=========================================================================================================
+    /**
+    * Constructs a AbstractModel object. Simply pass potential parent object to super class.
+    */
+    AbstractModel(QObject *pParent = nullptr)
+        : QAbstractItemModel(pParent) {}
+
+    //=========================================================================================================
+    /**
+    * Default destructor.
+    */
+    virtual ~AbstractModel() = default;
+
+    //=========================================================================================================
+    /**
+    * @brief The MODEL_TYPE enum lists all available model types.
+    *        Naming convention: NAMESPACE_CLASSNAME_MODEL
+    */
+    enum MODEL_TYPE
+    {
+        FSLIB_SURFACE_MODEL
+    };
+
+    //=========================================================================================================
+    /**
+    * @brief getType Inherited by AbstractModel
+    * @return The type of the respective subclasses
+    */
+    virtual inline MODEL_TYPE getType() const = 0;
+
+    //=========================================================================================================
+    // Inherited by QAbstractItemModel:
+    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override = 0;
+    virtual Qt::ItemFlags flags(const QModelIndex &index) const override = 0;
+    virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override = 0;
+    virtual QModelIndex parent(const QModelIndex &index) const override = 0;
+    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override = 0;
+    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const override = 0;
+
+protected:
+
+private:
+
+};
 
 
 //*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
+
+} // namespace ANSHAREDLIB
+
+#endif // ANSHAREDLIB_ABSTRACTMODEL_H

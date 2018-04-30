@@ -1,14 +1,15 @@
 //=============================================================================================================
 /**
-* @file     datastorage.h
+* @file     view3dsurfer.h
 * @author   Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     August, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,12 +30,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief     DataStorage class declaration.
+* @brief     View3DSurfer class declaration.
 *
 */
 
-#ifndef ANSHAREDLIB_DATASTORAGE_H
-#define ANSHAREDLIB_DATASTORAGE_H
+#ifndef SURFEREXTENSION_VIEW3DSURFER_H
+#define SURFEREXTENSION_VIEW3DSURFER_H
 
 
 //*************************************************************************************************************
@@ -42,7 +43,7 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "../anshared_global.h"
+#include <mne/mne_bem_surface.h>
 
 
 //*************************************************************************************************************
@@ -51,8 +52,8 @@
 //=============================================================================================================
 
 #include <QSharedPointer>
-#include <QHash>
-#include <QString>
+#include <QWidget>
+#include <QPointer>
 
 
 //*************************************************************************************************************
@@ -66,21 +67,46 @@
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
+namespace Qt3DRender {
+    class QGeometryRenderer;
+    class QPickEvent;
+}
+
+namespace Qt3DCore {
+    class QEntity;
+    class QTransform;
+}
+
+namespace Qt3DExtras {
+    class QSphereMesh;
+}
+
+class QGridLayout;
+class QAbstractItemModel;
+class QItemSelectionModel;
+
+namespace MNELIB {
+    class MNEBemSurface;
+}
+
+namespace DISP3DLIB {
+    class CustomMesh;
+}
+
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE ANSHAREDLIB
+// DEFINE NAMESPACE SURFEREXTENSION
 //=============================================================================================================
 
-namespace ANSHAREDLIB {
+namespace SURFEREXTENSION {
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// ANSHAREDLIB FORWARD DECLARATIONS
+// SURFEREXTENSION FORWARD DECLARATIONS
 //=============================================================================================================
 
-class AbstractData;
 
 //=============================================================================================================
 /**
@@ -88,28 +114,87 @@ class AbstractData;
 *
 * @brief Brief description of this class.
 */
-class ANSHAREDSHARED_EXPORT DataStorage
+class View3DSurfer : public QWidget
 {
 
 public:
-    typedef QSharedPointer<DataStorage> SPtr;            /**< Shared pointer type for DataStorage. */
-    typedef QSharedPointer<const DataStorage> ConstSPtr; /**< Const shared pointer type for DataStorage. */
+    typedef QSharedPointer<View3DSurfer> SPtr;            /**< Shared pointer type for View3DSurfer. */
+    typedef QSharedPointer<const View3DSurfer> ConstSPtr; /**< Const shared pointer type for View3DSurfer. */
 
     //=========================================================================================================
     /**
-    * Constructs a DataStorage object.
+    * Constructs a View3DSurfer object.
     */
-    DataStorage();
+    View3DSurfer();
 
-protected:
+    //=========================================================================================================
+    /**
+    * Default destructor.
+    */
+    ~View3DSurfer() = default;
+
+    //=========================================================================================================
+    /**
+    * Sets the model for the view to present.
+    *
+    * This function will create and set a new selection model,
+    * replacing any model that was previously set with setSelectionModel().
+    * However, the old selection model will not be deleted as it may be shared between several views.
+    *
+    * @param[in]    pModel   The new item model.
+    */
+    void setModel(QAbstractItemModel *pModel);
+
+    //=========================================================================================================
+    /**
+    * Sets the current selection model to the given selectionModel.
+    *
+    * Note that, if you call setModel() after this function,
+    * the given selectionModel will be replaced by one created by the view.
+    *
+    * @param[in]    pSelectionModel     The new selection model.
+    */
+    void setSelectionModel(QItemSelectionModel *pSelectionModel);
 
 private:
 
-    //TODO File names as keys
-    QHash<QString, QSharedPointer<AbstractData> >        m_data;
+    //=========================================================================================================
+    /**
+    * Initializes the 3d view.
+    */
+    void init();
+
+    //=========================================================================================================
+    /**
+    * Creates the QEntity tree for the scene.
+    */
+    Qt3DCore::QEntity *createEntityTree();
+
+    //=========================================================================================================
+    /**
+    * This function creates a mesh from the data given by a SurfaceModel.
+    */
+    void updateSurfaceModelMesh();
+
+    Qt3DCore::QEntity *createLightEntity();
+
+    void testPicking(Qt3DRender::QPickEvent *event);
+
+    inline float squared(float x);
+
+    //Layout
+    QWidget *m_view3d_container;
+    QGridLayout *m_view3d_gridlayout;
+
+    DISP3DLIB::CustomMesh *m_pSurfaceMesh;
+
+    Qt3DExtras::QSphereMesh *m_pointMesh;
+    Qt3DCore::QTransform *pSphereTransform;
+
+    QPointer<QAbstractItemModel> m_pItemModel;
+    QPointer<QItemSelectionModel> m_pSelectionModel;
 
 };
-
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -117,6 +202,11 @@ private:
 //=============================================================================================================
 
 
-} // namespace ANSHAREDLIB
+inline float View3DSurfer::squared(float x)
+{
+    return x * x;
+}
 
-#endif // ANSHAREDLIB_DATASTORAGE_H
+} // namespace SURFEREXTENSION
+
+#endif // SURFEREXTENSION_VIEW3DSURFER_H

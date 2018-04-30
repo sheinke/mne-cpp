@@ -145,7 +145,7 @@ public:
     //=========================================================================================================
     /**
     * Informs the EventManager about all Events that the Extension wants to know about. Can return an empty
-    * vector in case no Events need to be seen by the Extension
+    * vector in case no Events need to be seen by the Extension.
     *
     * @return The vector of relevant Events
     */
@@ -153,41 +153,25 @@ public:
 
     //=========================================================================================================
     /**
-    * Sets the global data, which provides the central database
+    * Sets the global data, which provides the central database.
     *
-    * @param [in] globalData  the global data
+    * @param[in] globalData  the global data
     */
-    virtual inline void setGlobalData(QSharedPointer<AnalyzeData>& globalData);
+    virtual inline void setGlobalData(QSharedPointer<AnalyzeData> globalData);
 
     //=========================================================================================================
     /**
-    * Returns the global data base
+    * Sets the global settings, which provides the mne analyze settings.
     *
-    * @return the global data
+    * @param[in] globalSettings  the global settings
     */
-    virtual inline QSharedPointer<AnalyzeData>& globalData();
-
-    //=========================================================================================================
-    /**
-    * Sets the global settings, which provides the mne analyze settings
-    *
-    * @param [in] globalSettings  the global settings
-    */
-    virtual inline void setGlobalSettings(QSharedPointer<AnalyzeSettings>& globalSettings);
-
-    //=========================================================================================================
-    /**
-    * Returns the global settings base
-    *
-    * @return the global settings
-    */
-    virtual inline QSharedPointer<AnalyzeSettings>& globalSettings();
+    virtual inline void setGlobalSettings(QSharedPointer<AnalyzeSettings> globalSettings);
 
 public slots:
 
     //=========================================================================================================
     /**
-    * Called by the EventManager in case a subscribed-for Event has happened
+    * Called by the EventManager in case a subscribed-for Event has happened.
     *
     * @param e The Event that has taken place
     */
@@ -204,33 +188,17 @@ private:
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-void IExtension::setGlobalData(QSharedPointer<AnalyzeData> &data)
+void IExtension::setGlobalData(QSharedPointer<AnalyzeData> globalData)
 {
-    m_analyzeData = data;
+    m_analyzeData = globalData;
 }
-
 
 //*************************************************************************************************************
 
-QSharedPointer<AnalyzeData> &IExtension::globalData()
+
+void IExtension::setGlobalSettings(QSharedPointer<AnalyzeSettings> globalSettings)
 {
-    return m_analyzeData;
-}
-
-
-//*************************************************************************************************************
-
-void IExtension::setGlobalSettings(QSharedPointer<AnalyzeSettings> &settings)
-{
-    m_analyzeSettings = settings;
-}
-
-
-//*************************************************************************************************************
-
-QSharedPointer<AnalyzeSettings> &IExtension::globalSettings()
-{
-    return m_analyzeSettings;
+    m_analyzeSettings = globalSettings;
 }
 
 } //Namespace

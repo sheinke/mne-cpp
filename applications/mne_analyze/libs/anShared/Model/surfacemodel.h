@@ -2,13 +2,14 @@
 /**
 * @file     surfacemodel.h
 * @author   Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -43,6 +44,9 @@
 //=============================================================================================================
 
 #include "../Data/surfacedata.h"
+#include "../anshared_global.h"
+#include "abstractmodel.h"
+
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -50,7 +54,6 @@
 //=============================================================================================================
 
 #include <QSharedPointer>
-#include <QAbstractItemModel>
 
 
 //*************************************************************************************************************
@@ -82,17 +85,21 @@ namespace ANSHAREDLIB {
 //=============================================================================================================
 /**
 * This model is used to access surface data.
-* Structure:
+* The Model is structured like this.
 *
 *           root
 *             |
 *     row = 0 |--Vertices [column]
 *             |
 *     row = 1 |--Normals [column]
+*             |
+*     row = 2 |--Triangles [column]
+*             |
+*     row = 3 |--Curvatures [column]
 *
-* @brief Brief description of this class.
+* @brief This model is used to access surface data.
 */
-class SurfaceModel : public QAbstractItemModel
+class ANSHAREDSHARED_EXPORT SurfaceModel : public AbstractModel
 {
     Q_OBJECT
 
@@ -108,45 +115,100 @@ private:
         CurvatureItem = 4,
     };
 
+public:
+
+    //=========================================================================================================
+    /**
+    * Deleted default constructor.
+    */
     SurfaceModel() = delete;
 
     //=========================================================================================================
     /**
-    * Constructs a SurfaceModel object.
+    * Constructs a SurfaceModel object from a given SurfaceData object.
+    *
+    * @param[in] sSurfaceFilePath   The path used in Surface class for data loading.
+    * @param[in] pParent            The parent of this object.
     */
-    explicit SurfaceModel(SurfaceData* pSurfaceData, QObject* pParent = nullptr);
+    explicit SurfaceModel(const QString& sSurfaceFilePath, QObject* pParent = nullptr);
 
+    //=========================================================================================================
+    /**
+    * Default destructor.
+    */
     ~SurfaceModel() = default;
 
-    QVariant data(const QModelIndex &index, int role) const override;
+    //=========================================================================================================
+    /**
+    * Returns the data stored under the given role for the index.
+    * Currently on Qt::DisplayRole is supported
+    *
+    * @param[in] index   The index that referres to the requested item.
+    * @param[in] role    The requested role.
+    */
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
+    //=========================================================================================================
+    /**
+    * Returns the item flags for the given index.
+    *
+    * @param[in] index   The index that referres to the requested item.
+    */
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-
+    //=========================================================================================================
+    /**
+    * Returns the index for the item in the model specified by the given row, column and parent index.
+    *
+    * @param[in] row      The specified row.
+    * @param[in] column   The specified column.
+    * @param[in] parent   The parent index.
+    */
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
 
+    //=========================================================================================================
+    /**
+    * Returns the parent index of the given index.
+    * In this Model the parent index in always QModelIndex().
+    *
+    * @param[in] index   The index that referres to the child.
+    */
     QModelIndex parent(const QModelIndex &index) const override;
 
     //=========================================================================================================
     /**
     * Returns the number of childeren for the parent node.
+    *
+    * @param[in] parent     The parent index.
     */
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
 
     //=========================================================================================================
     /**
     * Returns the number of objects stored in the node.
+    *
+    * @param[in] parent     The index of the requested node.
     */
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
-protected:
+    //=========================================================================================================
+    /**
+    * Returns true if parent has any children; otherwise returns false.
+    *
+    * @param[in] parent     The index of the parent node.
+    */
+    bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
+
+    //=========================================================================================================
+    /**
+    * @brief getType The type of this model (SurfaceModel)
+    * @return The type of this model (SurfaceModel)
+    */
+    inline AbstractModel::MODEL_TYPE getType() const override;
 
 private:
 
-    SurfaceData*    m_pSurfaceData;
-
-
+    SurfaceData    m_pSurfaceData;
 
 };
 
@@ -156,6 +218,10 @@ private:
 // INLINE DEFINITIONS
 //=============================================================================================================
 
+inline AbstractModel::MODEL_TYPE SurfaceModel::getType() const
+{
+    return AbstractModel::MODEL_TYPE::FSLIB_SURFACE_MODEL;
+}
 
 } // namespace ANSHAREDLIB
 

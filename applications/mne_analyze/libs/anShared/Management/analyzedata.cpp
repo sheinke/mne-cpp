@@ -2,13 +2,15 @@
 /**
 * @file     analyzedata.cpp
 * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+*           Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     February, 2017
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -46,6 +48,10 @@
 // QT INCLUDES
 //=============================================================================================================
 
+#include <QVector>
+#include <QSharedPointer>
+#include <QString>
+
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -53,8 +59,6 @@
 //=============================================================================================================
 
 using namespace ANSHAREDLIB;
-using namespace INVERSELIB;
-using namespace MNELIB;
 
 
 //*************************************************************************************************************
@@ -64,9 +68,6 @@ using namespace MNELIB;
 
 AnalyzeData::AnalyzeData(QObject *parent)
 : QObject(parent)
-, m_iCurrentEstimate(-1)
-, m_iCurrentSample(0)
-, m_iCurrentECDSet(-1)
 {
 
 }
@@ -76,69 +77,53 @@ AnalyzeData::AnalyzeData(QObject *parent)
 
 AnalyzeData::~AnalyzeData()
 {
-
+    // @TODO make sure all objects are safely deleted
 }
 
 
 //*************************************************************************************************************
 
-const MNESourceEstimate &AnalyzeData::currentSTC() const
+QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(AbstractModel::MODEL_TYPE mtype)
 {
-    return m_qListEstimates[m_iCurrentEstimate];
+    // simply iterate over map, number of objects in memory should be small enough
+    QVector<QSharedPointer<AbstractModel> > result;
+    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
+    for (; iter != m_data.end(); iter++)
+    {
+        if (iter.value()->getType() == mtype)
+        {
+            result.push_back(iter.value());
+        }
+    }
+    return result;
 }
-
 
 //*************************************************************************************************************
 
-void AnalyzeData::addSTC(const MNESourceEstimate &stc)
+
+QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
 {
-    m_qListEstimates.append(stc);
-    m_iCurrentEstimate = m_qListEstimates.size() -1;
-    m_iCurrentSample = 0;
-    emit stcChanged_signal();
-}
-
-
-//*************************************************************************************************************
-
-void AnalyzeData::setCurrentSTCSample(int sample)
-{
-    if(sample >= 0 && sample < m_qListEstimates[m_iCurrentEstimate].samples() && sample != m_iCurrentSample) {
-        m_iCurrentSample = sample;
-        emit stcSampleChanged_signal(sample);
+    // check if file was already loaded:
+    if (m_data.contains(path))
+    {
+        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
+    }
+    else
+    {
+        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
+        m_data.insert(path, qSharedPointerCast<AbstractModel>(sm));
+        return sm;
     }
 }
 
-
 //*************************************************************************************************************
 
-int AnalyzeData::currentSTCSample()
-{
-    return m_iCurrentSample;
-}
 
+QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+{
+    // copied from Surface::read
+    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
+    return loadSurface(p_sFile);
+}
 
 //*************************************************************************************************************
-
-const ECDSet& AnalyzeData::currentECDSet() const
-{
-    return m_qListECDSets[m_iCurrentECDSet].second;
-}
-
-
-//*************************************************************************************************************
-
-void AnalyzeData::addECDSet( DipoleFitSettings &ecdSettings,  ECDSet &ecdSet)
-{
-    m_qListECDSets.append(qMakePair(ecdSettings, ecdSet));
-    m_iCurrentECDSet = m_qListECDSets.size() -1;
-    emit ecdSetChanged_signal();
-}
-
-
-//*************************************************************************************************************
-
-const QList< QPair< DipoleFitSettings, ECDSet > >& AnalyzeData::ecdSets() const
-{
-    return m_qListECDSets;
-}

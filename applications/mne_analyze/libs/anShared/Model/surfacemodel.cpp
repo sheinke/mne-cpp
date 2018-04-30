@@ -2,13 +2,14 @@
 /**
 * @file     surfacemodel.cpp
 * @author   Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -48,6 +49,8 @@
 // QT INCLUDES
 //=============================================================================================================
 
+#include <QDebug>
+
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -75,9 +78,9 @@ using namespace Eigen;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-SurfaceModel::SurfaceModel(SurfaceData* pSurfaceData, QObject *pParent)
-: QAbstractItemModel(pParent)
-, m_pSurfaceData(pSurfaceData)
+SurfaceModel::SurfaceModel(const QString &sSurfaceFilePath, QObject *pParent)
+: AbstractModel(pParent)
+, m_pSurfaceData(sSurfaceFilePath)
 {
 
 }
@@ -91,25 +94,25 @@ QVariant SurfaceModel::data(const QModelIndex &index, int role) const
         QVariant output;
         // Vertices:
         if(index.internalId() == InternalId::VerticeItem) {
-            output.setValue(m_pSurfaceData->vertexAt(index.column()));
+            output.setValue(m_pSurfaceData.vertexAt(index.column()));
             return output;
         }
 
         // Normals:
         else if(index.internalId() == InternalId::NormalItem) {
-            output.setValue(m_pSurfaceData->normalAt(index.column()));
+            output.setValue(m_pSurfaceData.normalAt(index.column()));
             return output;
         }
 
         // Triangles:
         else if(index.internalId() == InternalId::TriangleItem) {
-            output.setValue(m_pSurfaceData->triAt(index.column()));
+            output.setValue(m_pSurfaceData.triAt(index.column()));
             return output;
         }
 
         // Curvature:
         else if(index.internalId() == InternalId::CurvatureItem) {
-            output.setValue(m_pSurfaceData->curvAt(index.column()));
+            output.setValue(m_pSurfaceData.curvAt(index.column()));
             return output;
         }
     }
@@ -122,26 +125,22 @@ QVariant SurfaceModel::data(const QModelIndex &index, int role) const
 
 Qt::ItemFlags SurfaceModel::flags(const QModelIndex &index) const
 {
-    return Qt::NoItemFlags;
+    return QAbstractItemModel::flags(index);
 }
 
 
 //*************************************************************************************************************
 
-QVariant SurfaceModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
-    return QVariant();
-}
+//QVariant SurfaceModel::headerData(int section, Qt::Orientation orientation, int role) const
+//{
+//    return QVariant();
+//}
 
 
 //*************************************************************************************************************
 
 QModelIndex SurfaceModel::index(int row, int column, const QModelIndex &parent) const
 {
-    if(!hasIndex(row, column, parent)) {
-        return QModelIndex();
-    }
-
     //TODO rework this
     if(!parent.isValid()) {
         if(row == 0) {
@@ -157,6 +156,8 @@ QModelIndex SurfaceModel::index(int row, int column, const QModelIndex &parent) 
             return createIndex(row, column, InternalId::CurvatureItem);
         }
     }
+
+    return QModelIndex();
 }
 
 
@@ -192,19 +193,19 @@ int SurfaceModel::columnCount(const QModelIndex &parent) const
 
     switch(parent.internalId()) {
         case InternalId::VerticeItem:
-            col = m_pSurfaceData->vertices().rows();
+            col = m_pSurfaceData.vertices().rows();
             break;
 
         case InternalId::NormalItem:
-            col = m_pSurfaceData->normals().rows();
+            col = m_pSurfaceData.normals().rows();
             break;
 
         case InternalId::TriangleItem:
-            col = m_pSurfaceData->tris().rows();
+            col = m_pSurfaceData.tris().rows();
             break;
 
         case InternalId::CurvatureItem:
-            col = m_pSurfaceData->curvature().rows();
+            col = m_pSurfaceData.curvature().rows();
             break;
 
         default:
@@ -212,6 +213,14 @@ int SurfaceModel::columnCount(const QModelIndex &parent) const
     }
 
     return col;
+}
+
+
+//*************************************************************************************************************
+
+bool SurfaceModel::hasChildren(const QModelIndex &parent) const
+{
+    return rowCount(parent) > 0;
 }
 
 
