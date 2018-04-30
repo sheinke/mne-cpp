@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
+* @file     eventmanager.cpp
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,7 +30,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the Analyze Data Container Class.
+* @brief    Implementation of the EventManager class
 *
 */
 
@@ -40,17 +39,15 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
+#include "eventmanager.h"
+#include "communicator.h"
+#include <iostream>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
-
-#include <QVector>
-#include <QSharedPointer>
-#include <QString>
 
 
 //*************************************************************************************************************
@@ -66,64 +63,79 @@ using namespace ANSHAREDLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-AnalyzeData::AnalyzeData(QObject *parent)
-: QObject(parent)
+void EventManager::addCommunicator(Communicator* commu)
 {
-
-}
-
-
-//*************************************************************************************************************
-
-AnalyzeData::~AnalyzeData()
-{
-    // @TODO make sure all objects are safely deleted
-}
-
-
-//*************************************************************************************************************
-
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(AbstractModel::MODEL_TYPE mtype)
-{
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
-    for (; iter != m_data.end(); iter++)
+    const QVector<Event::EVENT_TYPE>& subscriptions = commu->getSubscriptions();
+    for(const Event::EVENT_TYPE& etype : subscriptions)
     {
-        if (iter.value()->getType() == mtype)
+        m_routingTable.insert(etype, commu);
+    }
+}
+
+//*************************************************************************************************************
+
+
+void EventManager::issueEvent(Event e)
+{
+    const QList<Communicator*> subscribers = m_routingTable.values(e.getType());
+    for(Communicator* commu : subscribers)
+    {
+        // avoid self-messaging
+        if (commu->getID() != e.getSender()->getID())
         {
-            result.push_back(iter.value());
+            // notify communicator about event
+            emit commu->receivedEvent(e);
         }
     }
-    return result;
 }
 
 //*************************************************************************************************************
 
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
+void EventManager::addSubscriptions(Communicator* commu, QVector<Event::EVENT_TYPE> newsubs)
 {
-    // check if file was already loaded:
-    if (m_data.contains(path))
+    for(const Event::EVENT_TYPE& etype : newsubs)
     {
-        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
-    }
-    else
-    {
-        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
-        m_data.insert(path, qSharedPointerCast<AbstractModel>(sm));
-        return sm;
+        m_routingTable.insert(etype, commu);
     }
 }
 
 //*************************************************************************************************************
 
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+void EventManager::updateSubscriptions(Communicator* commu,const QVector<Event::EVENT_TYPE> &subs)
 {
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurface(p_sFile);
+    // remove old subscriptions from EventManager routing table
+    EventManager::removeCommunicator(commu);
+    // add new key-value-pairs into map
+    for(const Event::EVENT_TYPE& etype : subs)
+    {
+        m_routingTable.insert(etype, commu);
+    }
 }
 
 //*************************************************************************************************************
+
+
+void EventManager::removeCommunicator(Communicator* commu)
+{
+    for(const Event::EVENT_TYPE& etype : commu->getSubscriptions())
+    {
+        int removed = m_routingTable.remove(etype, commu);
+        // consistency check:
+        if (removed != 1)
+        {
+            std::cerr << "EventManager: WARNING ! Found " << removed << " entries instead of 1 for event type ";
+            std::cerr << etype << " and communicator ID " << commu->getID() << std::endl;
+        }
+    }
+}
+
+//*************************************************************************************************************
+
+
+//=============================================================================================================
+// DEFINE STATIC MEMBERS
+//=============================================================================================================
+
+QMultiMap<Event::EVENT_TYPE, Communicator*> EventManager::m_routingTable;

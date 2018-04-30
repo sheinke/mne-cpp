@@ -2,13 +2,15 @@
 /**
 * @file     surfer.h
 * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+*           Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     February, 2017
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2017 Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -44,7 +46,7 @@
 
 #include "surfer_global.h"
 
-#include "Views/view3danalyze.h"
+#include "Views/view3dsurfer.h"
 
 #include <anShared/Interfaces/IExtension.h>
 
@@ -105,17 +107,19 @@ public:
     virtual void init();
     virtual void unload();
     virtual QString getName() const;
-
     virtual QMenu* getMenu();
     virtual QDockWidget* getControl();
     virtual QWidget* getView();
+
+    virtual void handleEvent(ANSHAREDLIB::Event e);
+    virtual QVector<ANSHAREDLIB::Event::EVENT_TYPE> getEventSubscriptions() const;
 
 private:
     // Control
     QDockWidget*        m_pControl; /**< Control Widget */
 
     // View
-    View3DAnalyze*      m_pView;    /**< Control View */
+    View3DSurfer*      m_pView;    /**< Control View */
 };
 
 } // NAMESPACE

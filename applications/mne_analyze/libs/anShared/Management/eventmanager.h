@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
+* @file     eventmanager.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,16 +30,20 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the Analyze Data Container Class.
+* @brief    EventManager class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_EVENT_MANAGER_H
+#define ANSHAREDLIB_EVENT_MANAGER_H
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
+#include "../anshared_global.h"
+#include "event.h"
 
 
 //*************************************************************************************************************
@@ -48,82 +51,89 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QVector>
 #include <QSharedPointer>
-#include <QString>
+#include <QPointer>
+#include <QMultiMap>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// DEFINE NAMESPACE ANSHAREDLIB
 //=============================================================================================================
 
-using namespace ANSHAREDLIB;
+namespace ANSHAREDLIB
+{
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE MEMBER METHODS
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
-AnalyzeData::AnalyzeData(QObject *parent)
-: QObject(parent)
+class Communicator;
+
+
+//=========================================================================================================
+/**
+* DECLARE CLASS EventManager
+*
+* @brief EventManager for Event communication
+*/
+class ANSHAREDSHARED_EXPORT EventManager
 {
+public:
+    typedef QSharedPointer<EventManager> SPtr;            /**< Shared pointer type for EventManager. */
+    typedef QSharedPointer<const EventManager> ConstSPtr; /**< Const shared pointer type for EventManager. */
 
-}
+    //=========================================================================================================
+    /**
+    * Deleted default constructor (static class).
+    */
+    EventManager() = delete;
 
+    //=========================================================================================================
+    /**
+    * @brief addCommunicator Adds a Communicator, respectively its subscriptions to the routing table
+    * @param commu The Communicator to add
+    */
+    static void addCommunicator(Communicator* commu);
 
-//*************************************************************************************************************
+    //=========================================================================================================
+    /**
+    * @brief issueEvent Communicate an event to all entities that have registered for the respective
+    *        event type
+    *
+    * @param e The event to publish
+    */
+    static void issueEvent(Event e);
 
-AnalyzeData::~AnalyzeData()
-{
-    // @TODO make sure all objects are safely deleted
-}
+    //=========================================================================================================
+    /**
+    * @brief addSubscriptions Add the specified list of Event types to the routing table
+    * @param commu The respective Communicator
+    * @param newsubs List of new (additional) subscriptions
+    */
+    static void addSubscriptions(Communicator* commu, QVector<Event::EVENT_TYPE> newsubs);
 
+    //=========================================================================================================
+    /**
+    * @brief updateSubscriptions Replaces a Communicators subscriptions with the provided list
+    * @param commu The respective Communicator
+    * @param subs New list of subscriptions
+    */
+    static void updateSubscriptions(Communicator* commu, const QVector<Event::EVENT_TYPE> &subs);
 
-//*************************************************************************************************************
+    //=========================================================================================================
+    /**
+    * @brief removeCommunicator Removes (and thus disconnects) a Communicator from the routing table
+    * @param commu The communicator to remove.
+    */
+    static void removeCommunicator(Communicator* commu);
 
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(AbstractModel::MODEL_TYPE mtype)
-{
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
-    for (; iter != m_data.end(); iter++)
-    {
-        if (iter.value()->getType() == mtype)
-        {
-            result.push_back(iter.value());
-        }
-    }
-    return result;
-}
+private:
+    static QMultiMap<Event::EVENT_TYPE, Communicator*> m_routingTable;
+};
 
-//*************************************************************************************************************
+} // namespace
 
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
-{
-    // check if file was already loaded:
-    if (m_data.contains(path))
-    {
-        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
-    }
-    else
-    {
-        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
-        m_data.insert(path, qSharedPointerCast<AbstractModel>(sm));
-        return sm;
-    }
-}
-
-//*************************************************************************************************************
-
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
-{
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurface(p_sFile);
-}
-
-//*************************************************************************************************************
+#endif // ANSHAREDLIB_EVENT_MANAGER_H

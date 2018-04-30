@@ -1,14 +1,15 @@
 //=============================================================================================================
 /**
-* @file     IExtension.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+* @file     view3dsurfer.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     August, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,157 +30,169 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains declaration of IExtension interface class.
+* @brief     View3DSurfer class declaration.
 *
 */
 
-#ifndef IEXTENSION_H
-#define IEXTENSION_H
+#ifndef SURFEREXTENSION_VIEW3DSURFER_H
+#define SURFEREXTENSION_VIEW3DSURFER_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "../anshared_global.h"
-#include "../Management/event.h"
+#include <mne/mne_bem_surface.h>
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QObject>
-#include <QMenu>
-#include <QDockWidget>
 #include <QSharedPointer>
+#include <QWidget>
+#include <QPointer>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE ANSHAREDLIB
+// Eigen INCLUDES
 //=============================================================================================================
 
-namespace ANSHAREDLIB
-{
 
 //*************************************************************************************************************
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
-class AnalyzeData;
-class AnalyzeSettings;
+namespace Qt3DRender {
+    class QGeometryRenderer;
+    class QPickEvent;
+}
+
+namespace Qt3DCore {
+    class QEntity;
+    class QTransform;
+}
+
+namespace Qt3DExtras {
+    class QSphereMesh;
+}
+
+class QGridLayout;
+class QAbstractItemModel;
+class QItemSelectionModel;
+
+namespace MNELIB {
+    class MNEBemSurface;
+}
+
+namespace DISP3DLIB {
+    class CustomMesh;
+}
 
 
-//=========================================================================================================
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE SURFEREXTENSION
+//=============================================================================================================
+
+namespace SURFEREXTENSION {
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// SURFEREXTENSION FORWARD DECLARATIONS
+//=============================================================================================================
+
+
+//=============================================================================================================
 /**
-* DECLARE CLASS IExtension
+* Description of what this class is intended to do (in detail).
 *
-* @brief The IExtension class is the base interface class for all extensions.
+* @brief Brief description of this class.
 */
-class ANSHAREDSHARED_EXPORT IExtension : public QObject
+class View3DSurfer : public QWidget
 {
-    Q_OBJECT
+
 public:
-    typedef QSharedPointer<IExtension> SPtr;               /**< Shared pointer type for IExtension. */
-    typedef QSharedPointer<const IExtension> ConstSPtr;    /**< Const shared pointer type for IExtension. */
+    typedef QSharedPointer<View3DSurfer> SPtr;            /**< Shared pointer type for View3DSurfer. */
+    typedef QSharedPointer<const View3DSurfer> ConstSPtr; /**< Const shared pointer type for View3DSurfer. */
 
     //=========================================================================================================
     /**
-    * Destroys the extension.
+    * Constructs a View3DSurfer object.
     */
-    virtual ~IExtension() {}
+    View3DSurfer();
 
     //=========================================================================================================
     /**
-    * Clone the extension
+    * Default destructor.
     */
-    virtual QSharedPointer<IExtension> clone() const = 0;
+    ~View3DSurfer() = default;
 
     //=========================================================================================================
     /**
-    * Initializes the extension.
-    */
-    virtual void init() = 0;
-
-    //=========================================================================================================
-    /**
-    * Is called when extension unloaded.
-    */
-    virtual void unload() = 0;
-
-    //=========================================================================================================
-    /**
-    * Returns the plugin name.
-    * Pure virtual method.
+    * Sets the model for the view to present.
     *
-    * @return the name of plugin.
+    * This function will create and set a new selection model,
+    * replacing any model that was previously set with setSelectionModel().
+    * However, the old selection model will not be deleted as it may be shared between several views.
+    *
+    * @param[in]    pModel   The new item model.
     */
-    virtual QString getName() const = 0;
+    void setModel(QAbstractItemModel *pModel);
 
     //=========================================================================================================
     /**
-    * Provides the menu, in case no menu is provided it returns a Q_NULLPTR
+    * Sets the current selection model to the given selectionModel.
     *
-    * @return the menu
-    */
-    virtual QMenu* getMenu() = 0;
-
-    //=========================================================================================================
-    /**
-    * Provides the control, in case no control is provided it returns a Q_NULLPTR
+    * Note that, if you call setModel() after this function,
+    * the given selectionModel will be replaced by one created by the view.
     *
-    * @return the control
+    * @param[in]    pSelectionModel     The new selection model.
     */
-    virtual QDockWidget* getControl() = 0;
-
-    //=========================================================================================================
-    /**
-    * Provides the view, in case no view is provided it returns a Q_NULLPTR
-    *
-    * @return the view
-    */
-    virtual QWidget* getView() = 0;
-
-    //=========================================================================================================
-    /**
-    * Informs the EventManager about all Events that the Extension wants to know about. Can return an empty
-    * vector in case no Events need to be seen by the Extension.
-    *
-    * @return The vector of relevant Events
-    */
-    virtual QVector<Event::EVENT_TYPE> getEventSubscriptions(void) const = 0;
-
-    //=========================================================================================================
-    /**
-    * Sets the global data, which provides the central database.
-    *
-    * @param[in] globalData  the global data
-    */
-    virtual inline void setGlobalData(QSharedPointer<AnalyzeData> globalData);
-
-    //=========================================================================================================
-    /**
-    * Sets the global settings, which provides the mne analyze settings.
-    *
-    * @param[in] globalSettings  the global settings
-    */
-    virtual inline void setGlobalSettings(QSharedPointer<AnalyzeSettings> globalSettings);
-
-public slots:
-
-    //=========================================================================================================
-    /**
-    * Called by the EventManager in case a subscribed-for Event has happened.
-    *
-    * @param e The Event that has taken place
-    */
-    virtual void handleEvent(Event e) = 0;
+    void setSelectionModel(QItemSelectionModel *pSelectionModel);
 
 private:
-    QSharedPointer<AnalyzeData> m_analyzeData;              /**< Pointer to the global data base */
-    QSharedPointer<AnalyzeSettings> m_analyzeSettings;      /**< Pointer to the global analyze settings */
+
+    //=========================================================================================================
+    /**
+    * Initializes the 3d view.
+    */
+    void init();
+
+    //=========================================================================================================
+    /**
+    * Creates the QEntity tree for the scene.
+    */
+    Qt3DCore::QEntity *createEntityTree();
+
+    //=========================================================================================================
+    /**
+    * This function creates a mesh from the data given by a SurfaceModel.
+    */
+    void updateSurfaceModelMesh();
+
+    Qt3DCore::QEntity *createLightEntity();
+
+    void testPicking(Qt3DRender::QPickEvent *event);
+
+    inline float squared(float x);
+
+    //Layout
+    QWidget *m_view3d_container;
+    QGridLayout *m_view3d_gridlayout;
+
+    DISP3DLIB::CustomMesh *m_pSurfaceMesh;
+
+    Qt3DExtras::QSphereMesh *m_pointMesh;
+    Qt3DCore::QTransform *pSphereTransform;
+
+    QPointer<QAbstractItemModel> m_pItemModel;
+    QPointer<QItemSelectionModel> m_pSelectionModel;
 
 };
 
@@ -188,21 +201,12 @@ private:
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-void IExtension::setGlobalData(QSharedPointer<AnalyzeData> globalData)
+
+inline float View3DSurfer::squared(float x)
 {
-    m_analyzeData = globalData;
+    return x * x;
 }
 
-//*************************************************************************************************************
+} // namespace SURFEREXTENSION
 
-
-void IExtension::setGlobalSettings(QSharedPointer<AnalyzeSettings> globalSettings)
-{
-    m_analyzeSettings = globalSettings;
-}
-
-} //Namespace
-
-Q_DECLARE_INTERFACE(ANSHAREDLIB::IExtension, "ansharedlib/1.0")
-
-#endif //IEXTENSION_H
+#endif // SURFEREXTENSION_VIEW3DSURFER_H

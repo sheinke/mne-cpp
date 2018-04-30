@@ -1,16 +1,14 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
+* @file     surfacesetdata.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,16 +29,21 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the Analyze Data Container Class.
+* @brief     SurfaceSetData class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_SURFACESETDATA_H
+#define ANSHAREDLIB_SURFACESETDATA_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
+#include "abstractdata.h"
+#include "../anshared_global.h"
 
 
 //*************************************************************************************************************
@@ -48,82 +51,87 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QVector>
 #include <QSharedPointer>
-#include <QString>
+#include <QMap>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// Eigen INCLUDES
 //=============================================================================================================
-
-using namespace ANSHAREDLIB;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE MEMBER METHODS
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
-AnalyzeData::AnalyzeData(QObject *parent)
-: QObject(parent)
-{
 
-}
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE ANSHAREDLIB
+//=============================================================================================================
+
+namespace ANSHAREDLIB {
 
 
 //*************************************************************************************************************
+//=============================================================================================================
+// ANSHAREDLIB FORWARD DECLARATIONS
+//=============================================================================================================
 
-AnalyzeData::~AnalyzeData()
+class SurfaceData;
+
+//=============================================================================================================
+/**
+* This is a wrapper class for SurfaceSet.
+*
+* @brief This is a wrapper class for SurfaceSet.
+*/
+class ANSHAREDSHARED_EXPORT SurfaceSetData : public AbstractData
 {
-    // @TODO make sure all objects are safely deleted
-}
+
+public:
+    typedef QSharedPointer<SurfaceSetData> SPtr;            /**< Shared pointer type for SurfaceSetData. */
+    typedef QSharedPointer<const SurfaceSetData> ConstSPtr; /**< Const shared pointer type for SurfaceSetData. */
+
+    //=========================================================================================================
+    /**
+    * Constructs a SurfaceSetData object.
+    */
+    SurfaceSetData();
+
+    //=========================================================================================================
+    /**
+    * Construts the surface set by reading it of the given files.
+    *
+    * @param[in] subject_id         Name of subject
+    * @param[in] hemi               Which hemisphere to load {0 -> lh, 1 -> rh, 2 -> both}
+    * @param[in] surf               Name of the surface to load (eg. inflated, orig ...)
+    * @param[in] subjects_dir       Subjects directory
+    */
+    explicit SurfaceSetData(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir);
+
+protected:
+
+private:
+
+    QMap<qint32, SurfaceData>       m_surfaceData;
+
+signals:
+
+
+    void newSurfaceLoaded();
+
+};
 
 
 //*************************************************************************************************************
-
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(AbstractModel::MODEL_TYPE mtype)
-{
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
-    for (; iter != m_data.end(); iter++)
-    {
-        if (iter.value()->getType() == mtype)
-        {
-            result.push_back(iter.value());
-        }
-    }
-    return result;
-}
-
-//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
 
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
-{
-    // check if file was already loaded:
-    if (m_data.contains(path))
-    {
-        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
-    }
-    else
-    {
-        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
-        m_data.insert(path, qSharedPointerCast<AbstractModel>(sm));
-        return sm;
-    }
-}
+} // namespace ANSHAREDLIB
 
-//*************************************************************************************************************
-
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
-{
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurface(p_sFile);
-}
-
-//*************************************************************************************************************
+#endif // ANSHAREDLIB_SURFACESETDATA_H

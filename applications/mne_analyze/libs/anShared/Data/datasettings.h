@@ -1,16 +1,14 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
+* @file     datasettings.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,16 +29,20 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the Analyze Data Container Class.
+* @brief     DataSettings class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_DATASETTINGS_H
+#define ANSHAREDLIB_DATASETTINGS_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
+#include "../anshared_global.h"
 
 
 //*************************************************************************************************************
@@ -48,82 +50,75 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QVector>
 #include <QSharedPointer>
-#include <QString>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// Eigen INCLUDES
 //=============================================================================================================
-
-using namespace ANSHAREDLIB;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE MEMBER METHODS
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
-AnalyzeData::AnalyzeData(QObject *parent)
-: QObject(parent)
-{
 
-}
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE ANSHAREDLIB
+//=============================================================================================================
+
+namespace ANSHAREDLIB {
 
 
 //*************************************************************************************************************
+//=============================================================================================================
+// ANSHAREDLIB FORWARD DECLARATIONS
+//=============================================================================================================
 
-AnalyzeData::~AnalyzeData()
+
+//=============================================================================================================
+/**
+* Description of what this class is intended to do (in detail).
+*
+* @brief Brief description of this class.
+*/
+class ANSHAREDSHARED_EXPORT DataSettings
 {
-    // @TODO make sure all objects are safely deleted
-}
+
+public:
+    typedef QSharedPointer<DataSettings> SPtr;            /**< Shared pointer type for DataSettings. */
+    typedef QSharedPointer<const DataSettings> ConstSPtr; /**< Const shared pointer type for DataSettings. */
+
+    //=========================================================================================================
+    /**
+    * Constructs a DataSettings object.
+    */
+    DataSettings();
+
+    //=========================================================================================================
+    /**
+    * Destructor.
+    */
+    virtual ~DataSettings();
+
+protected:
+
+private:
+
+
+
+};
 
 
 //*************************************************************************************************************
-
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(AbstractModel::MODEL_TYPE mtype)
-{
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
-    for (; iter != m_data.end(); iter++)
-    {
-        if (iter.value()->getType() == mtype)
-        {
-            result.push_back(iter.value());
-        }
-    }
-    return result;
-}
-
-//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
 
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
-{
-    // check if file was already loaded:
-    if (m_data.contains(path))
-    {
-        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
-    }
-    else
-    {
-        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
-        m_data.insert(path, qSharedPointerCast<AbstractModel>(sm));
-        return sm;
-    }
-}
+} // namespace ANSHAREDLIB
 
-//*************************************************************************************************************
-
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
-{
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurface(p_sFile);
-}
-
-//*************************************************************************************************************
+#endif // ANSHAREDLIB_DATASETTINGS_H

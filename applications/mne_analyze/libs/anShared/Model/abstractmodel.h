@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     extensionmanager.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+* @file     abstractmodel.h
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,12 +30,13 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains the declaration of the ExtensionManager class.
+* @brief     AbstractModel class declaration.
 *
 */
 
-#ifndef EXTENSIONMANAGER_H
-#define EXTENSIONMANAGER_H
+#ifndef ANSHAREDLIB_ABSTRACTMODEL_H
+#define ANSHAREDLIB_ABSTRACTMODEL_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -45,23 +45,19 @@
 
 #include "../anshared_global.h"
 
-
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QVector>
-#include <QPluginLoader>
+#include <QSharedPointer>
+#include <QAbstractItemModel>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE ANSHAREDLIB
+// Eigen INCLUDES
 //=============================================================================================================
-
-namespace ANSHAREDLIB
-{
 
 
 //*************************************************************************************************************
@@ -69,75 +65,78 @@ namespace ANSHAREDLIB
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
-class IExtension;
-class AnalyzeSettings;
-class AnalyzeData;
+
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE ANSHAREDLIB
+//=============================================================================================================
+
+namespace ANSHAREDLIB {
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// ANSHAREDLIB FORWARD DECLARATIONS
+//=============================================================================================================
 
 
 //=============================================================================================================
 /**
-* DECLARE CLASS ExtensionManager
+* Description of what this class is intended to do (in detail).
 *
-* @brief The ExtensionManager class provides a dynamic plugin loader. As well as the handling of the loaded extensions.
+* @brief Brief description of this class.
 */
-class ANSHAREDSHARED_EXPORT ExtensionManager : public QPluginLoader
+class ANSHAREDSHARED_EXPORT AbstractModel : public QAbstractItemModel
 {
     Q_OBJECT
+
 public:
-    typedef QSharedPointer<ExtensionManager> SPtr;               /**< Shared pointer type for ExtensionManager. */
-    typedef QSharedPointer<const ExtensionManager> ConstSPtr;    /**< Const shared pointer type for ExtensionManager. */
+    typedef QSharedPointer<AbstractModel> SPtr;            /**< Shared pointer type for AbstractModel. */
+    typedef QSharedPointer<const AbstractModel> ConstSPtr; /**< Const shared pointer type for AbstractModel. */
 
     //=========================================================================================================
     /**
-    * Constructs a ExtensionManager with the given parent.
-    *
-    * @param[in] parent pointer to parent Object. (It's normally the default value.)
+    * Constructs a AbstractModel object. Simply pass potential parent object to super class.
     */
-    ExtensionManager(QObject* parent = 0);
+    AbstractModel(QObject *pParent = nullptr)
+        : QAbstractItemModel(pParent) {}
 
     //=========================================================================================================
     /**
-    * Destroys the ExtensionManager.
+    * Default destructor.
     */
-    virtual ~ExtensionManager();
+    virtual ~AbstractModel() = default;
 
     //=========================================================================================================
     /**
-    * Loads extensions from given directory.
-    *
-    * @param [in] dir    the plugin directory.
+    * @brief The MODEL_TYPE enum lists all available model types.
+    *        Naming convention: NAMESPACE_CLASSNAME_MODEL
     */
-    void loadExtension(const QString& dir);
+    enum MODEL_TYPE
+    {
+        FSLIB_SURFACE_MODEL
+    };
 
     //=========================================================================================================
     /**
-    * Initializes the extensions.
-    *
-    * @param [in] settings      the global mne analyze settings
-    * @param [in] data          the global mne analyze data
+    * @brief getType Inherited by AbstractModel
+    * @return The type of the respective subclasses
     */
-    void initExtensions(QSharedPointer<AnalyzeSettings>& settings, QSharedPointer<AnalyzeData>& data);
+    virtual inline MODEL_TYPE getType() const = 0;
 
     //=========================================================================================================
-    /**
-    * Finds index of extension by name.
-    *
-    * @param [in] name  the extension name.
-    *
-    * @return index of extension.
-    */
-    int findByName(const QString& name);
+    // Inherited by QAbstractItemModel:
+    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override = 0;
+    virtual Qt::ItemFlags flags(const QModelIndex &index) const override = 0;
+    virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override = 0;
+    virtual QModelIndex parent(const QModelIndex &index) const override = 0;
+    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override = 0;
+    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const override = 0;
 
-    //=========================================================================================================
-    /**
-    * Returns vector containing all extensions.
-    *
-    * @return reference to vector containing all extensions.
-    */
-    inline const QVector<IExtension*>& getExtensions();
+protected:
 
 private:
-    QVector<IExtension*>    m_qVecExtensions;       /**< Vector containing all extensions. */
+
 };
 
 
@@ -146,11 +145,7 @@ private:
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-inline const QVector<IExtension*>& ExtensionManager::getExtensions()
-{
-    return m_qVecExtensions;
-}
 
-} // NAMESPACE
+} // namespace ANSHAREDLIB
 
-#endif // EXTENSIONMANAGER_H
+#endif // ANSHAREDLIB_ABSTRACTMODEL_H

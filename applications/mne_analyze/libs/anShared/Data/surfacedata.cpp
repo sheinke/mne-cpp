@@ -1,16 +1,14 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
+* @file     surfacedata.cpp
+* @author   Lars Debor <lars.debor@tu-ilmenaul.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,16 +29,19 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the Analyze Data Container Class.
+* @brief    SurfaceData class definition.
 *
 */
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
+#include "surfacedata.h"
+#include <fs/surface.h>
+#include "surfacesettings.h"
 
 
 //*************************************************************************************************************
@@ -48,9 +49,11 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QVector>
-#include <QSharedPointer>
-#include <QString>
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Eigen INCLUDES
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -59,6 +62,12 @@
 //=============================================================================================================
 
 using namespace ANSHAREDLIB;
+using namespace FSLIB;
+
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE GLOBAL METHODS
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -66,8 +75,8 @@ using namespace ANSHAREDLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-AnalyzeData::AnalyzeData(QObject *parent)
-: QObject(parent)
+SurfaceData::SurfaceData(const QString &p_sFile)
+: m_surface(Surface(p_sFile))
 {
 
 }
@@ -75,55 +84,67 @@ AnalyzeData::AnalyzeData(QObject *parent)
 
 //*************************************************************************************************************
 
-AnalyzeData::~AnalyzeData()
+SurfaceData::SurfaceData(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+: m_surface(Surface(subject_id, hemi, surf, subjects_dir))
 {
-    // @TODO make sure all objects are safely deleted
+
 }
 
 
 //*************************************************************************************************************
 
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(AbstractModel::MODEL_TYPE mtype)
+void SurfaceData::initiSettings()
 {
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
-    for (; iter != m_data.end(); iter++)
-    {
-        if (iter.value()->getType() == mtype)
-        {
-            result.push_back(iter.value());
-        }
-    }
-    return result;
+    m_pSettings = QSharedPointer<SurfaceSettings>::create(&m_surface);
 }
+
 
 //*************************************************************************************************************
 
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
+Vector3f SurfaceData::vertexAt(int idx) const
 {
-    // check if file was already loaded:
-    if (m_data.contains(path))
-    {
-        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
-    }
-    else
-    {
-        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
-        m_data.insert(path, qSharedPointerCast<AbstractModel>(sm));
-        return sm;
-    }
+    Eigen::Vector3f vector;
+    vector[0] = m_surface.rr()(idx, 0);
+    vector[1] = m_surface.rr()(idx, 1);
+    vector[2] = m_surface.rr()(idx, 2);
+
+    return vector;
 }
+
 
 //*************************************************************************************************************
 
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+Vector3f SurfaceData::normalAt(int idx) const
 {
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurface(p_sFile);
+    Eigen::Vector3f vector;
+    vector[0] = m_surface.nn()(idx, 0);
+    vector[1] = m_surface.nn()(idx, 1);
+    vector[2] = m_surface.nn()(idx, 2);
+
+    return vector;
 }
+
+
+//*************************************************************************************************************
+
+Vector3i SurfaceData::triAt(int idx) const
+{
+    Eigen::Vector3i vector;
+    vector[0] = m_surface.tris()(idx, 0);
+    vector[1] = m_surface.tris()(idx, 1);
+    vector[2] = m_surface.tris()(idx, 2);
+
+    return vector;
+}
+
+
+//*************************************************************************************************************
+
+float SurfaceData::curvAt(int idx) const
+{
+    return m_surface.curv()[idx];
+}
+
 
 //*************************************************************************************************************

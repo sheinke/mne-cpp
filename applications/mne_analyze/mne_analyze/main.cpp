@@ -41,7 +41,7 @@
 
 #include <stdio.h>
 #include "info.h"
-#include "mainwindow.h"
+#include "analyzecore.h"
 
 
 //*************************************************************************************************************
@@ -72,7 +72,8 @@ using namespace MNEANALYZE;
 
 //*************************************************************************************************************
 
-MainWindow *mainWindow;
+AnalyzeCore *pAnalyzeCore;
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -88,10 +89,10 @@ int main(int argc, char *argv[])
     QThread::sleep(1);
 
     //New main window instance
-    mainWindow = new MainWindow();
-    mainWindow->show();
+    pAnalyzeCore = new AnalyzeCore();
+    pAnalyzeCore->showMainWindow();
 
-    splash.finish(mainWindow);
+    splash.finish(pAnalyzeCore->getMainWindow());
 
     return a.exec();
 }

@@ -1,14 +1,14 @@
 //=============================================================================================================
 /**
-* @file     IExtension.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+* @file     surfacedata.h
+* @author   Lars Debor <lars.debor@tu-ilmenaul.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,30 +29,44 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains declaration of IExtension interface class.
+* @brief     SurfaceData class declaration.
 *
 */
 
-#ifndef IEXTENSION_H
-#define IEXTENSION_H
+#ifndef ANSHAREDLIB_SURFACEDATA_H
+#define ANSHAREDLIB_SURFACEDATA_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
+#include "abstractdata.h"
 #include "../anshared_global.h"
-#include "../Management/event.h"
+#include <fs/surface.h>
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QObject>
-#include <QMenu>
-#include <QDockWidget>
 #include <QSharedPointer>
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Eigen INCLUDES
+//=============================================================================================================
+
+#include <Eigen/Core>
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// FORWARD DECLARATIONS
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -60,126 +74,116 @@
 // DEFINE NAMESPACE ANSHAREDLIB
 //=============================================================================================================
 
-namespace ANSHAREDLIB
-{
+namespace ANSHAREDLIB {
+
 
 //*************************************************************************************************************
 //=============================================================================================================
-// FORWARD DECLARATIONS
+// ANSHAREDLIB FORWARD DECLARATIONS
 //=============================================================================================================
 
-class AnalyzeData;
-class AnalyzeSettings;
 
-
-//=========================================================================================================
+//=============================================================================================================
 /**
-* DECLARE CLASS IExtension
+* This is a wrapper class for Surface.
 *
-* @brief The IExtension class is the base interface class for all extensions.
+* @brief This is a wrapper class for Surface.
 */
-class ANSHAREDSHARED_EXPORT IExtension : public QObject
+class ANSHAREDSHARED_EXPORT SurfaceData : public AbstractData
 {
-    Q_OBJECT
+
 public:
-    typedef QSharedPointer<IExtension> SPtr;               /**< Shared pointer type for IExtension. */
-    typedef QSharedPointer<const IExtension> ConstSPtr;    /**< Const shared pointer type for IExtension. */
+    typedef QSharedPointer<SurfaceData> SPtr;            /**< Shared pointer type for SurfaceData. */
+    typedef QSharedPointer<const SurfaceData> ConstSPtr; /**< Const shared pointer type for SurfaceData. */
 
     //=========================================================================================================
     /**
-    * Destroys the extension.
+    * Deleted default Constructor.
     */
-    virtual ~IExtension() {}
+    SurfaceData() = delete;
 
     //=========================================================================================================
     /**
-    * Clone the extension
-    */
-    virtual QSharedPointer<IExtension> clone() const = 0;
-
-    //=========================================================================================================
-    /**
-    * Initializes the extension.
-    */
-    virtual void init() = 0;
-
-    //=========================================================================================================
-    /**
-    * Is called when extension unloaded.
-    */
-    virtual void unload() = 0;
-
-    //=========================================================================================================
-    /**
-    * Returns the plugin name.
-    * Pure virtual method.
+    * Construts the surface by reading it of the given file.
     *
-    * @return the name of plugin.
+    * @param[in] p_sFile    Surface file name with path
     */
-    virtual QString getName() const = 0;
+    explicit SurfaceData(const QString& p_sFile);
 
     //=========================================================================================================
     /**
-    * Provides the menu, in case no menu is provided it returns a Q_NULLPTR
+    * Construts the surface by reading it of the given file.
     *
-    * @return the menu
+    * @param[in] subject_id         Name of subject
+    * @param[in] hemi               Which hemisphere to load {0 -> lh, 1 -> rh}
+    * @param[in] surf               Name of the surface to load (eg. inflated, orig ...)
+    * @param[in] subjects_dir       Subjects directory
     */
-    virtual QMenu* getMenu() = 0;
+    explicit SurfaceData(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir);
 
     //=========================================================================================================
     /**
-    * Provides the control, in case no control is provided it returns a Q_NULLPTR
-    *
-    * @return the control
+    * Default Destructor.
     */
-    virtual QDockWidget* getControl() = 0;
+    ~SurfaceData() = default;
+
+    void initiSettings() override;
 
     //=========================================================================================================
     /**
-    * Provides the view, in case no view is provided it returns a Q_NULLPTR
+    * Returns whether SurfaceData is empty.
     *
-    * @return the view
+    * @return true if is empty, false otherwise
     */
-    virtual QWidget* getView() = 0;
+    inline bool isEmpty() const;
 
     //=========================================================================================================
     /**
-    * Informs the EventManager about all Events that the Extension wants to know about. Can return an empty
-    * vector in case no Events need to be seen by the Extension.
+    * Coordinates of vertices (rr)
     *
-    * @return The vector of relevant Events
+    * @return coordinates of vertices
     */
-    virtual QVector<Event::EVENT_TYPE> getEventSubscriptions(void) const = 0;
+    inline const Eigen::MatrixX3f& vertices() const;
+
+    Eigen::Vector3f vertexAt(int idx) const;
 
     //=========================================================================================================
     /**
-    * Sets the global data, which provides the central database.
+    * Normalized surface normals for each vertex
     *
-    * @param[in] globalData  the global data
+    * @return surface normals
     */
-    virtual inline void setGlobalData(QSharedPointer<AnalyzeData> globalData);
+    inline const Eigen::MatrixX3f& normals() const;
+
+    Eigen::Vector3f normalAt(int idx) const;
 
     //=========================================================================================================
     /**
-    * Sets the global settings, which provides the mne analyze settings.
+    * The triangle descriptions
     *
-    * @param[in] globalSettings  the global settings
+    * @return triangle descriptions
     */
-    virtual inline void setGlobalSettings(QSharedPointer<AnalyzeSettings> globalSettings);
+    inline const Eigen::MatrixX3i& tris() const;
 
-public slots:
+    Eigen::Vector3i triAt(int idx) const;
 
     //=========================================================================================================
     /**
-    * Called by the EventManager in case a subscribed-for Event has happened.
+    * FreeSurfer curvature
     *
-    * @param e The Event that has taken place
+    * @return the FreeSurfer curvature data
     */
-    virtual void handleEvent(Event e) = 0;
+    inline const Eigen::VectorXf& curvature() const;
+
+    float curvAt(int idx) const;
+
+protected:
 
 private:
-    QSharedPointer<AnalyzeData> m_analyzeData;              /**< Pointer to the global data base */
-    QSharedPointer<AnalyzeSettings> m_analyzeSettings;      /**< Pointer to the global analyze settings */
+
+    FSLIB::Surface      m_surface;
+
+    //TODO SETTINGS: hemi, surfname, path, offset, filename
 
 };
 
@@ -188,21 +192,47 @@ private:
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-void IExtension::setGlobalData(QSharedPointer<AnalyzeData> globalData)
+bool SurfaceData::isEmpty() const
 {
-    m_analyzeData = globalData;
+    return m_surface.isEmpty();
 }
+
+
+//*************************************************************************************************************
+
+const Eigen::MatrixX3f &SurfaceData::vertices() const
+{
+    return m_surface.rr();
+}
+
+
+//*************************************************************************************************************
+
+const Eigen::MatrixX3f &SurfaceData::normals() const
+{
+    return m_surface.nn();
+}
+
+
+//*************************************************************************************************************
+
+const Eigen::MatrixX3i &SurfaceData::tris() const
+{
+    return m_surface.tris();
+}
+
+
+//*************************************************************************************************************
+
+const Eigen::VectorXf &SurfaceData::curvature() const
+{
+    return m_surface.curv();
+}
+
 
 //*************************************************************************************************************
 
 
-void IExtension::setGlobalSettings(QSharedPointer<AnalyzeSettings> globalSettings)
-{
-    m_analyzeSettings = globalSettings;
-}
+} // namespace ANSHAREDLIB
 
-} //Namespace
-
-Q_DECLARE_INTERFACE(ANSHAREDLIB::IExtension, "ansharedlib/1.0")
-
-#endif //IEXTENSION_H
+#endif // ANSHAREDLIB_SURFACEDATA_H

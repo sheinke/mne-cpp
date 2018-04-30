@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
+* @file     communicator.cpp
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,7 +30,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the Analyze Data Container Class.
+* @brief    Implementation of the Communicator class
 *
 */
 
@@ -40,17 +39,15 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
+#include "communicator.h"
+#include "eventmanager.h"
+#include "../Interfaces/IExtension.h"
 
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
-
-#include <QVector>
-#include <QSharedPointer>
-#include <QString>
 
 
 //*************************************************************************************************************
@@ -66,64 +63,90 @@ using namespace ANSHAREDLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-AnalyzeData::AnalyzeData(QObject *parent)
-: QObject(parent)
+Communicator::Communicator(const QVector<Event::EVENT_TYPE> &subs)
+    : m_ID(nextID()),
+      m_EventSubscriptions(subs)
 {
-
-}
-
-
-//*************************************************************************************************************
-
-AnalyzeData::~AnalyzeData()
-{
-    // @TODO make sure all objects are safely deleted
-}
-
-
-//*************************************************************************************************************
-
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(AbstractModel::MODEL_TYPE mtype)
-{
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
-    for (; iter != m_data.end(); iter++)
-    {
-        if (iter.value()->getType() == mtype)
-        {
-            result.push_back(iter.value());
-        }
-    }
-    return result;
+    EventManager::addCommunicator(this);
 }
 
 //*************************************************************************************************************
 
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
+Communicator::Communicator(IExtension* extension)
+    : Communicator(extension->getEventSubscriptions())
 {
-    // check if file was already loaded:
-    if (m_data.contains(path))
-    {
-        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
-    }
-    else
-    {
-        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
-        m_data.insert(path, qSharedPointerCast<AbstractModel>(sm));
-        return sm;
-    }
+    QObject::connect(this,
+                     SIGNAL(receivedEvent(Event)),
+                     extension,
+                     SLOT(handleEvent(Event)),
+                     Qt::DirectConnection);
 }
 
 //*************************************************************************************************************
 
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+Communicator::~Communicator()
 {
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurface(p_sFile);
+    EventManager::removeCommunicator(this);
 }
 
 //*************************************************************************************************************
+
+
+void Communicator::publishEvent(Event::EVENT_TYPE etype, const QVariant &data) const
+{
+    // simply pass on to the EventManager
+    EventManager::issueEvent(Event(etype, this, data));
+}
+
+//*************************************************************************************************************
+
+
+void Communicator::updateSubscriptions(const QVector<Event::EVENT_TYPE> &subs)
+{
+    // update routing table of event manager
+    EventManager::updateSubscriptions(this, subs);
+    // update own subscription list: This HAS to be done after the EventManager::updateSubscriptions,
+    // since the latter uses the old list in order to keep execution time low
+    m_EventSubscriptions.clear();
+    m_EventSubscriptions.append(subs);
+}
+
+//*************************************************************************************************************
+
+void Communicator::addSubscriptions(const QVector<Event::EVENT_TYPE> &newsubs)
+{
+    m_EventSubscriptions.append(newsubs);
+    // add new subscriptions to routing table of event manager
+    EventManager::addSubscriptions(this, newsubs);
+}
+
+//*************************************************************************************************************
+
+
+void Communicator::addSubscriptions(Event::EVENT_TYPE newsub)
+{
+    // convenience function, simply wrap in vector
+    QVector<Event::EVENT_TYPE> temp;
+    temp.push_back(newsub);
+    addSubscriptions(temp);
+}
+
+//*************************************************************************************************************
+
+
+void Communicator::manualDisconnect(void)
+{
+    // simply delegate to EventManager
+    EventManager::removeCommunicator(this);
+}
+
+//*************************************************************************************************************
+
+
+//=============================================================================================================
+// DEFINE STATIC MEMBERS
+//=============================================================================================================
+
+Communicator::CommunicatorID Communicator::m_IDCounter;

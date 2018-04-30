@@ -1,14 +1,15 @@
 //=============================================================================================================
 /**
-* @file     IExtension.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+* @file     surfacemodel.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,30 +30,42 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains declaration of IExtension interface class.
+* @brief     SurfaceModel class declaration.
 *
 */
 
-#ifndef IEXTENSION_H
-#define IEXTENSION_H
+#ifndef ANSHAREDLIB_SURFACEMODEL_H
+#define ANSHAREDLIB_SURFACEMODEL_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
+#include "../Data/surfacedata.h"
 #include "../anshared_global.h"
-#include "../Management/event.h"
+#include "abstractmodel.h"
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QObject>
-#include <QMenu>
-#include <QDockWidget>
 #include <QSharedPointer>
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Eigen INCLUDES
+//=============================================================================================================
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// FORWARD DECLARATIONS
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -60,149 +73,156 @@
 // DEFINE NAMESPACE ANSHAREDLIB
 //=============================================================================================================
 
-namespace ANSHAREDLIB
-{
+namespace ANSHAREDLIB {
+
 
 //*************************************************************************************************************
 //=============================================================================================================
-// FORWARD DECLARATIONS
+// ANSHAREDLIB FORWARD DECLARATIONS
 //=============================================================================================================
 
-class AnalyzeData;
-class AnalyzeSettings;
 
-
-//=========================================================================================================
+//=============================================================================================================
 /**
-* DECLARE CLASS IExtension
+* This model is used to access surface data.
+* The Model is structured like this.
 *
-* @brief The IExtension class is the base interface class for all extensions.
+*           root
+*             |
+*     row = 0 |--Vertices [column]
+*             |
+*     row = 1 |--Normals [column]
+*             |
+*     row = 2 |--Triangles [column]
+*             |
+*     row = 3 |--Curvatures [column]
+*
+* @brief This model is used to access surface data.
 */
-class ANSHAREDSHARED_EXPORT IExtension : public QObject
+class ANSHAREDSHARED_EXPORT SurfaceModel : public AbstractModel
 {
     Q_OBJECT
+
 public:
-    typedef QSharedPointer<IExtension> SPtr;               /**< Shared pointer type for IExtension. */
-    typedef QSharedPointer<const IExtension> ConstSPtr;    /**< Const shared pointer type for IExtension. */
-
-    //=========================================================================================================
-    /**
-    * Destroys the extension.
-    */
-    virtual ~IExtension() {}
-
-    //=========================================================================================================
-    /**
-    * Clone the extension
-    */
-    virtual QSharedPointer<IExtension> clone() const = 0;
-
-    //=========================================================================================================
-    /**
-    * Initializes the extension.
-    */
-    virtual void init() = 0;
-
-    //=========================================================================================================
-    /**
-    * Is called when extension unloaded.
-    */
-    virtual void unload() = 0;
-
-    //=========================================================================================================
-    /**
-    * Returns the plugin name.
-    * Pure virtual method.
-    *
-    * @return the name of plugin.
-    */
-    virtual QString getName() const = 0;
-
-    //=========================================================================================================
-    /**
-    * Provides the menu, in case no menu is provided it returns a Q_NULLPTR
-    *
-    * @return the menu
-    */
-    virtual QMenu* getMenu() = 0;
-
-    //=========================================================================================================
-    /**
-    * Provides the control, in case no control is provided it returns a Q_NULLPTR
-    *
-    * @return the control
-    */
-    virtual QDockWidget* getControl() = 0;
-
-    //=========================================================================================================
-    /**
-    * Provides the view, in case no view is provided it returns a Q_NULLPTR
-    *
-    * @return the view
-    */
-    virtual QWidget* getView() = 0;
-
-    //=========================================================================================================
-    /**
-    * Informs the EventManager about all Events that the Extension wants to know about. Can return an empty
-    * vector in case no Events need to be seen by the Extension.
-    *
-    * @return The vector of relevant Events
-    */
-    virtual QVector<Event::EVENT_TYPE> getEventSubscriptions(void) const = 0;
-
-    //=========================================================================================================
-    /**
-    * Sets the global data, which provides the central database.
-    *
-    * @param[in] globalData  the global data
-    */
-    virtual inline void setGlobalData(QSharedPointer<AnalyzeData> globalData);
-
-    //=========================================================================================================
-    /**
-    * Sets the global settings, which provides the mne analyze settings.
-    *
-    * @param[in] globalSettings  the global settings
-    */
-    virtual inline void setGlobalSettings(QSharedPointer<AnalyzeSettings> globalSettings);
-
-public slots:
-
-    //=========================================================================================================
-    /**
-    * Called by the EventManager in case a subscribed-for Event has happened.
-    *
-    * @param e The Event that has taken place
-    */
-    virtual void handleEvent(Event e) = 0;
+    typedef QSharedPointer<SurfaceModel> SPtr;            /**< Shared pointer type for SurfaceModel. */
+    typedef QSharedPointer<const SurfaceModel> ConstSPtr; /**< Const shared pointer type for SurfaceModel. */
 
 private:
-    QSharedPointer<AnalyzeData> m_analyzeData;              /**< Pointer to the global data base */
-    QSharedPointer<AnalyzeSettings> m_analyzeSettings;      /**< Pointer to the global analyze settings */
+    enum  InternalId {
+        VerticeItem = 1,
+        NormalItem = 2,
+        TriangleItem = 3,
+        CurvatureItem = 4,
+    };
+
+public:
+
+    //=========================================================================================================
+    /**
+    * Deleted default constructor.
+    */
+    SurfaceModel() = delete;
+
+    //=========================================================================================================
+    /**
+    * Constructs a SurfaceModel object from a given SurfaceData object.
+    *
+    * @param[in] sSurfaceFilePath   The path used in Surface class for data loading.
+    * @param[in] pParent            The parent of this object.
+    */
+    explicit SurfaceModel(const QString& sSurfaceFilePath, QObject* pParent = nullptr);
+
+    //=========================================================================================================
+    /**
+    * Default destructor.
+    */
+    ~SurfaceModel() = default;
+
+    //=========================================================================================================
+    /**
+    * Returns the data stored under the given role for the index.
+    * Currently on Qt::DisplayRole is supported
+    *
+    * @param[in] index   The index that referres to the requested item.
+    * @param[in] role    The requested role.
+    */
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+
+    //=========================================================================================================
+    /**
+    * Returns the item flags for the given index.
+    *
+    * @param[in] index   The index that referres to the requested item.
+    */
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+
+    //=========================================================================================================
+    /**
+    * Returns the index for the item in the model specified by the given row, column and parent index.
+    *
+    * @param[in] row      The specified row.
+    * @param[in] column   The specified column.
+    * @param[in] parent   The parent index.
+    */
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+
+    //=========================================================================================================
+    /**
+    * Returns the parent index of the given index.
+    * In this Model the parent index in always QModelIndex().
+    *
+    * @param[in] index   The index that referres to the child.
+    */
+    QModelIndex parent(const QModelIndex &index) const override;
+
+    //=========================================================================================================
+    /**
+    * Returns the number of childeren for the parent node.
+    *
+    * @param[in] parent     The parent index.
+    */
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    //=========================================================================================================
+    /**
+    * Returns the number of objects stored in the node.
+    *
+    * @param[in] parent     The index of the requested node.
+    */
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    //=========================================================================================================
+    /**
+    * Returns true if parent has any children; otherwise returns false.
+    *
+    * @param[in] parent     The index of the parent node.
+    */
+    bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
+
+    //=========================================================================================================
+    /**
+    * @brief getType The type of this model (SurfaceModel)
+    * @return The type of this model (SurfaceModel)
+    */
+    inline AbstractModel::MODEL_TYPE getType() const override;
+
+private:
+
+    SurfaceData    m_pSurfaceData;
 
 };
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-void IExtension::setGlobalData(QSharedPointer<AnalyzeData> globalData)
+inline AbstractModel::MODEL_TYPE SurfaceModel::getType() const
 {
-    m_analyzeData = globalData;
+    return AbstractModel::MODEL_TYPE::FSLIB_SURFACE_MODEL;
 }
 
-//*************************************************************************************************************
+} // namespace ANSHAREDLIB
 
-
-void IExtension::setGlobalSettings(QSharedPointer<AnalyzeSettings> globalSettings)
-{
-    m_analyzeSettings = globalSettings;
-}
-
-} //Namespace
-
-Q_DECLARE_INTERFACE(ANSHAREDLIB::IExtension, "ansharedlib/1.0")
-
-#endif //IEXTENSION_H
+#endif // ANSHAREDLIB_SURFACEMODEL_H

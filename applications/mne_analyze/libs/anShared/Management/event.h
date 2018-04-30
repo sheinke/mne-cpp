@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
+* @file     event.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,16 +30,19 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the Analyze Data Container Class.
+* @brief    Event class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_EVENT_H
+#define ANSHAREDLIB_EVENT_H
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
+#include "../anshared_global.h"
 
 
 //*************************************************************************************************************
@@ -48,82 +50,102 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QVector>
 #include <QSharedPointer>
-#include <QString>
+#include <QPointer>
+#include <QVariant>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// DEFINE NAMESPACE ANSHAREDLIB
 //=============================================================================================================
 
-using namespace ANSHAREDLIB;
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// DEFINE MEMBER METHODS
-//=============================================================================================================
-
-AnalyzeData::AnalyzeData(QObject *parent)
-: QObject(parent)
+namespace ANSHAREDLIB
 {
 
-}
-
 
 //*************************************************************************************************************
+//=============================================================================================================
+// FORWARD DECLARATIONS
+//=============================================================================================================
 
-AnalyzeData::~AnalyzeData()
+class Communicator;
+
+
+//=========================================================================================================
+/**
+* DECLARE CLASS Event
+*
+* @brief Event class for inter-Extension communication
+*/
+class ANSHAREDSHARED_EXPORT Event
 {
-    // @TODO make sure all objects are safely deleted
-}
+public:
+    typedef QSharedPointer<Event> SPtr;            /**< Shared pointer type for Event. */
+    typedef QSharedPointer<const Event> ConstSPtr; /**< Const shared pointer type for Event. */
 
-
-//*************************************************************************************************************
-
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(AbstractModel::MODEL_TYPE mtype)
-{
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
-    for (; iter != m_data.end(); iter++)
+    //=========================================================================================================
+    /**
+    * Public enum for all available Event types.
+    */
+    enum EVENT_TYPE
     {
-        if (iter.value()->getType() == mtype)
-        {
-            result.push_back(iter.value());
-        }
-    }
-    return result;
-}
+        PING,
+        DEFAULT
+    };
+
+    //=========================================================================================================
+    /**
+    * Constructs an Event object.
+    */
+    Event(const EVENT_TYPE type, const Communicator* sender, const QVariant& data);
+
+    //=========================================================================================================
+    /**
+    * @brief Getter for Event type.
+    *
+    * @return Type of the Event.
+    */
+    inline EVENT_TYPE getType() const;
+
+    //=========================================================================================================
+    /**
+    * @brief Getter for Event Sender
+    *
+    * @return Sender of the Event.
+    */
+    inline const Communicator *getSender() const;
+
+    //=========================================================================================================
+    /**
+    * @brief Destructor
+    */
+    ~Event();
+
+private:
+    EVENT_TYPE m_eventType;             /**< Type of the respective Event instance. */
+    const Communicator* m_sender;       /**< Sender of the Event. */
+    const QVariant m_data;             /**< Attached Data (can be empty). */
+};
 
 //*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
 
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
+inline Event::EVENT_TYPE Event::getType() const
 {
-    // check if file was already loaded:
-    if (m_data.contains(path))
-    {
-        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
-    }
-    else
-    {
-        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
-        m_data.insert(path, qSharedPointerCast<AbstractModel>(sm));
-        return sm;
-    }
+    return m_eventType;
 }
+
 
 //*************************************************************************************************************
 
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+inline const Communicator* Event::getSender() const
 {
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurface(p_sFile);
+    return m_sender;
 }
 
-//*************************************************************************************************************
+} // NAMESPACE
+
+#endif // ANSHAREDLIB_EVENT_H

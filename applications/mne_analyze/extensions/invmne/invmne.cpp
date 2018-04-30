@@ -54,8 +54,6 @@
 
 #include <utils/mnemath.h>
 
-#include <iostream>
-
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -158,6 +156,22 @@ QWidget *InvMNE::getView()
 
 //*************************************************************************************************************
 
+void InvMNE::handleEvent(Event e)
+{
+
+}
+
+
+//*************************************************************************************************************
+
+QVector<Event::EVENT_TYPE> InvMNE::getEventSubscriptions(void) const
+{
+    return QVector<Event::EVENT_TYPE>();
+}
+
+
+//*************************************************************************************************************
+
 void InvMNE::calculate()
 {
 //    printf("Data contains %d sets\n",evokedSet.evoked.size());
@@ -235,5 +249,5 @@ void InvMNE::calculate()
     printf("tmin = %f s\n", sourceEstimate.tmin);
     printf("tstep = %f s\n", sourceEstimate.tstep);
 
-    globalData()->addSTC(sourceEstimate);
+    // globalData()->addSTC(sourceEstimate);
 }

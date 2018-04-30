@@ -134,3 +134,19 @@ QWidget *DipoleFit::getView()
 {
     return Q_NULLPTR;
 }
+
+
+//*************************************************************************************************************
+
+void DipoleFit::handleEvent(Event e)
+{
+
+}
+
+
+//*************************************************************************************************************
+
+QVector<Event::EVENT_TYPE> DipoleFit::getEventSubscriptions(void) const
+{
+    return QVector<Event::EVENT_TYPE>();
+}

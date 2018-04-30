@@ -1,16 +1,14 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
+* @file     surfacesettings.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,16 +29,21 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the Analyze Data Container Class.
+* @brief     SurfaceSettings class declaration.
 *
 */
+
+#ifndef ANSHAREDLIB_SURFACESETTINGS_H
+#define ANSHAREDLIB_SURFACESETTINGS_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
+#include "datasettings.h"
+#include "../anshared_global.h"
 
 
 //*************************************************************************************************************
@@ -48,82 +51,94 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QVector>
 #include <QSharedPointer>
-#include <QString>
+#include <QPointer>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// Eigen INCLUDES
 //=============================================================================================================
 
-using namespace ANSHAREDLIB;
+#include <Eigen/Core>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE MEMBER METHODS
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
-AnalyzeData::AnalyzeData(QObject *parent)
-: QObject(parent)
-{
-
-}
-
-
-//*************************************************************************************************************
-
-AnalyzeData::~AnalyzeData()
-{
-    // @TODO make sure all objects are safely deleted
-}
-
-
-//*************************************************************************************************************
-
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(AbstractModel::MODEL_TYPE mtype)
-{
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
-    for (; iter != m_data.end(); iter++)
-    {
-        if (iter.value()->getType() == mtype)
-        {
-            result.push_back(iter.value());
-        }
-    }
-    return result;
+namespace FSLIB {
+    class Surface;
 }
 
 //*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE ANSHAREDLIB
+//=============================================================================================================
 
+namespace ANSHAREDLIB {
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
-{
-    // check if file was already loaded:
-    if (m_data.contains(path))
-    {
-        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
-    }
-    else
-    {
-        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
-        m_data.insert(path, qSharedPointerCast<AbstractModel>(sm));
-        return sm;
-    }
-}
 
 //*************************************************************************************************************
+//=============================================================================================================
+// ANSHAREDLIB FORWARD DECLARATIONS
+//=============================================================================================================
 
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+//=============================================================================================================
+/**
+* Description of what this class is intended to do (in detail).
+*
+* @brief Brief description of this class.
+*/
+class ANSHAREDSHARED_EXPORT SurfaceSettings : public DataSettings
 {
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurface(p_sFile);
-}
+
+public:
+    typedef QSharedPointer<SurfaceSettings> SPtr;            /**< Shared pointer type for SurfaceSettings. */
+    typedef QSharedPointer<const SurfaceSettings> ConstSPtr; /**< Const shared pointer type for SurfaceSettings. */
+
+    SurfaceSettings() = delete;
+
+    //=========================================================================================================
+    /**
+    * Constructs a SurfaceSettings object.
+    */
+    SurfaceSettings(FSLIB::Surface* pSurface);
+
+    qint32 getHemi() const;
+
+    QString getSurfaceType() const;
+
+    Eigen::Vector3f getOffset() const;
+
+    QString getFilePath() const;
+
+    QString getFileName() const;
+
+    void setFilePath(const QString &sPath);
+
+    void setOffset(const Eigen::Vector3f &vOffset);
+
+protected:
+
+private:
+    FSLIB::Surface*     m_pSurface;
+
+signals:
+
+
+
+};
+
 
 //*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
+
+} // namespace ANSHAREDLIB
+
+#endif // ANSHAREDLIB_SURFACESETTINGS_H
