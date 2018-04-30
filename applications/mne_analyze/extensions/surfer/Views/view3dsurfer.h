@@ -85,12 +85,12 @@ class QGridLayout;
 class QAbstractItemModel;
 class QItemSelectionModel;
 
-namespace MNELIB {
-    class MNEBemSurface;
-}
-
 namespace DISP3DLIB {
     class CustomMesh;
+}
+
+namespace ANSHAREDLIB {
+    class AbstractModel;
 }
 
 
@@ -110,9 +110,9 @@ namespace SURFEREXTENSION {
 
 //=============================================================================================================
 /**
-* Description of what this class is intended to do (in detail).
+* This class is used in the Surfer extension to display surfaces from model data.
 *
-* @brief Brief description of this class.
+* @brief This class is used in the Surfer extension to display surfaces from model data.
 */
 class View3DSurfer : public QWidget
 {
@@ -143,7 +143,7 @@ public:
     *
     * @param[in]    pModel   The new item model.
     */
-    void setModel(QAbstractItemModel *pModel);
+    void setModel(QSharedPointer<ANSHAREDLIB::AbstractModel> pModel);
 
     //=========================================================================================================
     /**
@@ -167,6 +167,8 @@ private:
     //=========================================================================================================
     /**
     * Creates the QEntity tree for the scene.
+    *
+    * @return root enity of the scene tree.
     */
     Qt3DCore::QEntity *createEntityTree();
 
@@ -176,10 +178,30 @@ private:
     */
     void updateSurfaceModelMesh();
 
+    //=========================================================================================================
+    /**
+    * Creates the QEntity tree with light entities.
+    *
+    * @return Root enity of the light tree.
+    */
     Qt3DCore::QEntity *createLightEntity();
 
+    //=========================================================================================================
+    /**
+    * This function is only used for testing of the picking mechanism.
+    *
+    * @param[in]    The pick information.
+    */
     void testPicking(Qt3DRender::QPickEvent *event);
 
+    //=========================================================================================================
+    /**
+    * Returns the squared of x.
+    *
+    * @param[in]    the number that should be squared.
+    *
+    * @returns the squared of x.
+    */
     inline float squared(float x);
 
     //Layout
@@ -191,7 +213,7 @@ private:
     Qt3DExtras::QSphereMesh *m_pointMesh;
     Qt3DCore::QTransform *pSphereTransform;
 
-    QPointer<QAbstractItemModel> m_pItemModel;
+    QSharedPointer<QAbstractItemModel> m_pItemModel;
     QPointer<QItemSelectionModel> m_pSelectionModel;
 
 };
