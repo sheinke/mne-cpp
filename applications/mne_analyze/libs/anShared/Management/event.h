@@ -43,6 +43,7 @@
 //=============================================================================================================
 
 #include "../anshared_global.h"
+#include "../Utils/enums.h"
 
 
 //*************************************************************************************************************
@@ -76,7 +77,7 @@ class Communicator;
 /**
 * DECLARE CLASS Event
 *
-* @brief Event class for inter-Extension communication
+* @brief Event class for inter-Extension communication. Basically holds type information, sender and data.
 */
 class ANSHAREDSHARED_EXPORT Event
 {
@@ -86,23 +87,17 @@ public:
 
     //=========================================================================================================
     /**
-    * Public enum for all available Event types.
-    */
-    enum EVENT_TYPE
-    {
-        PING,
-        DEFAULT
-    };
-
-    //=========================================================================================================
-    /**
     * Constructs an Event object.
+    *
+    * @param[in] type       The type of the event
+    * @param[in] sender     The sender of the message
+    * @param[in] data       Data that may be attached to the event
     */
     Event(const EVENT_TYPE type, const Communicator* sender, const QVariant& data);
 
     //=========================================================================================================
     /**
-    * @brief Getter for Event type.
+    * Getter for Event type.
     *
     * @return Type of the Event.
     */
@@ -110,7 +105,7 @@ public:
 
     //=========================================================================================================
     /**
-    * @brief Getter for Event Sender
+    * Getter for Event Sender
     *
     * @return Sender of the Event.
     */
@@ -125,7 +120,7 @@ public:
 private:
     EVENT_TYPE m_eventType;             /**< Type of the respective Event instance. */
     const Communicator* m_sender;       /**< Sender of the Event. */
-    const QVariant m_data;             /**< Attached Data (can be empty). */
+    const QVariant m_data;              /**< Attached Data (can be empty). */
 };
 
 //*************************************************************************************************************
@@ -133,7 +128,7 @@ private:
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-inline Event::EVENT_TYPE Event::getType() const
+inline EVENT_TYPE Event::getType() const
 {
     return m_eventType;
 }
