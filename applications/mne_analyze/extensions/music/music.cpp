@@ -169,7 +169,7 @@ QWidget *Music::getView()
 
 //*************************************************************************************************************
 
-void Music::handleEvent(Event e)
+void Music::handleEvent(QSharedPointer<Event> e)
 {
 
 }
