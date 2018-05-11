@@ -1,6 +1,6 @@
 //=============================================================================================================
 /**
-* @file     enums.h
+* @file     metatypes.h
 * @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
@@ -30,36 +30,14 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief     Enums that are used globally
+* @brief     Register your QMetatypes here.
 *
 */
 
-#ifndef ENUMS_H
-#define ENUMS_H
+#ifndef METATYPES_H
+#define METATYPES_H
 
+Q_DECLARE_METATYPE(Eigen::Vector3f);
+Q_DECLARE_METATYPE(Eigen::Vector3i);
 
-namespace ANSHAREDLIB {
-
-    //=========================================================================================================
-    /**
-    * The MODEL_TYPE enum lists all available model types.
-    * Naming convention: NAMESPACE_CLASSNAME_MODEL
-    */
-    enum MODEL_TYPE
-    {
-        FSLIB_SURFACE_MODEL
-    };
-
-    //=========================================================================================================
-    /**
-    * Public enum for all available Event types.
-    */
-    enum EVENT_TYPE
-    {
-        PING,
-        DEFAULT
-    };
-
-} //NAMESPACE ANSHAREDLIB
-
-#endif // ENUMS_H
+#endif // METATYPES_H

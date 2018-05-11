@@ -111,7 +111,7 @@ HEADERS += \
     Management/communicator.h \
     Management/eventmanager.h \
     Model/abstractmodel.h \
-    Utils/enums.h
+    Utils/metatypes.h
 
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
