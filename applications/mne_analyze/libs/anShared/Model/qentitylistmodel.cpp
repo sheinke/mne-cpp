@@ -1,16 +1,14 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
+* @file     qentitylistmodel.cpp
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     May, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,16 +29,19 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the Analyze Data Container Class.
+* @brief    QEntityListModel class definition.
 *
 */
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
+#include "qentitylistmodel.h"
+#include "../Utils/metatypes.h"
+#include <iostream>
 
 
 //*************************************************************************************************************
@@ -48,10 +49,11 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QVector>
-#include <QSharedPointer>
-#include <QString>
-#include <QtConcurrent/QtConcurrent>
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Eigen INCLUDES
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -60,6 +62,13 @@
 //=============================================================================================================
 
 using namespace ANSHAREDLIB;
+using namespace Qt3DCore;
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE GLOBAL METHODS
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -67,8 +76,8 @@ using namespace ANSHAREDLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-AnalyzeData::AnalyzeData(QObject *parent)
-: QObject(parent)
+QEntityListModel::QEntityListModel(QObject *pParent)
+    : AbstractModel(pParent)
 {
 
 }
@@ -76,96 +85,118 @@ AnalyzeData::AnalyzeData(QObject *parent)
 
 //*************************************************************************************************************
 
-AnalyzeData::~AnalyzeData()
+QVariant QEntityListModel::data(const QModelIndex &index, int role) const
 {
-    // @TODO make sure all objects are safely deleted
-}
-
-
-//*************************************************************************************************************
-
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(MODEL_TYPE mtype)
-{
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
-    for (; iter != m_data.end(); iter++)
-    {
-        if (iter.value()->getType() == mtype)
+    QVariant output;
+    if(index.isValid() && role == Qt::DisplayRole) {
+        if (index.row() < m_vEntries.size())
         {
-            result.push_back(iter.value());
+            output.setValue(m_vEntries.at(index.row()).second);
         }
     }
-    return result;
+    return output;
+}
+
+//*************************************************************************************************************
+
+Qt::ItemFlags QEntityListModel::flags(const QModelIndex &index) const
+{
+    return QAbstractItemModel::flags(index);
+}
+
+//*************************************************************************************************************
+
+QModelIndex QEntityListModel::index(int row, int column, const QModelIndex &parent) const
+{
+    if(!parent.isValid()) {
+        return createIndex(row, column);
+    }
+    else {
+        return QModelIndex();
+    }
+}
+
+//*************************************************************************************************************
+
+QModelIndex QEntityListModel::parent(const QModelIndex &index) const
+{
+    //Only the root node has childeren, therefore all parents are an invalid model index
+    return QModelIndex();
+}
+
+//*************************************************************************************************************
+
+int QEntityListModel::rowCount(const QModelIndex &parent) const
+{
+    //if parent == root node
+    if(!parent.isValid()) {
+        return 1;
+    }
+    else {
+        // only the root node has children
+        return 0;
+    }
 }
 
 
 //*************************************************************************************************************
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
+int QEntityListModel::columnCount(const QModelIndex &parent) const
 {
-    //TODO rewrite as template
-    // check if file was already loaded:
-    if (m_data.contains(path))
-    {
-        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
+    //if parent == root node
+    if(!parent.isValid()) {
+        return m_vEntries.size();
     }
-    else
-    {
-        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
-        QSharedPointer<AbstractModel> temp = qSharedPointerCast<AbstractModel>(sm);
-        m_data.insert(path, temp);
-        emit this->newModelAvailable(temp);
-        return sm;
+    else {
+        // only the root node has children
+        return 0;
     }
 }
 
 
 //*************************************************************************************************************
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+bool QEntityListModel::hasChildren(const QModelIndex &parent) const
 {
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurface(p_sFile);
+    //if parent == root node
+    if(!parent.isValid()) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 
 //*************************************************************************************************************
 
-bool AnalyzeData::registerEntityTree(QString sTargetDisplay, QString sID, QSharedPointer<Qt3DCore::QEntity> pTree)
+bool QEntityListModel::addEntityTree(QSharedPointer<QEntity> pTree, QString sIdentifier)
 {
-    // check if we already created the necessary model
-    if (m_data.contains(m_sIDEntityListModel) == false)
+    for (const QPair<QString, QSharedPointer<QEntity> >& pair : m_vEntries)
     {
-        m_data.insert(m_sIDEntityListModel, qSharedPointerCast<AbstractModel>(QSharedPointer<QEntityListModel>::create()));
+        if (sIdentifier.compare(pair.first) == 0)
+        {
+            // identifier already used, return false
+            return false;
+        }
     }
-    // build internal identifier
-    QString finalID = sTargetDisplay;
-    finalID.append("/");
-    finalID.append(sID);
-    return qSharedPointerDynamicCast<QEntityListModel>(m_data.value(m_sIDEntityListModel))->addEntityTree(pTree, finalID);
+    m_vEntries.push_back(qMakePair<QString, QSharedPointer<QEntity> >(sIdentifier, pTree));
+    return true;
 }
 
 
 //*************************************************************************************************************
 
-bool AnalyzeData::removeEntityTree(QString sTargetDisplay, QString sID)
+bool QEntityListModel::removeEntityTree(QString sIdentifier)
 {
-    // check if we already created the necessary model
-    if (m_data.contains(m_sIDEntityListModel) == false)
+    for (int i = 0; i < m_vEntries.size(); ++i)
     {
-        m_data.insert(m_sIDEntityListModel, qSharedPointerCast<AbstractModel>(QSharedPointer<QEntityListModel>::create()));
+        if (sIdentifier.compare(m_vEntries.at(i).first) == 0)
+        {
+            // identifier found, remove and return true
+            m_vEntries.remove(i);
+            return true;
+        }
     }
-    // build internal identifier
-    QString finalID = sTargetDisplay;
-    finalID.append("/");
-    finalID.append(sID);
-    return qSharedPointerDynamicCast<QEntityListModel>(m_data.value(m_sIDEntityListModel))->removeEntityTree(finalID);
+    return false;
 }
-
-//=============================================================================================================
-// DEFINE STATIC MEMBERS
-//=============================================================================================================
-
-const QString AnalyzeData::m_sIDEntityListModel("ENTITY_DISPLAY_MODEL");

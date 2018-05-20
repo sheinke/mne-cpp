@@ -37,7 +37,10 @@
 #ifndef METATYPES_H
 #define METATYPES_H
 
-Q_DECLARE_METATYPE(Eigen::Vector3f);
-Q_DECLARE_METATYPE(Eigen::Vector3i);
+#include <Qt3DCore/QEntity>
+
+Q_DECLARE_METATYPE(Eigen::Vector3f)
+Q_DECLARE_METATYPE(Eigen::Vector3i)
+Q_DECLARE_METATYPE(QSharedPointer<Qt3DCore::QEntity>)
 
 #endif // METATYPES_H
