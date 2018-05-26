@@ -31,7 +31,7 @@ MNE_LIB_VERSION = 1
 
 QMAKE_TARGET_PRODUCT = mne-cpp
 QMAKE_TARGET_DESCRIPTION = MNE Qt 5 based C++ library.
-QMAKE_TARGET_COPYRIGHT = Copyright (C) 2016 Authors of mne-cpp. All rights reserved.
+QMAKE_TARGET_COPYRIGHT = Copyright (C) 2018 Authors of mne-cpp. All rights reserved.
 
 
 ########################################### PROJECT CONFIGURATION #############################################
@@ -46,8 +46,8 @@ QMAKE_TARGET_COPYRIGHT = Copyright (C) 2016 Authors of mne-cpp. All rights reser
 ## Build MNE-CPP Deep library
 MNECPP_CONFIG += buildDeep
 
-#Build minimalVersion for qt versions <5.9.1
-!minQtVersion(5, 9, 1) {
+#Build minimalVersion for qt versions < 5.10.0
+!minQtVersion(5, 10, 0) {
     message("Building minimal version due to Qt version $${QT_VERSION}.")
     MNECPP_CONFIG += minimalVersion
 }
