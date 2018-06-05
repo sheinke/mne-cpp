@@ -44,7 +44,7 @@
 
 #include "../anshared_global.h"
 #include "event.h"
-#include "../Utils/enums.h"
+#include "../Utils/types.h"
 
 
 //*************************************************************************************************************
@@ -55,6 +55,9 @@
 #include <QSharedPointer>
 #include <QPointer>
 #include <QMultiMap>
+#include <QThread>
+#include <QQueue>
+#include <QMutex>
 
 
 //*************************************************************************************************************
@@ -78,19 +81,26 @@ class Communicator;
 /**
 * DECLARE CLASS EventManager
 *
-* @brief EventManager for Event communication. Holds a routing table that keeps track of Event subscriptions
+* EvenManager for Event communication. Holds a routing table that keeps track of Event subscriptions.
+* Event-ownership is still a bit problematic: The communicator simply wraps the passed data in a shared pointer
+* and passes it on to the EventManager. There it gets stored in a queue until the next processing circle. It
+* then is dequeued and distributed to all subscribed communicators via a Qt::DirectConnection. First problem:
+* Changing the connection to any other than a DirectConnection would require QSharedPointer<Event> to be de-
+* clared as a qmetatype. Second, this might disable the current implementation, since the dequeued pointer leaves
+* scope after distribution. Depending on the queing of arguments in QtConnections, this might be a problem.
 */
-class ANSHAREDSHARED_EXPORT EventManager
+class ANSHAREDSHARED_EXPORT EventManager : public QThread
 {
+    Q_OBJECT
 public:
     typedef QSharedPointer<EventManager> SPtr;            /**< Shared pointer type for EventManager. */
     typedef QSharedPointer<const EventManager> ConstSPtr; /**< Const shared pointer type for EventManager. */
 
     //=========================================================================================================
     /**
-    * Deleted default constructor (static class).
-    */
-    EventManager() = delete;
+     * Delete copy constructor (singleton)
+     */
+    EventManager(const EventManager& other) = delete;
 
     //=========================================================================================================
     /**
@@ -98,15 +108,16 @@ public:
     *
     * @param[in] commu          The Communicator to add
     */
-    static void addCommunicator(Communicator* commu);
+    void addCommunicator(Communicator* commu);
 
     //=========================================================================================================
     /**
-    * Communicate an event to all entities that have registered for the respective event type
+    * Communicate an event to all entities that have registered for the respective event type.
+    * The Event will get buffered in a queue and processed during the next processing cycle.
     *
     * @param[in] e              The event to publish
     */
-    static void issueEvent(Event e);
+    void issueEvent(QSharedPointer<Event> e);
 
     //=========================================================================================================
     /**
@@ -115,27 +126,87 @@ public:
     * @param[in] commu          The Communicator to add the events for
     * @param[in] newsubs        List of new (additional) subscriptions
     */
-    static void addSubscriptions(Communicator* commu, QVector<EVENT_TYPE> newsubs);
+    void addSubscriptions(Communicator* commu, QVector<EVENT_TYPE> newsubs);
 
     //=========================================================================================================
     /**
-    * Replaces a Communicators subscriptions with the specified list
+    * Replaces a Communicators subscriptions with the specified list.
     *
     * @param[in] commu          The respective Communicator
     * @param[in] subs           New list of subscriptions
     */
-    static void updateSubscriptions(Communicator* commu, const QVector<EVENT_TYPE> &subs);
+    void updateSubscriptions(Communicator* commu, const QVector<EVENT_TYPE> &subs);
 
     //=========================================================================================================
     /**
     * Removes (and thus disconnects) a Communicator and all its subscriptions from the routing table
     *
-    * @param[in] commu The communicator to remove.
+    * @param[in] commu          The communicator to remove.
     */
-    static void removeCommunicator(Communicator* commu);
+    void removeCommunicator(Communicator* commu);
+
+    //=========================================================================================================
+    /**
+    * Starts the EventManagers thread that processes buffered events. The EventManager will try to maintain the
+    * specified frequency of dealing with buffered events (frequency in Hz)
+    *
+    * @param frequency          The frequency in Hz to start working through all buffered events.
+    * @return                   Whether starting was successfull
+    */
+    bool startEventHandling(float frequency);
+
+    //=========================================================================================================
+    /**
+    * Stops the EventThread. Depending on the specified event-processing frequency, this might take some time
+    * (up to one waiting period, to be precise. Example: EventManager running on 20 Hz -> up to 50 ms shutdown).
+    *
+    * @return                   Whether stopping was successfull
+    */
+    bool stopEventHandling();
+
+    //=========================================================================================================
+    /**
+    * Indicates whether or not the EventManager currently holds any unprocessed events.
+    *
+    * @return Whether or not the EventManager has unprocessed events.
+    */
+    bool hasBufferedEvents();
+
+    //=========================================================================================================
+    /**
+    * Static method for singleton implementation (returns reference to local static object)
+    *
+    * @return A reference to the EventManager singleton
+    */
+    static EventManager& getEventManager();
+
+    //=========================================================================================================
+    /**
+    * This is called when the user presses the "close" button
+    */
+    void shutdown();
 
 private:
-    static QMultiMap<EVENT_TYPE, Communicator*> m_routingTable;
+
+    //=========================================================================================================
+    /**
+    * Private constructor (singleton)
+    */
+    EventManager();
+
+    //=========================================================================================================
+    /**
+    * Overrides QThread::run. This executes the main loop for handling events. Never try to call this manually.
+    */
+    void run() override;
+
+    QMultiMap<EVENT_TYPE, Communicator*> m_routingTable;    /**< Map that holds routing information */
+    QQueue<QSharedPointer<Event> > m_eventQ;                /**< Queue that buffers all published events */
+
+    QMutex m_eventQMutex;                                   /**< Guarding mutex for the event queue */
+    QMutex m_routingTableMutex;                             /**< Guarding mutex for the routing table */
+    volatile long m_sleepTime;                              /**< Controlling execution frequency of main loop */
+    volatile bool m_running;                                /**< Flag for remembering whether the EventManager is currently started or stopped */
 };
 
 } // namespace

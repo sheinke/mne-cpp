@@ -44,7 +44,7 @@
 
 #include "../anshared_global.h"
 #include "event.h"
-#include "../Utils/enums.h"
+#include "../Utils/types.h"
 
 
 //*************************************************************************************************************
@@ -171,22 +171,21 @@ public:
     */
     inline CommunicatorID getID(void) const;
 
-private:
-    static CommunicatorID m_IDCounter;                  /**< ID-Counter for Communicator instances. */
-    inline static CommunicatorID nextID();              /**< Simply increments the counter and returns it. */
-
-    CommunicatorID m_ID;                                /**< Communicator ID. */
-    QVector<EVENT_TYPE> m_EventSubscriptions;           /**< All event types that the Communicator receives*/
-
-signals: 
+signals:
     /**
     * Called by EventManager whenever an event needs to be handled. This must be connected to some other
     * function for actual usage.
     *
     * @param[in] e              The event that was received
     */
-    void receivedEvent(const Event& e);
+    void receivedEvent(const QSharedPointer<Event> e);
 
+private:
+    static CommunicatorID m_IDCounter;                  /**< ID-Counter for Communicator instances. */
+    inline static CommunicatorID nextID();              /**< Simply increments the counter and returns it. */
+
+    CommunicatorID m_ID;                                /**< Communicator ID. */
+    QVector<EVENT_TYPE> m_EventSubscriptions;           /**< All event types that the Communicator receives*/
 };
 
 //*************************************************************************************************************

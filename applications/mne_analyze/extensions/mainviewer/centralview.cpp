@@ -1,14 +1,14 @@
 //=============================================================================================================
 /**
-* @file     stcbrowser.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+* @file     centralview.cpp
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     May, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,17 +29,35 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains the implementation of the STCBrowser class.
+* @brief    CentralView class definition.
 *
 */
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "stcbrowser.h"
-#include "FormFiles/stccontrol.h"
+#include "centralview.h"
+#include <iostream>
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// QT INCLUDES
+//=============================================================================================================
+
+#include <Qt3DRender>
+#include <Qt3DExtras>
+#include <QPickingSettings>
+#include <QCamera>
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Eigen INCLUDES
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -47,8 +65,17 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace STCBROWSEREXTENSION;
-using namespace ANSHAREDLIB;
+using namespace MAINVIEWEREXTENSION;
+using namespace DISP3DLIB;
+using namespace Qt3DRender;
+using namespace Qt3DCore;
+using namespace Qt3DExtras;
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE GLOBAL METHODS
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -56,98 +83,85 @@ using namespace ANSHAREDLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-
-STCBrowser::STCBrowser()
-: m_pControl(Q_NULLPTR)
-, m_pStcControl(Q_NULLPTR)
+CentralView::CentralView()
+    : Qt3DWindow(),
+      m_pRootEntity(new QEntity)
 {
+    init();
+}
 
+//*************************************************************************************************************
+
+void CentralView::init()
+{
+    // initialize 3D Window
+    setRootEntity(m_pRootEntity);
+
+    QPickingSettings *pPickSettings = renderSettings()->pickingSettings();
+    pPickSettings->setFaceOrientationPickingMode(QPickingSettings::FrontAndBackFace);
+    pPickSettings->setPickMethod(QPickingSettings::TrianglePicking);
+    pPickSettings->setPickResultMode(QPickingSettings::NearestPick);
+
+    QCamera *pCamera = camera();
+    pCamera->setPosition(QVector3D(0,0,1));
+
+    QFirstPersonCameraController *pCamController = new QFirstPersonCameraController(m_pRootEntity);
+    pCamController->setCamera(pCamera);
 }
 
 
 //*************************************************************************************************************
 
-STCBrowser::~STCBrowser()
+void CentralView::addEntity(QSharedPointer<QEntity> pEntity)
 {
-
+    // simply insert below root
+    pEntity->setParent(m_pRootEntity);
+    // remember shared pointer
+    m_vPointerStorage.push_back(pEntity);
 }
 
 
 //*************************************************************************************************************
 
-QSharedPointer<IExtension> STCBrowser::clone() const
+void CentralView::removeEntity(const QString &sIdentifier)
 {
-    QSharedPointer<STCBrowser> pSTCBrowserClone(new STCBrowser);
-    return pSTCBrowserClone;
-}
-
-
-//*************************************************************************************************************
-
-void STCBrowser::init()
-{
-    m_pStcControl = new STCControl;
-}
-
-
-//*************************************************************************************************************
-
-void STCBrowser::unload()
-{
-
-}
-
-
-//*************************************************************************************************************
-
-QString STCBrowser::getName() const
-{
-    return "STC Browser";
-}
-
-
-//*************************************************************************************************************
-
-QMenu *STCBrowser::getMenu()
-{
-    return Q_NULLPTR;
-}
-
-
-//*************************************************************************************************************
-
-QDockWidget *STCBrowser::getControl()
-{
-    if(!m_pControl) {
-        m_pControl = new QDockWidget(tr("STC Browser"));
-        m_pControl->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-        m_pControl->setMinimumWidth(180);
-        m_pControl->setWidget(m_pStcControl);
+    // only direct children, since we only add stuff directly below the root node
+    QEntity* temp = m_pRootEntity->findChild<QEntity* >(sIdentifier, Qt::FindDirectChildrenOnly);
+    if (temp) {
+        // Qt documentation says that this will remove the entity from the scene
+        // cast is necessary because of ambiguity
+        temp->setParent((QEntity* ) Q_NULLPTR);
+    }
+    else {
+        std::cout << "[CentralView] Could not find child named " << sIdentifier.toStdString() << std::endl;
     }
 
-    return m_pControl;
+    // remove from pointer storage
+    for (int i = 0; i < m_vPointerStorage.size(); ++i)
+    {
+        if (m_vPointerStorage.at(i)->objectName().compare(sIdentifier) == 0)
+        {
+            m_vPointerStorage.remove(i);
+            // we trust in uniqueness of identifiers, break
+            break;
+        }
+    }
 }
 
 
 //*************************************************************************************************************
 
-QWidget *STCBrowser::getView()
+void CentralView::dissasEntityTree()
 {
-    return Q_NULLPTR;
-}
-
-
-//*************************************************************************************************************
-
-void STCBrowser::handleEvent(QSharedPointer<Event> e)
-{
-
-}
-
-
-//*************************************************************************************************************
-
-QVector<EVENT_TYPE> STCBrowser::getEventSubscriptions(void) const
-{
-    return QVector<EVENT_TYPE>();
+    QNodeVector vec = m_pRootEntity->childNodes();
+    for (QNode* pNode : vec)
+    {
+        QEntity* temp = (QEntity*) pNode;
+        if (temp)
+        {
+            // Qt documentation says that this will remove the entity from the scene
+            // cast is necessary because of ambiguity
+            temp->setParent((QEntity* ) Q_NULLPTR);
+        }
+    }
 }

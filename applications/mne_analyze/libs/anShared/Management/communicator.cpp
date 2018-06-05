@@ -67,7 +67,7 @@ Communicator::Communicator(const QVector<EVENT_TYPE> &subs)
     : m_ID(nextID()),
       m_EventSubscriptions(subs)
 {
-    EventManager::addCommunicator(this);
+    EventManager::getEventManager().addCommunicator(this);
 }
 
 //*************************************************************************************************************
@@ -77,9 +77,9 @@ Communicator::Communicator(IExtension* extension)
     : Communicator(extension->getEventSubscriptions())
 {
     QObject::connect(this,
-                     SIGNAL(receivedEvent(Event)),
+                     SIGNAL(receivedEvent(QSharedPointer<Event>)),
                      extension,
-                     SLOT(handleEvent(Event)),
+                     SLOT(handleEvent(QSharedPointer<Event>)),
                      Qt::DirectConnection);
 }
 
@@ -88,7 +88,7 @@ Communicator::Communicator(IExtension* extension)
 
 Communicator::~Communicator()
 {
-    EventManager::removeCommunicator(this);
+    EventManager::getEventManager().removeCommunicator(this);
 }
 
 //*************************************************************************************************************
@@ -96,8 +96,9 @@ Communicator::~Communicator()
 
 void Communicator::publishEvent(EVENT_TYPE etype, const QVariant &data) const
 {
-    // simply pass on to the EventManager
-    EventManager::issueEvent(Event(etype, this, data));
+    // simply wrap in smart pointer and pass on to EventManager
+    // CAUTION this could become a problem as soon as the implementation of the EventManager changes, maybe rework this
+    EventManager::getEventManager().issueEvent(QSharedPointer<Event>::create(etype, this, data));
 }
 
 //*************************************************************************************************************
@@ -106,7 +107,7 @@ void Communicator::publishEvent(EVENT_TYPE etype, const QVariant &data) const
 void Communicator::updateSubscriptions(const QVector<EVENT_TYPE> &subs)
 {
     // update routing table of event manager
-    EventManager::updateSubscriptions(this, subs);
+    EventManager::getEventManager().updateSubscriptions(this, subs);
     // update own subscription list: This HAS to be done after the EventManager::updateSubscriptions,
     // since the latter uses the old list in order to keep execution time low
     m_EventSubscriptions.clear();
@@ -119,7 +120,7 @@ void Communicator::addSubscriptions(const QVector<EVENT_TYPE> &newsubs)
 {
     m_EventSubscriptions.append(newsubs);
     // add new subscriptions to routing table of event manager
-    EventManager::addSubscriptions(this, newsubs);
+    EventManager::getEventManager().addSubscriptions(this, newsubs);
 }
 
 //*************************************************************************************************************
@@ -139,7 +140,7 @@ void Communicator::addSubscriptions(EVENT_TYPE newsub)
 void Communicator::manualDisconnect(void)
 {
     // simply delegate to EventManager
-    EventManager::removeCommunicator(this);
+    EventManager::getEventManager().removeCommunicator(this);
 }
 
 //*************************************************************************************************************

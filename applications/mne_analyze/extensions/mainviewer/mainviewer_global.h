@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
-* @file     enums.h
+* @file     mainviewer_global.h
 * @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     November, 2015
+* @date     February, 2017
 *
 * @section  LICENSE
 *
-* Copyright (C) 2015, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2017, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,36 +30,31 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief     Enums that are used globally
+* @brief    Contains the MainViewer library export/import macros.
 *
 */
 
-#ifndef ENUMS_H
-#define ENUMS_H
+#ifndef MAINVIEWER_GLOBAL_H
+#define MAINVIEWER_GLOBAL_H
 
 
-namespace ANSHAREDLIB {
+//*************************************************************************************************************
+//=============================================================================================================
+// QT INCLUDES
+//=============================================================================================================
 
-    //=========================================================================================================
-    /**
-    * The MODEL_TYPE enum lists all available model types.
-    * Naming convention: NAMESPACE_CLASSNAME_MODEL
-    */
-    enum MODEL_TYPE
-    {
-        FSLIB_SURFACE_MODEL
-    };
+#include <QtCore/qglobal.h>
 
-    //=========================================================================================================
-    /**
-    * Public enum for all available Event types.
-    */
-    enum EVENT_TYPE
-    {
-        PING,
-        DEFAULT
-    };
 
-} //NAMESPACE ANSHAREDLIB
+//*************************************************************************************************************
+//=============================================================================================================
+// PREPROCESSOR DEFINES
+//=============================================================================================================
 
-#endif // ENUMS_H
+#if defined(MAINVIEWER_LIBRARY)
+#  define MAINVIEWERSHARED_EXPORT Q_DECL_EXPORT   /**< Q_DECL_EXPORT must be added to the declarations of symbols used when compiling a shared library. */
+#else
+#  define MAINVIEWERSHARED_EXPORT Q_DECL_IMPORT   /**< Q_DECL_IMPORT must be added to the declarations of symbols used when compiling a client that uses the shared library. */
+#endif
+
+#endif // MAINVIEWER_GLOBAL_H

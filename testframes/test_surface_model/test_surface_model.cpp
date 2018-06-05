@@ -45,6 +45,7 @@
 #include "../applications/mne_analyze/libs/anShared/Model/surfacemodel.h"
 #include "../applications/mne_analyze/libs/anShared/Data/surfacedata.h"
 #include "../applications/mne_analyze/libs/anShared/Utils/types.h"
+#include "../applications/mne_analyze/libs/anShared/Utils/metatypes.h"
 #include "../applications/mne_analyze/libs/anShared/Management/analyzedata.h"
 #include <iostream>
 
@@ -105,7 +106,7 @@ void TestSurfaceModel::initTestCase()
 {
     // use DataStorage for loading the model
     m_analyzeData = new AnalyzeData();
-    m_surfaceModel = m_analyzeData->loadSurface("sample", 1, "pial", "./MNE-sample-data/subjects");
+    m_surfaceModel = m_analyzeData->loadSurfaceModel("sample", 1, "pial", "./MNE-sample-data/subjects");
     // load same data again for testing reasons
     m_surfaceData = new SurfaceData("sample", 1, "pial", "./MNE-sample-data/subjects");
 }

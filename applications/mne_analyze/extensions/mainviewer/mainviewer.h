@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
-* @file     view3dsurfer.h
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
+* @file     mainviewer.h
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
+*           Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     August, 2018
+* @date     May, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,12 +30,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief     View3DSurfer class declaration.
+* @brief     MainViewer class declaration.
 *
 */
 
-#ifndef SURFEREXTENSION_VIEW3DSURFER_H
-#define SURFEREXTENSION_VIEW3DSURFER_H
+#ifndef MAINVIEWEREXTENSION_MAINVIEWER_H
+#define MAINVIEWEREXTENSION_MAINVIEWER_H
 
 
 //*************************************************************************************************************
@@ -43,7 +43,10 @@
 // INCLUDES
 //=============================================================================================================
 
-#include <mne/mne_bem_surface.h>
+#include "mainviewer_global.h"
+#include <anShared/Interfaces/IExtension.h>
+#include "centralview.h"
+#include "../../libs/anShared/Model/qentitylistmodel.h"
 
 
 //*************************************************************************************************************
@@ -52,8 +55,8 @@
 //=============================================================================================================
 
 #include <QSharedPointer>
-#include <QWidget>
-#include <QPointer>
+#include <QtWidgets>
+#include <QtCore/QtPlugin>
 
 
 //*************************************************************************************************************
@@ -67,156 +70,114 @@
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
-namespace Qt3DRender {
-    class QGeometryRenderer;
-    class QPickEvent;
-}
 
-namespace Qt3DCore {
-    class QEntity;
-    class QTransform;
-}
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE MAINVIEWEREXTENSION
+//=============================================================================================================
 
-namespace Qt3DExtras {
-    class QSphereMesh;
-}
-
-class QGridLayout;
-class QAbstractItemModel;
-class QItemSelectionModel;
-
-namespace DISP3DLIB {
-    class CustomMesh;
-}
-
-namespace ANSHAREDLIB {
-    class AbstractModel;
-}
+namespace MAINVIEWEREXTENSION {
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE SURFEREXTENSION
-//=============================================================================================================
-
-namespace SURFEREXTENSION {
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// SURFEREXTENSION FORWARD DECLARATIONS
+// MAINVIEWEREXTENSION FORWARD DECLARATIONS
 //=============================================================================================================
 
 
 //=============================================================================================================
 /**
-* This class is used in the Surfer extension to display surfaces from model data.
+* This extension is the main device of displaying 3D content.
 *
-* @brief This class is used in the Surfer extension to display surfaces from model data.
+* @brief This extension is the main device of displaying 3D content.
 */
-class View3DSurfer : public QWidget
+class MAINVIEWERSHARED_EXPORT MainViewer : public ANSHAREDLIB::IExtension
 {
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "ansharedlib/1.0" FILE "mainviewer.json") //New Qt5 Plugin system replaces Q_EXPORT_PLUGIN2 macro
+    // Use the Q_INTERFACES() macro to tell Qt's meta-object system about the interfaces
+    Q_INTERFACES(ANSHAREDLIB::IExtension)
 
 public:
-    typedef QSharedPointer<View3DSurfer> SPtr;            /**< Shared pointer type for View3DSurfer. */
-    typedef QSharedPointer<const View3DSurfer> ConstSPtr; /**< Const shared pointer type for View3DSurfer. */
+    typedef QSharedPointer<MainViewer> SPtr;            /**< Shared pointer type for MainViewer. */
+    typedef QSharedPointer<const MainViewer> ConstSPtr; /**< Const shared pointer type for MainViewer. */
 
     //=========================================================================================================
     /**
-    * Constructs a View3DSurfer object.
+    * Constructs a MainViewer object.
     */
-    View3DSurfer();
+    MainViewer();
 
     //=========================================================================================================
     /**
-    * Default destructor.
+    * Destroys the MainViewer
     */
-    ~View3DSurfer() = default;
+    ~MainViewer();
+
+    // IExtension functions
+    virtual QSharedPointer<IExtension> clone() const override;
+    virtual void init() override;
+    virtual void unload() override;
+    virtual QString getName() const override;
+    virtual QMenu* getMenu() override;
+    virtual QDockWidget* getControl() override;
+    virtual QWidget* getView() override;
+    virtual void handleEvent(QSharedPointer<ANSHAREDLIB::Event> e) override;
+    virtual QVector<ANSHAREDLIB::EVENT_TYPE> getEventSubscriptions() const override;
+
+protected:
+
+private slots:
 
     //=========================================================================================================
     /**
-    * Sets the model for the view to present.
+    * This gets connected to the QEntityListmodel m_pModel, so that we will get notified when a new QEntity
+    * been added to the scene.
     *
-    * This function will create and set a new selection model,
-    * replacing any model that was previously set with setSelectionModel().
-    * However, the old selection model will not be deleted as it may be shared between several views.
-    *
-    * @param[in]    pModel   The new item model.
+    * @param[in] index An index to the newly added QEntity that is stored inside m_pModel
     */
-    void setModel(QSharedPointer<ANSHAREDLIB::AbstractModel> pModel);
+    void onEntityTreeAdded(const QModelIndex& index);
 
     //=========================================================================================================
     /**
-    * Sets the current selection model to the given selectionModel.
+    * This gets connected to the QEntityListModel m_pModel, so that we will be notified when a QEntity should
+    * be removed from the scene.
     *
-    * Note that, if you call setModel() after this function,
-    * the given selectionModel will be replaced by one created by the view.
-    *
-    * @param[in]    pSelectionModel     The new selection model.
+    * @param[in] sIdentifier The name of the QEntity to remove.
     */
-    void setSelectionModel(QItemSelectionModel *pSelectionModel);
+    void onEntityTreeRemoved(const QString &sIdentifier);
 
 private:
 
     //=========================================================================================================
     /**
-    * Initializes the 3d view.
+    * Call this when you want to hide the MainViewer.
     */
-    void init();
+    void hide();
 
     //=========================================================================================================
     /**
-    * Creates the QEntity tree for the scene.
-    *
-    * @return root enity of the scene tree.
+    * Call this when you want to (re)open the MainViewer's display.
     */
-    Qt3DCore::QEntity *createEntityTree();
+    void show();
 
     //=========================================================================================================
     /**
-    * This function creates a mesh from the data given by a SurfaceModel.
+    * Helper function for initializing all the needed GUI elements.
     */
-    void updateSurfaceModelMesh();
+    void createDisplay();
 
-    //=========================================================================================================
-    /**
-    * Creates the QEntity tree with light entities.
-    *
-    * @return Root enity of the light tree.
-    */
-    Qt3DCore::QEntity *createLightEntity();
 
-    //=========================================================================================================
-    /**
-    * This function is only used for testing of the picking mechanism.
-    *
-    * @param[in]    The pick information.
-    */
-    void testPicking(Qt3DRender::QPickEvent *event);
+    QDockWidget*                                    m_pControl; /**< Control Widget */
+    QSharedPointer<ANSHAREDLIB::QEntityListModel>   m_pModel; /**< Other extension register their stuff here */
 
-    //=========================================================================================================
-    /**
-    * Returns the squared of x.
-    *
-    * @param[in]    the number that should be squared.
-    *
-    * @returns the squared of x.
-    */
-    inline float squared(float x);
-
-    //Layout
-    QWidget *m_view3d_container;
-    QGridLayout *m_view3d_gridlayout;
-
-    DISP3DLIB::CustomMesh *m_pSurfaceMesh;
-
-    Qt3DExtras::QSphereMesh *m_pointMesh;
-    Qt3DCore::QTransform *pSphereTransform;
-
-    QSharedPointer<QAbstractItemModel> m_pItemModel;
-    QPointer<QItemSelectionModel> m_pSelectionModel;
-
+    // views / GUI stuff
+    CentralView*                                    m_pView; /**< Main 3D View */
+    QWidget*                                        m_pContainer; /**< Container for wrapping 3D Window in a widget */
+    QMdiSubWindow*                                  m_pSubWindow; /**< Window that wraps the container */
+    bool                                            m_bDisplayCreated; /**< Flag for remembering whether or not the display was already created */
 };
+
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -224,11 +185,6 @@ private:
 //=============================================================================================================
 
 
-inline float View3DSurfer::squared(float x)
-{
-    return x * x;
-}
+} // namespace MAINVIEWEREXTENSION
 
-} // namespace SURFEREXTENSION
-
-#endif // SURFEREXTENSION_VIEW3DSURFER_H
+#endif // MAINVIEWEREXTENSION_MAINVIEWER_H

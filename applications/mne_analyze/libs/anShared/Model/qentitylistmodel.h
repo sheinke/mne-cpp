@@ -1,15 +1,14 @@
 //=============================================================================================================
 /**
-* @file     surfacemodel.h
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
+* @file     qentitylistmodel.h
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     May, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,12 +29,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief     SurfaceModel class declaration.
+* @brief     QEntityListModel class declaration.
 *
 */
 
-#ifndef ANSHAREDLIB_SURFACEMODEL_H
-#define ANSHAREDLIB_SURFACEMODEL_H
+#ifndef ANSHAREDLIB_QENTITYLISTMODEL_H
+#define ANSHAREDLIB_QENTITYLISTMODEL_H
 
 
 //*************************************************************************************************************
@@ -43,8 +42,6 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "../Data/surfacedata.h"
-#include "../anshared_global.h"
 #include "abstractmodel.h"
 #include "../Utils/types.h"
 
@@ -54,6 +51,9 @@
 // QT INCLUDES
 //=============================================================================================================
 
+#include <QVector>
+#include <QPair>
+#include <QString>
 #include <QSharedPointer>
 
 
@@ -68,6 +68,9 @@
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
+namespace Qt3DCore {
+    class QEntity;
+}
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -85,64 +88,37 @@ namespace ANSHAREDLIB {
 
 //=============================================================================================================
 /**
-* This model is used to access surface data.
-* The Model is structured like this.
-*
-*           root
-*             |
-*     row = 0 |--Vertices [column]
-*             |
-*     row = 1 |--Normals [column]
-*             |
-*     row = 2 |--Triangles [column]
-*             |
-*     row = 3 |--Curvatures [column]
-*
-* @brief This model is used to access surface data.
+* This model is not a real model. It enables other extensions to register their 3D content in order to display
+* it. This model is responsible for keeping identifiers unique and communicating with the responsible Extension
+* (or view). Since we need to keep track of all registered children inside the views tree structure and must be
+* able to safely remove them as well, every entry must be named with a unique identifier. A model index is
+* passed whenever a new Entity is registered (since I was not able to pass a QSharedPointer using signals /slots)
+* and a QString is passed when an Entity is removed.
 */
-class ANSHAREDSHARED_EXPORT SurfaceModel : public AbstractModel
+class QEntityListModel : public AbstractModel
 {
     Q_OBJECT
 
 public:
-    typedef QSharedPointer<SurfaceModel> SPtr;            /**< Shared pointer type for SurfaceModel. */
-    typedef QSharedPointer<const SurfaceModel> ConstSPtr; /**< Const shared pointer type for SurfaceModel. */
-
-private:
-    enum  InternalId {
-        VerticeItem = 1,
-        NormalItem = 2,
-        TriangleItem = 3,
-        CurvatureItem = 4,
-    };
-
-public:
+    typedef QSharedPointer<QEntityListModel> SPtr;            /**< Shared pointer type for QEntityListModel. */
+    typedef QSharedPointer<const QEntityListModel> ConstSPtr; /**< Const shared pointer type for QEntityListModel. */
 
     //=========================================================================================================
     /**
-    * Deleted default constructor.
+    * Constructs a QEntityListModel object.
     */
-    SurfaceModel() = delete;
-
-    //=========================================================================================================
-    /**
-    * Constructs a SurfaceModel object from a given SurfaceData object.
-    *
-    * @param[in] sSurfaceFilePath   The path used in Surface class for data loading.
-    * @param[in] pParent            The parent of this object.
-    */
-    explicit SurfaceModel(const QString& sSurfaceFilePath, QObject* pParent = nullptr);
+    QEntityListModel(const QString& modelIdentifier, QObject* pParent = nullptr);
 
     //=========================================================================================================
     /**
     * Default destructor.
     */
-    ~SurfaceModel() = default;
+    ~QEntityListModel() = default;
 
     //=========================================================================================================
     /**
     * Returns the data stored under the given role for the index.
-    * Currently on Qt::DisplayRole is supported
+    * Currently only Qt::DisplayRole is supported
     *
     * @param[in] index   The index that referres to the requested item.
     * @param[in] role    The requested role.
@@ -207,10 +183,53 @@ public:
     */
     inline MODEL_TYPE getType() const override;
 
+    //=========================================================================================================
+    /**
+    * This is called whenever somebody wants to display smth using this model.
+    * The newly added Entity must be named. Its name must not already be registered in this model.
+    * This method will add the Entity to the model, notify the responsible view and return true when all of
+    * the above conditions are met. Otherwise it will return false.
+    *
+    * @param[in] pTree The Entity to be added.
+    * @return Whether the Entity was successfully added
+    */
+    bool addEntityTree(QSharedPointer<Qt3DCore::QEntity> pTree);
+
+    //=========================================================================================================
+    /**
+    * This is called whenever somebody wants to remove an Entity that was previously registered.
+    * In case the Entity's name can be found, the Entity will be removed from this model, the responsible view
+    * will be notified and updated and the method will return true. Otherwise, it will return false.
+    *
+    * @param[in] pTree The Entity to remove.
+    * @return Whether the Entity was successfully removed.
+    */
+    bool removeEntityTree(QSharedPointer<Qt3DCore::QEntity> pTree);
+
+signals:
+
+    //=========================================================================================================
+    /**
+    * This is emitted when a Entity Tree was successfully registered.
+    *
+    * @param index An index to the newly registered Entity
+    */
+    void entityTreeAdded(const QModelIndex& index);
+
+    //=========================================================================================================
+    /**
+     * This is emitted when an Entity was successfully removed from the model.
+     *
+     * @param sIdentifier The name of the Entity to be removed.
+     */
+    void entityTreeRemoved(const QString& sIdentifier);
+
+protected:
+
 private:
 
-    SurfaceData    m_pSurfaceData;
-
+    QString m_name;                                         /**< Name of the model */
+    QVector<QSharedPointer<Qt3DCore::QEntity> > m_vData;    /**< All registered QEntities */
 };
 
 
@@ -219,11 +238,11 @@ private:
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-inline MODEL_TYPE SurfaceModel::getType() const
+inline MODEL_TYPE QEntityListModel::getType() const
 {
-    return MODEL_TYPE::ANSHAREDLIB_SURFACE_MODEL;
+    return MODEL_TYPE::ANSHAREDLIB_QENTITYLIST_MODEL;
 }
 
 } // namespace ANSHAREDLIB
 
-#endif // ANSHAREDLIB_SURFACEMODEL_H
+#endif // ANSHAREDLIB_QENTITYLISTMODEL_H

@@ -1,15 +1,14 @@
 //=============================================================================================================
 /**
-* @file     analyzecore.cpp
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
+* @file     qentitylistmodel.cpp
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     May, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,7 +29,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    AnalyzeCore class definition.
+* @brief    QEntityListModel class definition.
 *
 */
 
@@ -40,23 +39,15 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzecore.h"
-#include "mainwindow.h"
-#include "../libs/anShared/Interfaces/IExtension.h"
-#include "../libs/anShared/Management/analyzesettings.h"
-#include "../libs/anShared/Management/analyzedata.h"
-#include "../libs/anShared/Management/extensionmanager.h"
-#include "../libs/anShared/Management/eventmanager.h"
-
-#include<iostream>
+#include "qentitylistmodel.h"
+#include "../Utils/metatypes.h"
+#include <iostream>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
-
-#include <QtWidgets>
 
 
 //*************************************************************************************************************
@@ -70,16 +61,14 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace MNEANALYZE;
 using namespace ANSHAREDLIB;
+using namespace Qt3DCore;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// CONST
+// DEFINE GLOBAL METHODS
 //=============================================================================================================
-
-const char* extensionsDir = "/mne_analyze_extensions";        /**< holds path to the extensions.*/
 
 
 //*************************************************************************************************************
@@ -87,22 +76,9 @@ const char* extensionsDir = "/mne_analyze_extensions";        /**< holds path to
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-AnalyzeCore::AnalyzeCore(QObject* parent)
-    : QObject(parent)
-{
-    initGlobalSettings();
-    initGlobalData();
-
-    initEventSystem();
-    initExtensionManager();
-    initMainWindow();
-
-}
-
-
-//*************************************************************************************************************
-
-AnalyzeCore::~AnalyzeCore()
+QEntityListModel::QEntityListModel(const QString &modelIdentifier, QObject *pParent)
+    : AbstractModel(pParent),
+      m_name(modelIdentifier)
 {
 
 }
@@ -110,68 +86,136 @@ AnalyzeCore::~AnalyzeCore()
 
 //*************************************************************************************************************
 
-void AnalyzeCore::showMainWindow()
+QVariant QEntityListModel::data(const QModelIndex &index, int role) const
 {
-    m_pMainWindow->show();
+    QVariant output;
+    if(index.isValid() && role == Qt::DisplayRole) {
+        if (index.row() < m_vData.size())
+        {
+            output.setValue(m_vData.at(index.row()));
+        }
+    }
+    return output;
+}
+
+//*************************************************************************************************************
+
+Qt::ItemFlags QEntityListModel::flags(const QModelIndex &index) const
+{
+    return QAbstractItemModel::flags(index);
+}
+
+//*************************************************************************************************************
+
+QModelIndex QEntityListModel::index(int row, int column, const QModelIndex &parent) const
+{
+    if(!parent.isValid()) {
+        return createIndex(row, column);
+    }
+    else {
+        return QModelIndex();
+    }
+}
+
+//*************************************************************************************************************
+
+QModelIndex QEntityListModel::parent(const QModelIndex &index) const
+{
+    //Only the root node has childeren, therefore all parents are an invalid model index
+    return QModelIndex();
+}
+
+//*************************************************************************************************************
+
+int QEntityListModel::rowCount(const QModelIndex &parent) const
+{
+    //if parent == root node
+    if(!parent.isValid()) {
+        return 1;
+    }
+    else {
+        // only the root node has children
+        return 0;
+    }
 }
 
 
 //*************************************************************************************************************
 
-QPointer<MainWindow> AnalyzeCore::getMainWindow()
+int QEntityListModel::columnCount(const QModelIndex &parent) const
 {
-    return m_pMainWindow;
+    //if parent == root node
+    if(!parent.isValid()) {
+        return m_vData.size();
+    }
+    else {
+        // only the root node has children
+        return 0;
+    }
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initGlobalSettings()
+bool QEntityListModel::hasChildren(const QModelIndex &parent) const
 {
-    m_analyzeSettings = AnalyzeSettings::SPtr::create();
+    //if parent == root node
+    if(!parent.isValid()) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initGlobalData()
+bool QEntityListModel::addEntityTree(QSharedPointer<QEntity> pTree)
 {
-    m_analyzeData = AnalyzeData::SPtr::create();
+    // check whether entity name is valid
+    if (pTree->objectName().size() > 0)
+    {
+        // check whether name is already taken
+        for (const QSharedPointer<QEntity>& p : m_vData)
+        {
+            if (p->objectName().compare(pTree->objectName()) == 0)
+            {
+                // name found, return false
+                return false;
+            }
+        }
+        // could not find name, insert into record
+        m_vData.push_back(pTree);
+        // emit signal for connected display
+        emit entityTreeAdded(createIndex(0, m_vData.size() - 1));
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initEventSystem()
+bool QEntityListModel::removeEntityTree(QSharedPointer<QEntity> pTree)
 {
-    EventManager::getEventManager().startEventHandling(20.0f);
-}
-
-
-//*************************************************************************************************************
-
-void AnalyzeCore::initExtensionManager()
-{
-    m_pExtensionManager = QSharedPointer<ExtensionManager>::create();
-    m_pExtensionManager->loadExtension(qApp->applicationDirPath() +  extensionsDir);
-    m_pExtensionManager->initExtensions(m_analyzeSettings, m_analyzeData);
-}
-
-
-//*************************************************************************************************************
-
-void AnalyzeCore::initMainWindow()
-{
-    m_pMainWindow = new MainWindow(m_pExtensionManager);
-    QObject::connect(m_pMainWindow, &MainWindow::mainWindowClosed, this, &AnalyzeCore::onMainWindowClosed);
-}
-
-
-//*************************************************************************************************************
-
-void AnalyzeCore::onMainWindowClosed()
-{
-    EventManager::getEventManager().shutdown();
-    // shutdown every extension, empty analzye data etc.
-    m_pExtensionManager->shutdown();
+    // check whether entity name is valid
+    if (pTree->objectName().size() > 0)
+    {
+        // check whether name can be found in record
+        for (int i = 0; i < m_vData.size(); ++i)
+        {
+            if (m_vData.at(i)->objectName().compare(pTree->objectName()) == 0)
+            {
+                // name found
+                emit entityTreeRemoved(pTree->objectName());
+                m_vData.remove(i);
+                return true;
+            }
+        }
+        // could not find name, will return false
+    }
+    return false;
 }

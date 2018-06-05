@@ -90,7 +90,8 @@ SOURCES += \
     Model/surfacemodel.cpp \
     Management/event.cpp \
     Management/communicator.cpp \
-    Management/eventmanager.cpp
+    Management/eventmanager.cpp \
+    Model/qentitylistmodel.cpp
 
 HEADERS += \
     anshared_global.h \
@@ -111,7 +112,8 @@ HEADERS += \
     Management/communicator.h \
     Management/eventmanager.h \
     Model/abstractmodel.h \
-    Utils/enums.h
+    Utils/metatypes.h \
+    Model/qentitylistmodel.h
 
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}

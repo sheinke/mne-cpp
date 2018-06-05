@@ -51,6 +51,7 @@
 #include <QVector>
 #include <QSharedPointer>
 #include <QString>
+#include <QtConcurrent/QtConcurrent>
 
 
 //*************************************************************************************************************
@@ -98,33 +99,46 @@ QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(MODEL_TYPE
     return result;
 }
 
+
 //*************************************************************************************************************
 
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &path)
+QSharedPointer<SurfaceModel> AnalyzeData::loadSurfaceModel(const QString& path)
 {
-    //TODO rewrite as template
-    // check if file was already loaded:
-    if (m_data.contains(path))
-    {
-        return qSharedPointerDynamicCast<SurfaceModel>(m_data.value(path));
-    }
-    else
-    {
-        QSharedPointer<SurfaceModel> sm = QSharedPointer<SurfaceModel>::create(path);
-        m_data.insert(path, qSharedPointerCast<AbstractModel>(sm));
-        return sm;
-    }
+    return loadModel<SurfaceModel>(path);
 }
 
+
 //*************************************************************************************************************
 
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+QSharedPointer<SurfaceModel> AnalyzeData::loadSurfaceModel(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
 {
     // copied from Surface::read
     QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurface(p_sFile);
+    return loadSurfaceModel(p_sFile);
 }
 
+
 //*************************************************************************************************************
+
+QSharedPointer<QEntityListModel> AnalyzeData::createQEntityListModel(const QString &modelIdentifier)
+{
+    return loadModel<QEntityListModel>(modelIdentifier);
+}
+
+
+//*************************************************************************************************************
+
+QVector<QSharedPointer<QEntityListModel> > AnalyzeData::availableDisplays() const
+{
+    // similiar to "getObjectOfType"
+    QVector<QSharedPointer<QEntityListModel> > result;
+    QHash<QString, QSharedPointer<AbstractModel> >::ConstIterator iter = m_data.begin();
+    for (; iter != m_data.end(); iter++)
+    {
+        if (iter.value()->getType() == MODEL_TYPE::ANSHAREDLIB_QENTITYLIST_MODEL)
+        {
+            result.push_back(qSharedPointerDynamicCast<QEntityListModel>(iter.value()));
+        }
+    }
+    return result;
+}
