@@ -1,14 +1,15 @@
 #--------------------------------------------------------------------------------------------------------------
 #
-# @file     fiffio.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+# @file     mainviewer.pro
+# @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
+#           Lars Debor <lars.debor@tu-ilmenau.de>;
 #           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 # @version  1.0
-# @date     July, 2017
+# @date     May, 2018
 #
 # @section  LICENSE
 #
-# Copyright (C) 2017 Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2017 Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -29,7 +30,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# @brief    This project file generates the makefile for the fiffio extension.
+# @brief    This project file generates the makefile for the MainViewer extension.
 #
 #--------------------------------------------------------------------------------------------------------------
 
@@ -39,11 +40,11 @@ TEMPLATE = lib
 
 CONFIG += plugin
 
-DEFINES += FIFFIO_LIBRARY
+DEFINES += MAINVIEWER_LIBRARY
 
 QT += gui widgets 3dextras
 
-TARGET = fiffio
+TARGET = mainviewer
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
@@ -57,6 +58,8 @@ CONFIG(debug, debug|release) {
             -lMNE$${MNE_LIB_VERSION}Fwdd \
             -lMNE$${MNE_LIB_VERSION}Inversed \
             -lMNE$${MNE_LIB_VERSION}Connectivityd \
+            -lMNE$${MNE_LIB_VERSION}Dispd \
+            -lMNE$${MNE_LIB_VERSION}Disp3Dd \
             -lanSharedd
 }
 else {
@@ -67,6 +70,8 @@ else {
             -lMNE$${MNE_LIB_VERSION}Fwd \
             -lMNE$${MNE_LIB_VERSION}Inverse \
             -lMNE$${MNE_LIB_VERSION}Connectivity \
+            -lMNE$${MNE_LIB_VERSION}Disp \
+            -lMNE$${MNE_LIB_VERSION}Disp3D \
             -lanShared
 }
 
@@ -74,17 +79,20 @@ win32: DLLDESTDIR = $${MNE_BINARY_DIR}/mne_analyze_extensions
 unix: DESTDIR = $${MNE_BINARY_DIR}/mne_analyze_extensions
 
 SOURCES += \
-    fiffio.cpp
+    mainviewer.cpp \
+    centralview.cpp
 
 HEADERS += \
-    fiffio_global.h \
-    fiffio.h
+    mainviewer_global.h \
+    mainviewer.h \
+    centralview.h
+
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_ANALYZE_INCLUDE_DIR}
 
-OTHER_FILES += fiffio.json
+OTHER_FILES += mainviewer.json
 
 # Put generated form headers into the origin --> cause other src is pointing at them
 UI_DIR = $$PWD

@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
-* @file     analyzecore.cpp
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
+* @file     mainviewer.cpp
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
+*           Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     May, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,7 +30,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    AnalyzeCore class definition.
+* @brief    MainViewer class definition.
 *
 */
 
@@ -40,15 +40,8 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzecore.h"
-#include "mainwindow.h"
-#include "../libs/anShared/Interfaces/IExtension.h"
-#include "../libs/anShared/Management/analyzesettings.h"
-#include "../libs/anShared/Management/analyzedata.h"
-#include "../libs/anShared/Management/extensionmanager.h"
-#include "../libs/anShared/Management/eventmanager.h"
-
-#include<iostream>
+#include "mainviewer.h"
+#include "../../libs/anShared/Utils/metatypes.h"
 
 
 //*************************************************************************************************************
@@ -56,7 +49,7 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QtWidgets>
+#include <Qt3DCore/QEntity>
 
 
 //*************************************************************************************************************
@@ -70,16 +63,15 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace MNEANALYZE;
+using namespace MAINVIEWEREXTENSION;
 using namespace ANSHAREDLIB;
+using namespace Qt3DCore;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// CONST
+// DEFINE GLOBAL METHODS
 //=============================================================================================================
-
-const char* extensionsDir = "/mne_analyze_extensions";        /**< holds path to the extensions.*/
 
 
 //*************************************************************************************************************
@@ -87,22 +79,13 @@ const char* extensionsDir = "/mne_analyze_extensions";        /**< holds path to
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-AnalyzeCore::AnalyzeCore(QObject* parent)
-    : QObject(parent)
-{
-    initGlobalSettings();
-    initGlobalData();
-
-    initEventSystem();
-    initExtensionManager();
-    initMainWindow();
-
-}
-
-
-//*************************************************************************************************************
-
-AnalyzeCore::~AnalyzeCore()
+MainViewer::MainViewer()
+    : m_pControl(Q_NULLPTR),
+      m_pModel(Q_NULLPTR),
+      m_pView(Q_NULLPTR),
+      m_pContainer(Q_NULLPTR),
+      m_pSubWindow(Q_NULLPTR),
+      m_bDisplayCreated(false)
 {
 
 }
@@ -110,68 +93,164 @@ AnalyzeCore::~AnalyzeCore()
 
 //*************************************************************************************************************
 
-void AnalyzeCore::showMainWindow()
+MainViewer::~MainViewer()
 {
-    m_pMainWindow->show();
+
 }
 
 
 //*************************************************************************************************************
 
-QPointer<MainWindow> AnalyzeCore::getMainWindow()
+QSharedPointer<IExtension> MainViewer::clone() const
 {
-    return m_pMainWindow;
+    // cloning the main viewer might cause a lot of trouble, so let us not even try to
+    return Q_NULLPTR;
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initGlobalSettings()
+void MainViewer::init()
 {
-    m_analyzeSettings = AnalyzeSettings::SPtr::create();
+    if(m_bDisplayCreated == false) {
+        createDisplay();
+    }
+
+    // create our QEntity model and register it in AnalyzeData
+    m_pModel = m_analyzeData->createQEntityListModel(QString("MAINVIEWER"));
+    // do the necessary connects so that we get notified when new 3D stuff needs to be added / removed
+    QObject::connect(m_pModel.data(), &QEntityListModel::entityTreeAdded, this, &MainViewer::onEntityTreeAdded);
+    // direct connection in case somebody directly deletes the entity tree after calling "removeEntityTree".
+    QObject::connect(m_pModel.data(), &QEntityListModel::entityTreeRemoved, this, &MainViewer::onEntityTreeRemoved, Qt::DirectConnection);
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initGlobalData()
+void MainViewer::unload()
 {
-    m_analyzeData = AnalyzeData::SPtr::create();
+    // we need to call this to prevent double frees during shutdown
+    m_pView->dissasEntityTree();
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initEventSystem()
+QString MainViewer::getName() const
 {
-    EventManager::getEventManager().startEventHandling(20.0f);
+    return "MainViewer";
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initExtensionManager()
+QMenu *MainViewer::getMenu()
 {
-    m_pExtensionManager = QSharedPointer<ExtensionManager>::create();
-    m_pExtensionManager->loadExtension(qApp->applicationDirPath() +  extensionsDir);
-    m_pExtensionManager->initExtensions(m_analyzeSettings, m_analyzeData);
+    return Q_NULLPTR;
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initMainWindow()
+QDockWidget *MainViewer::getControl()
 {
-    m_pMainWindow = new MainWindow(m_pExtensionManager);
-    QObject::connect(m_pMainWindow, &MainWindow::mainWindowClosed, this, &AnalyzeCore::onMainWindowClosed);
+    if(!m_pControl) {
+        m_pControl = new QDockWidget(tr("Main View Control"));
+        m_pControl->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+        m_pControl->setMinimumWidth(180);
+    }
+
+    return m_pControl;
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::onMainWindowClosed()
+QWidget *MainViewer::getView()
 {
-    EventManager::getEventManager().shutdown();
-    // shutdown every extension, empty analzye data etc.
-    m_pExtensionManager->shutdown();
+    if (m_bDisplayCreated == false)
+    {
+        createDisplay();
+    }
+
+    return m_pSubWindow;
+}
+
+
+//*************************************************************************************************************
+
+void MainViewer::handleEvent(QSharedPointer<Event> e)
+{
+
+}
+
+
+//*************************************************************************************************************
+
+QVector<EVENT_TYPE> MainViewer::getEventSubscriptions(void) const
+{
+    return QVector<EVENT_TYPE>();
+}
+
+
+//*************************************************************************************************************
+
+void MainViewer::onEntityTreeAdded(const QModelIndex& index)
+{
+    // retrieve data from model, extract shared pointer and pass it to view
+    m_pView->addEntity(m_pModel->data(index, Qt::DisplayRole).value<QSharedPointer<QEntity> >());
+    m_pContainer->update();
+}
+
+
+//*************************************************************************************************************
+
+void MainViewer::onEntityTreeRemoved(const QString& sIdentifier)
+{
+    // simply pass on to view:
+    m_pView->removeEntity(sIdentifier);
+    m_pContainer->update();
+}
+
+
+//*************************************************************************************************************
+
+void MainViewer::hide()
+{
+    m_pSubWindow->hide();
+}
+
+
+//*************************************************************************************************************
+
+void MainViewer::show()
+{
+    m_pSubWindow->show();
+    // container state is not considered when this is run through a QtConnection, we need to call it explicitly
+    m_pContainer->show();
+}
+
+
+//*************************************************************************************************************
+
+void MainViewer::createDisplay()
+{
+    // a 3D window is created
+    m_pView = new CentralView();
+
+    // a container is created to contain the Qt3DWindow, then a minimum size is set
+    m_pContainer = QWidget::createWindowContainer(m_pView);
+    m_pContainer->setMinimumSize(256, 256);
+    m_pContainer->setFocusPolicy(Qt::TabFocus);
+    m_pContainer->setAttribute(Qt::WA_DeleteOnClose, false);
+
+    // we need this since the top-level main window runs "QMdiView::addSubWindow()", which requires a subwindow
+    // to be passed (if a window would be passed, QMdiView would silently create a new QMidSubWindow )
+    m_pSubWindow = new QMdiSubWindow();
+    m_pSubWindow->setWidget(m_pContainer);
+    m_pSubWindow->setWindowTitle(QString("Main Display"));
+    m_pSubWindow->setAttribute(Qt::WA_DeleteOnClose, false);
+
+    // remember that the display was built
+    m_bDisplayCreated = true;
 }

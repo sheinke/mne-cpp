@@ -92,6 +92,7 @@ SOURCES += \
     Management/communicator.cpp \
     Management/eventmanager.cpp \
     Model/ecdsetmodel.cpp
+    Model/qentitylistmodel.cpp
 
 HEADERS += \
     anshared_global.h \
@@ -114,6 +115,8 @@ HEADERS += \
     Model/abstractmodel.h \
     Utils/enums.h \
     Model/ecdsetmodel.h
+    Utils/metatypes.h \
+    Model/qentitylistmodel.h
 
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}

@@ -46,7 +46,8 @@
 #include "../anshared_global.h"
 #include "../Model/abstractmodel.h"
 #include "../Model/surfacemodel.h"
-#include "../Utils/enums.h"
+#include "../Utils/types.h"
+#include "../Model/qentitylistmodel.h"
 
 
 //*************************************************************************************************************
@@ -55,6 +56,7 @@
 //=============================================================================================================
 
 #include <QSharedPointer>
+#include <QString>
 
 
 //*************************************************************************************************************
@@ -62,6 +64,9 @@
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
+namespace Qt3DCore {
+    class QEntity;
+}
 
 
 //*************************************************************************************************************
@@ -116,13 +121,36 @@ public:
 
     //=========================================================================================================
     /**
+    * This is the main function for instanciating models. It simply calls the models constructor with the
+    * provided path and inserts the model into the hash. NO ERROR CHECKING IS PERFORMED !
+    */
+    template<class T>
+    QSharedPointer<T> loadModel(const QString path)
+    {
+        // check if model was already loaded:
+        if (m_data.contains(path))
+        {
+            return qSharedPointerDynamicCast<T>(m_data.value(path));
+        }
+        else
+        {
+            QSharedPointer<T> sm = QSharedPointer<T>::create(path);
+            QSharedPointer<AbstractModel> temp = qSharedPointerCast<AbstractModel>(sm);
+            m_data.insert(path, temp);
+            emit this->newModelAvailable(temp);
+            return sm;
+        }
+    }
+
+    //=========================================================================================================
+    /**
     * Loads a Surface from the specified filepath (only if the object is not loaded yet)
     *
     * @param[in] path               The path of the object to load
     *
     * @return                       SurfaceModel that contains the specified surface
     */
-    QSharedPointer<SurfaceModel> loadSurface(const QString& path);
+    QSharedPointer<SurfaceModel> loadSurfaceModel(const QString& path);
 
     //=========================================================================================================
     /**
@@ -136,19 +164,43 @@ public:
     *
     * @return                       SurfaceModel that contains the specified surface
     */
-    QSharedPointer<SurfaceModel> loadSurface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir);
+    QSharedPointer<SurfaceModel> loadSurfaceModel(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir);
+
+    //=========================================================================================================
+    /**
+    * This creates (and thus registers) a new QEntityListModel that can be used by other parts of MNEAnalyze
+    * to display content. A unique name is required, we recommend using the name of the caller (plus further
+    * letters / identifiers in case of multiple displays).
+    *
+    * @param modelIdentifier The name of the new model to be created
+    * @return A shared pointer to the newly created model
+    */
+    QSharedPointer<QEntityListModel> createQEntityListModel(const QString &modelIdentifier);
+
+    //=========================================================================================================
+    /**
+    * This is a convenience function for retrieving all available "displays", meaning all QEntityListModels
+    * that were registered so far.
+    *
+    * @return A Vector of QEntityListModels.
+    */
+    QVector<QSharedPointer<QEntityListModel> > availableDisplays() const;
 
 protected:
 
 private:
+
     QHash<QString, QSharedPointer<AbstractModel> >        m_data;
 
-};
+signals:
 
-//*************************************************************************************************************
-//=============================================================================================================
-// INLINE DEFINITIONS
-//=============================================================================================================
+    /**
+    * This is emitted whenever a new model is loaded.
+    *
+    * @param[in] model The newly available model
+    */
+    void newModelAvailable(QSharedPointer<AbstractModel> model);
+};
 
 } //Namespace
 

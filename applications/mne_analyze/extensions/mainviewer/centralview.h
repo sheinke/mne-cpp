@@ -1,15 +1,14 @@
 //=============================================================================================================
 /**
-* @file     abstractmodel.h
+* @file     centralview.h
 * @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     April, 2018
+* @date     May, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,21 +29,20 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief     AbstractModel class declaration.
-*
+* This view is the display for 3D content in MNEAnalyze. It inherits Qt3DExtras::Qt3DWindow and specifies
+* camera, initial view angle, camera controller etc.
+* It keeps track of a QEntity-Tree that reflects all registered content.
+* Registered SharedPointers are copied into a vector to keep their reference-count mechanism working.
 */
 
-#ifndef ANSHAREDLIB_ABSTRACTMODEL_H
-#define ANSHAREDLIB_ABSTRACTMODEL_H
+#ifndef MAINVIEWEREXTENSION_CENTRALVIEW_H
+#define MAINVIEWEREXTENSION_CENTRALVIEW_H
 
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
-
-#include "../anshared_global.h"
-#include "../Utils/types.h"
 
 
 //*************************************************************************************************************
@@ -53,7 +51,11 @@
 //=============================================================================================================
 
 #include <QSharedPointer>
-#include <QAbstractItemModel>
+#include <QGridLayout>
+#include <Qt3DCore>
+#include <QCloseEvent>
+#include <QVector>
+#include <Qt3DExtras>
 
 
 //*************************************************************************************************************
@@ -67,69 +69,101 @@
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
+namespace Qt3DRender {
+    class QPickEvent;
+}
+
+namespace Qt3DCore {
+    class QEntity;
+}
+
+namespace Qt3DExtras {
+    class QSphereMesh;
+}
+
+namespace DISP3DLIB {
+    class CustomMesh;
+}
+
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE ANSHAREDLIB
+// DEFINE NAMESPACE MAINVIEWEREXTENSION
 //=============================================================================================================
 
-namespace ANSHAREDLIB {
+namespace MAINVIEWEREXTENSION {
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// ANSHAREDLIB FORWARD DECLARATIONS
+// MAINVIEWEREXTENSION FORWARD DECLARATIONS
 //=============================================================================================================
 
 
 //=============================================================================================================
 /**
+* Description of what this class is intended to do (in detail).
 *
-* @brief Super class for all models that are intended to be used by AnalyzeData.
-*        Holds information such as model type.
+* @brief Brief description of this class.
 */
-class ANSHAREDSHARED_EXPORT AbstractModel : public QAbstractItemModel
+class CentralView : public Qt3DExtras::Qt3DWindow
 {
     Q_OBJECT
-
 public:
-    typedef QSharedPointer<AbstractModel> SPtr;            /**< Shared pointer type for AbstractModel. */
-    typedef QSharedPointer<const AbstractModel> ConstSPtr; /**< Const shared pointer type for AbstractModel. */
+    typedef QSharedPointer<CentralView> SPtr;            /**< Shared pointer type for CentralView. */
+    typedef QSharedPointer<const CentralView> ConstSPtr; /**< Const shared pointer type for CentralView. */
 
     //=========================================================================================================
     /**
-    * Constructs a AbstractModel object. Simply pass potential parent object to super class.
+    * Constructs a CentralView object.
     */
-    AbstractModel(QObject *pParent = nullptr)
-        : QAbstractItemModel(pParent) {}
+    CentralView();
 
     //=========================================================================================================
     /**
-    * Default destructor.
+    * Default destructor
     */
-    virtual ~AbstractModel() = default;
+    ~CentralView() = default;
 
     //=========================================================================================================
     /**
-    * Getter for the model type
+    * This will insert the passed QEntity below the views root.
     *
-    * @return The type of the respective subclasses
+    * @param[in] pEntity The QEntity to be added.
     */
-    virtual inline MODEL_TYPE getType() const = 0;
+    void addEntity(QSharedPointer<Qt3DCore::QEntity> pEntity);
 
     //=========================================================================================================
-    // Inherited by QAbstractItemModel:
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override = 0;
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const override = 0;
-    virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override = 0;
-    virtual QModelIndex parent(const QModelIndex &index) const override = 0;
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override = 0;
-    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const override = 0;
+    /**
+    * This will remove the child named with sIdentifier or give out a warning in case the child could not be found.
+    *
+    * @param[in] sIdentifier The name of the child to be removed.
+    */
+    void removeEntity(const QString& sIdentifier);
+
+    //=========================================================================================================
+    /**
+    * This is called during shutdown of the program in order to prevent double frees
+    */
+    void dissasEntityTree();
 
 protected:
 
 private:
 
+    //=========================================================================================================
+    /**
+    * Initializes the 3D view.
+    */
+    void init();
+
+    Qt3DCore::QEntity *m_pRootEntity;           /**< Root entity */
+
+    /**
+    * Since parent-child connections inside the tree are based on normal pointers, we need to keep track of
+    * shared pointers in order for the reference-count mechanism to work correctly
+    */
+    QVector<QSharedPointer<Qt3DCore::QEntity> > m_vPointerStorage;
 };
 
 
@@ -139,6 +173,6 @@ private:
 //=============================================================================================================
 
 
-} // namespace ANSHAREDLIB
+} // namespace MAINVIEWEREXTENSION
 
-#endif // ANSHAREDLIB_ABSTRACTMODEL_H
+#endif // MAINVIEWEREXTENSION_CENTRALVIEW_H

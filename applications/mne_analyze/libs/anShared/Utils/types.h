@@ -42,7 +42,6 @@
 // INCLUDES
 //=============================================================================================================
 
-#include <inverse/dipoleFit/ecd.h>
 #include <Eigen/Core>
 
 
@@ -67,14 +66,28 @@ using namespace Eigen;
 // DEFINE NAMESPACE MNEANALYZE
 //=============================================================================================================
 
-namespace MNEANALYZE
+namespace ANSHAREDLIB
 {
+    //=========================================================================================================
+    /**
+    * The MODEL_TYPE enum lists all available model types.
+    * Naming convention: NAMESPACE_CLASSNAME_MODEL
+    */
+    enum MODEL_TYPE
+    {
+        ANSHAREDLIB_SURFACE_MODEL,
+        ANSHAREDLIB_QENTITYLIST_MODEL
+    };
 
+    //=========================================================================================================
+    /**
+    * Public enum for all available Event types.
+    */
+    enum EVENT_TYPE
+    {
+        PING,
+        EXTENSION_INIT_FINISHED
+    };
 } //NAMESPACE
-
-Q_DECLARE_METATYPE(Eigen::Vector3f);
-Q_DECLARE_METATYPE(Eigen::Vector3i);
-Q_DECLARE_METATYPE(INVERSELIB::ECD);
-
 
 #endif // TYPES_H

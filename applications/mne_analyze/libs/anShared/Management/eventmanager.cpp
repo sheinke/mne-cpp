@@ -42,6 +42,7 @@
 #include "eventmanager.h"
 #include "communicator.h"
 #include <iostream>
+#include <chrono>
 
 
 //*************************************************************************************************************
@@ -49,6 +50,7 @@
 // QT INCLUDES
 //=============================================================================================================
 
+#include <QMutexLocker>
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -63,8 +65,20 @@ using namespace ANSHAREDLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
+EventManager::EventManager()
+    : m_routingTable(),
+      m_eventQ(),
+      m_eventQMutex(),
+      m_routingTableMutex(),
+      m_sleepTime(40l),
+      m_running(false)
+{
+
+}
+
 void EventManager::addCommunicator(Communicator* commu)
 {
+    QMutexLocker temp(&m_routingTableMutex);
     const QVector<EVENT_TYPE>& subscriptions = commu->getSubscriptions();
     for(const EVENT_TYPE& etype : subscriptions)
     {
@@ -75,18 +89,10 @@ void EventManager::addCommunicator(Communicator* commu)
 //*************************************************************************************************************
 
 
-void EventManager::issueEvent(Event e)
+void EventManager::issueEvent(QSharedPointer<Event> e)
 {
-    const QList<Communicator*> subscribers = m_routingTable.values(e.getType());
-    for(Communicator* commu : subscribers)
-    {
-        // avoid self-messaging
-        if (commu->getID() != e.getSender()->getID())
-        {
-            // notify communicator about event
-            emit commu->receivedEvent(e);
-        }
-    }
+    QMutexLocker temp(&m_eventQMutex);
+    m_eventQ.enqueue(e);
 }
 
 //*************************************************************************************************************
@@ -94,6 +100,7 @@ void EventManager::issueEvent(Event e)
 
 void EventManager::addSubscriptions(Communicator* commu, QVector<EVENT_TYPE> newsubs)
 {
+    QMutexLocker temp(&m_routingTableMutex);
     for(const EVENT_TYPE& etype : newsubs)
     {
         m_routingTable.insert(etype, commu);
@@ -106,12 +113,9 @@ void EventManager::addSubscriptions(Communicator* commu, QVector<EVENT_TYPE> new
 void EventManager::updateSubscriptions(Communicator* commu,const QVector<EVENT_TYPE> &subs)
 {
     // remove old subscriptions from EventManager routing table
-    EventManager::removeCommunicator(commu);
+    removeCommunicator(commu);
     // add new key-value-pairs into map
-    for(const EVENT_TYPE& etype : subs)
-    {
-        m_routingTable.insert(etype, commu);
-    }
+    addSubscriptions(commu, subs);
 }
 
 //*************************************************************************************************************
@@ -119,6 +123,7 @@ void EventManager::updateSubscriptions(Communicator* commu,const QVector<EVENT_T
 
 void EventManager::removeCommunicator(Communicator* commu)
 {
+    QMutexLocker temp(&m_routingTableMutex);
     for(const EVENT_TYPE& etype : commu->getSubscriptions())
     {
         int removed = m_routingTable.remove(etype, commu);
@@ -134,8 +139,111 @@ void EventManager::removeCommunicator(Communicator* commu)
 //*************************************************************************************************************
 
 
-//=============================================================================================================
-// DEFINE STATIC MEMBERS
-//=============================================================================================================
+bool EventManager::startEventHandling(float frequency)
+{
+    if (m_running)
+    {
+        std::cout << "[EventManager] Warning somebody tried to call startEventHandling when already running..." << std::endl;
+        return false;
+    }
+    else {
+        m_sleepTime = (long) (1000.0f / frequency);
+        m_running = true;
+        // start qthread
+        start();
+        return true;
+    }
 
-QMultiMap<EVENT_TYPE, Communicator*> EventManager::m_routingTable;
+}
+
+//*************************************************************************************************************
+
+
+bool EventManager::stopEventHandling()
+{
+    if (m_running)
+    {
+        m_running = false;
+        requestInterruption();
+        wait();
+        return true;
+    }
+    else {
+        std::cout << "[EventManager] Warning somebody tried to call stopEventHandling when already stopped..." << std::endl;
+        return false;
+    }
+}
+
+//*************************************************************************************************************
+
+bool EventManager::hasBufferedEvents()
+{
+    QMutexLocker temp(&m_eventQMutex);
+    return (m_eventQ.isEmpty() == false);
+}
+
+
+//*************************************************************************************************************
+
+EventManager& EventManager::getEventManager()
+{
+    static EventManager em;
+    return em;
+}
+
+//*************************************************************************************************************
+
+
+void EventManager::run()
+{
+    // main loop
+    while (true)
+    {
+        auto before = std::chrono::high_resolution_clock::now();
+        // go through all buffered events:
+        while (hasBufferedEvents() == true)
+        {
+            // safely remove first queue element
+            QMutexLocker eventQLock(&m_eventQMutex);
+            const QSharedPointer<Event> e = m_eventQ.dequeue();
+            eventQLock.unlock();
+            // safely extract list of subscribers
+            QMutexLocker routingTableLock(&m_routingTableMutex);
+            const QList<Communicator*> subscribers = m_routingTable.values(e->getType());
+            for(Communicator* commu : subscribers)
+            {
+                // avoid self-messaging
+                if (commu->getID() != e->getSender()->getID())
+                {
+                    // notify communicator about event
+                    emit commu->receivedEvent(e);
+                }
+            }
+            routingTableLock.unlock();
+        }
+        auto after = std::chrono::high_resolution_clock::now();
+        long elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
+        if (m_sleepTime - elapsed > 0)
+        {
+            // still some time left in current cycle, sleep
+            QThread::currentThread()->msleep(m_sleepTime - elapsed);
+        }
+        else
+        {
+            // issue warning
+            std::cout << "[EventManager] WARNING, running behind on event handling...";
+        }
+        if (isInterruptionRequested())
+        {
+            return;
+        }
+    }
+}
+
+//*************************************************************************************************************
+
+
+void EventManager::shutdown()
+{
+    stopEventHandling();
+}

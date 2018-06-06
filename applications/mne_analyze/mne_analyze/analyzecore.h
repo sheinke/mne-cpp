@@ -51,6 +51,7 @@
 // QT INCLUDES
 //=============================================================================================================
 
+#include <QObject>
 #include <QSharedPointer>
 #include <QPointer>
 
@@ -94,9 +95,9 @@ namespace MNEANALYZE {
 *
 * @brief Brief description of this class.
 */
-class AnalyzeCore
+class AnalyzeCore : public QObject
 {
-
+    Q_OBJECT
 public:
     typedef QSharedPointer<AnalyzeCore> SPtr;            /**< Shared pointer type for AnalyzeCore. */
     typedef QSharedPointer<const AnalyzeCore> ConstSPtr; /**< Const shared pointer type for AnalyzeCore. */
@@ -105,7 +106,7 @@ public:
     /**
     * Constructs a AnalyzeCore object.
     */
-    AnalyzeCore();
+    AnalyzeCore(QObject* parent = nullptr);
 
     ~AnalyzeCore();
 
@@ -127,8 +128,17 @@ public:
 
 protected:
 
+private slots:
+
+    //=========================================================================================================
+    /**
+    * This is executed when the user presses "close" button (via QConnection from MainWindow)
+    */
+    void onMainWindowClosed();
+
 private:
 
+    void initEventSystem();
     void initExtensionManager();
     void initMainWindow();
 

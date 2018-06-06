@@ -42,6 +42,8 @@ Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalaine
 
 #include "extensionmanager.h"
 #include "../Interfaces/IExtension.h"
+#include "communicator.h"
+#include <iostream>
 
 
 //*************************************************************************************************************
@@ -113,12 +115,16 @@ void ExtensionManager::loadExtension(const QString& dir)
 
 void ExtensionManager::initExtensions(QSharedPointer<AnalyzeSettings> settings, QSharedPointer<AnalyzeData> data)
 {
-    foreach(IExtension* extension, m_qVecExtensions)
+    for(IExtension* extension : m_qVecExtensions)
     {
         extension->setGlobalSettings(settings);
         extension->setGlobalData(data);
         extension->init();
     }
+    // tell everyone that INIT-phase is finished
+    // @TODO consider communicator as class member, since this is kinda nasty
+    Communicator con;
+    con.publishEvent(EVENT_TYPE::EXTENSION_INIT_FINISHED);
 }
 
 //*************************************************************************************************************
@@ -131,4 +137,15 @@ int ExtensionManager::findByName(const QString& name)
             return i;
 
     return -1;
+}
+
+
+//*************************************************************************************************************
+
+void ExtensionManager::shutdown()
+{
+    for(IExtension* extension : m_qVecExtensions)
+    {
+        extension->unload();
+    }
 }
