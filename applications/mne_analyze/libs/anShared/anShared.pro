@@ -91,7 +91,7 @@ SOURCES += \
     Management/event.cpp \
     Management/communicator.cpp \
     Management/eventmanager.cpp \
-    Model/ecdsetmodel.cpp
+    Model/ecdsetmodel.cpp \
     Model/qentitylistmodel.cpp
 
 HEADERS += \
@@ -113,8 +113,7 @@ HEADERS += \
     Management/communicator.h \
     Management/eventmanager.h \
     Model/abstractmodel.h \
-    Utils/enums.h \
-    Model/ecdsetmodel.h
+    Model/ecdsetmodel.h \
     Utils/metatypes.h \
     Model/qentitylistmodel.h
 
