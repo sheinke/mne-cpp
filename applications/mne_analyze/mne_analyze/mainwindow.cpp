@@ -92,13 +92,12 @@ MainWindow::MainWindow(QSharedPointer<ANSHAREDLIB::ExtensionManager> pExtensionM
     if(!pExtensionManager.isNull()) {
         createDockWindows(pExtensionManager);
         createMdiView(pExtensionManager);
+        createActions();
+        createMenus(pExtensionManager);
     }
     else {
         std::cerr << "ERROR MainWindow::MainWindow extension manager is nullptr" << std::endl;
     }
-
-    createActions();
-    createMenus();
 }
 
 
@@ -158,7 +157,7 @@ void MainWindow::createActions()
 
 //*************************************************************************************************************
 
-void MainWindow::createMenus()
+void MainWindow::createMenus(QSharedPointer<ANSHAREDLIB::ExtensionManager> pExtensionManager)
 {
     m_pMenuFile = menuBar()->addMenu(tr("&File"));
     m_pMenuFile->addAction(m_pActionOpenDataFile);
@@ -175,6 +174,16 @@ void MainWindow::createMenus()
 
     m_pMenuHelp = menuBar()->addMenu(tr("&Help"));
     m_pMenuHelp->addAction(m_pActionAbout);
+
+    // add extensions menus
+    for(IExtension* ex : pExtensionManager->getExtensions())
+    {
+        QMenu* pMenu = ex->getMenu();
+        if(pMenu)
+        {
+            menuBar()->addMenu(pMenu);
+        }
+    }
 }
 
 
