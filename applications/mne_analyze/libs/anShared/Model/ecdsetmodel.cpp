@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
+* @file     ecdsetmodel.cpp
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     May, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,16 +30,22 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the Analyze Data Container Class.
+* @brief    EcdSetModel class definition.
 *
 */
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
+#include "ecdsetmodel.h"
+#include "../Utils/types.h"
+#include "../Utils/metatypes.h"
+#include <inverse/dipoleFit/ecd_set.h>
+#include <inverse/dipoleFit/dipole_fit.h>
+#include <inverse/dipoleFit/dipole_fit_settings.h>
 
 
 //*************************************************************************************************************
@@ -48,10 +53,11 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QVector>
-#include <QSharedPointer>
-#include <QString>
-#include <QtConcurrent/QtConcurrent>
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Eigen INCLUDES
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -60,6 +66,13 @@
 //=============================================================================================================
 
 using namespace ANSHAREDLIB;
+using namespace INVERSELIB;
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE GLOBAL METHODS
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -67,78 +80,111 @@ using namespace ANSHAREDLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-AnalyzeData::AnalyzeData(QObject *parent)
-: QObject(parent)
+EcdSetModel::EcdSetModel(DipoleFitSettings *pDipolSettings, QObject *pParent)
+    :AbstractModel(pParent)
 {
-
+    DipoleFit dipFit(pDipolSettings);
+    m_ecdSet = dipFit.calculateFit();
 }
 
 
 //*************************************************************************************************************
 
-AnalyzeData::~AnalyzeData()
+EcdSetModel::EcdSetModel(const QString &sDipFileName, QObject *pParent)
 {
-    // @TODO make sure all objects are safely deleted
+    m_ecdSet = ECDSet::read_dipoles_dip(sDipFileName);
 }
 
 
 //*************************************************************************************************************
 
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(MODEL_TYPE mtype)
+QVariant EcdSetModel::data(const QModelIndex &index, int role) const
 {
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::const_iterator iter = m_data.cbegin();
-    for (; iter != m_data.cend(); iter++)
-    {
-        if (iter.value()->getType() == mtype)
-        {
-            result.push_back(iter.value());
+    if(!index.isValid() || index.row() >= m_ecdSet.size() || index.row() < 0) {
+        return QVariant();
+    }
+
+    if(role == Qt::DisplayRole) {
+        return QVariant::fromValue(m_ecdSet[index.row()]);
+    }
+
+    return QVariant();
+}
+
+
+//*************************************************************************************************************
+
+Qt::ItemFlags EcdSetModel::flags(const QModelIndex &index) const
+{
+    Qt::ItemFlags flags = QAbstractItemModel::flags(index);
+
+    if (index.isValid()) {
+        flags |= Qt::ItemNeverHasChildren;
+        flags |= Qt::ItemIsEditable;
+    }
+
+    return flags;
+}
+
+
+//*************************************************************************************************************
+
+QModelIndex EcdSetModel::index(int row, int column, const QModelIndex &parent) const
+{
+    return hasIndex(row, column, parent) ? createIndex(row, column) : QModelIndex();
+}
+
+
+//*************************************************************************************************************
+
+QModelIndex EcdSetModel::parent(const QModelIndex &index) const
+{
+    return QModelIndex();
+}
+
+
+//*************************************************************************************************************
+
+int EcdSetModel::rowCount(const QModelIndex &parent) const
+{
+    return m_ecdSet.size();
+}
+
+
+//*************************************************************************************************************
+
+bool EcdSetModel::hasChildren(const QModelIndex &parent) const
+{
+    return parent.isValid() ? false : (rowCount() > 0);
+}
+
+
+//*************************************************************************************************************
+
+bool EcdSetModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if(!index.isValid() || index.row() >= m_ecdSet.size() || index.row() < 0) {
+        return false;
+    }
+
+    if(role == Qt::DisplayRole) {
+        if(value.canConvert<ECD>()) {
+            m_ecdSet[index.row()] = value.value<ECD>();
+            emit dataChanged(index, index, QVector<int>{role});
+            return true;
         }
     }
-    return result;
+
+    return false;
 }
 
 
 //*************************************************************************************************************
 
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurfaceModel(const QString& path)
+int EcdSetModel::columnCount(const QModelIndex &parent) const
 {
-    return loadModel<SurfaceModel>(path);
+    return parent.isValid() ? 0 : 1;
 }
 
 
 //*************************************************************************************************************
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurfaceModel(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
-{
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(subjects_dir).arg(subject_id).arg(hemi == 0 ? "lh" : "rh").arg(surf);
-    return loadSurfaceModel(p_sFile);
-}
-
-
-//*************************************************************************************************************
-
-QSharedPointer<QEntityListModel> AnalyzeData::createQEntityListModel(const QString &modelIdentifier)
-{
-    return loadModel<QEntityListModel>(modelIdentifier);
-}
-
-
-//*************************************************************************************************************
-
-QVector<QSharedPointer<QEntityListModel> > AnalyzeData::availableDisplays() const
-{
-    // similiar to "getObjectOfType"
-    QVector<QSharedPointer<QEntityListModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::const_iterator iter = m_data.cbegin();
-    for (; iter != m_data.cend(); iter++)
-    {
-        if (iter.value()->getType() == MODEL_TYPE::ANSHAREDLIB_QENTITYLIST_MODEL)
-        {
-            result.push_back(qSharedPointerDynamicCast<QEntityListModel>(iter.value()));
-        }
-    }
-    return result;
-}
