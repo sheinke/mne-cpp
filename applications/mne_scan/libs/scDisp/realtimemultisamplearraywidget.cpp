@@ -30,7 +30,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Implementation of the RealTimeMultiSampleArrayWidget Class.
+* @brief    Definition of the RealTimeMultiSampleArrayWidget Class.
 *
 */
 
@@ -304,7 +304,7 @@ void RealTimeMultiSampleArrayWidget::update(SCMEASLIB::NewMeasurement::SPtr)
                         m_slAvailableModalities << "MEG";
 
                         //Add MEG helmet
-                        QFile t_filesensorSurfaceVV("./resources/general/sensorSurfaces/306m_rt.fif");
+                        QFile t_filesensorSurfaceVV(QCoreApplication::applicationDirPath() + "/resources/general/sensorSurfaces/306m_rt.fif");
                         m_pBemSensor = MNEBem::SPtr(new MNEBem(t_filesensorSurfaceVV));
                         m_pData3DModel->addMegSensorInfo("Sensors", "MEG System", QList<FiffChInfo>(), *m_pBemSensor.data());
                     }
@@ -336,8 +336,7 @@ void RealTimeMultiSampleArrayWidget::update(SCMEASLIB::NewMeasurement::SPtr)
                                                                     data,
                                                                     (*m_pBemHead.data())[0],
                                                                     *m_pFiffInfo.data(),
-                                                                    "EEG",
-                                                                    m_p3DView->format());
+                                                                    "EEG");
 
                 if(m_pRtEEGSensorDataItem) {
                     m_pRtEEGSensorDataItem->setLoopState(false);
@@ -363,8 +362,7 @@ void RealTimeMultiSampleArrayWidget::update(SCMEASLIB::NewMeasurement::SPtr)
                                                                     data,
                                                                     (*m_pBemSensor.data())[0],
                                                                     *m_pFiffInfo.data(),
-                                                                    "MEG",
-                                                                    m_p3DView->format());
+                                                                    "MEG");
 
                 if(m_pRtMEGSensorDataItem) {
                     m_pRtMEGSensorDataItem->setLoopState(false);
@@ -401,7 +399,7 @@ void RealTimeMultiSampleArrayWidget::init()
 
         m_pRTMSAModel->setFiffInfo(m_pFiffInfo);
         m_pRTMSAModel->setChannelInfo(m_qListChInfo);//ToDo Obsolete
-        m_pRTMSAModel->setSamplingInfo(m_fSamplingRate, m_iT);
+        m_pRTMSAModel->setSamplingInfo(m_fSamplingRate, m_iT, true);
 
         //
         //-------- Init the delegate --------

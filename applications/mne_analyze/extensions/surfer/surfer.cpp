@@ -31,7 +31,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains the implementation of the Surfer class.
+* @brief    Definition of the Surfer class.
 *
 */
 

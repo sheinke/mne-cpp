@@ -29,7 +29,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains the implementation of the Neuromag class.
+* @brief    Definition of the Neuromag class.
 *
 */
 
@@ -147,7 +147,7 @@ void Neuromag::initConnector()
 
         m_pRTMSA_Neuromag->data()->setVisibility(true);
 
-        m_pRTMSA_Neuromag->data()->setXMLLayoutFile("./mne_scan_plugins/resources/Neuromag/VectorViewLayout.xml");
+        m_pRTMSA_Neuromag->data()->setXMLLayoutFile("./resources/mne_scan/plugins/Neuromag/VectorViewLayout.xml");
 
         m_outputConnectors.append(m_pRTMSA_Neuromag);
     }
@@ -234,8 +234,9 @@ void Neuromag::connectCmdClient()
             if(!m_pFiffInfo)
                 requestInfo();
 
-            if(m_pFiffInfo)
-                readHeader();
+            // This will read projectors from an external file and replace the one received from mne_rt_server
+            //if(m_pFiffInfo)
+            //    readProjectors();
 
             //
             // Read Connectors
@@ -399,7 +400,7 @@ QWidget* Neuromag::setupWidget()
 
 //*************************************************************************************************************
 
-bool Neuromag::readHeader()
+bool Neuromag::readProjectors()
 {
     QFile t_headerFiffFile(m_sFiffHeader);
 

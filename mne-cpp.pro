@@ -45,7 +45,10 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     libraries \
-    applications
+
+!contains(MNECPP_CONFIG, noApplications) {
+    SUBDIRS += applications
+}
 
 !contains(MNECPP_CONFIG, noExamples) {
     SUBDIRS += examples
@@ -55,4 +58,8 @@ SUBDIRS += \
     SUBDIRS += testframes
 }
 
-CONFIG += ordered
+# Specify library dependencies
+libraries.depends =
+applications.depends = libraries
+examples.depends = libraries
+testframes.depends = libraries
