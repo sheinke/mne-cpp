@@ -40,7 +40,6 @@
 //=============================================================================================================
 
 #include "centralview.h"
-#include <iostream>
 
 
 //*************************************************************************************************************
@@ -66,7 +65,6 @@
 //=============================================================================================================
 
 using namespace MAINVIEWEREXTENSION;
-using namespace DISP3DLIB;
 using namespace Qt3DRender;
 using namespace Qt3DCore;
 using namespace Qt3DExtras;
@@ -95,8 +93,6 @@ CentralView::CentralView()
 void CentralView::init()
 {
     // initialize 3D Window
-    setRootEntity(m_pRootEntity);
-
     QPickingSettings *pPickSettings = renderSettings()->pickingSettings();
     pPickSettings->setFaceOrientationPickingMode(QPickingSettings::FrontAndBackFace);
     pPickSettings->setPickMethod(QPickingSettings::TrianglePicking);
@@ -107,6 +103,11 @@ void CentralView::init()
 
     QFirstPersonCameraController *pCamController = new QFirstPersonCameraController(m_pRootEntity);
     pCamController->setCamera(pCamera);
+    // we introduced the convention that every entity below root should be named
+    pCamController->setObjectName("MainViewer/CameraController");
+    m_vEntities.push_back(QSharedPointer<QEntity>(pCamController));
+
+    setRootEntity(m_pRootEntity);
 }
 
 
@@ -114,10 +115,14 @@ void CentralView::init()
 
 void CentralView::addEntity(QSharedPointer<QEntity> pEntity)
 {
+    // remember shared pointer
+    m_vEntities.push_back(pEntity);
+
     // simply insert below root
     pEntity->setParent(m_pRootEntity);
-    // remember shared pointer
-    m_vPointerStorage.push_back(pEntity);
+
+    // use this as an opportunity to check for unused anti crash nodes
+    checkForUnusedAntiCrashNodes();
 }
 
 
@@ -125,43 +130,88 @@ void CentralView::addEntity(QSharedPointer<QEntity> pEntity)
 
 void CentralView::removeEntity(const QString &sIdentifier)
 {
-    // only direct children, since we only add stuff directly below the root node
-    QEntity* temp = m_pRootEntity->findChild<QEntity* >(sIdentifier, Qt::FindDirectChildrenOnly);
-    if (temp) {
-        // Qt documentation says that this will remove the entity from the scene
-        // cast is necessary because of ambiguity
-        temp->setParent((QEntity* ) Q_NULLPTR);
+    // only search for direct children, since entities are always added below root
+    QEntity* pTemp = m_pRootEntity->findChild<QEntity* >(sIdentifier, Qt::FindDirectChildrenOnly);
+    if (pTemp) {
+        for (int i = 0; i < m_vEntities.size(); ++i)
+        {
+            if (m_vEntities.at(i)->objectName().compare(sIdentifier) == 0)
+            {
+                // remove from pointer storage
+                m_vEntities.remove(i);
+                // we trust in uniqueness of identifiers, break
+                break;
+            }
+        }
+        // create a new entity and make it the new parent of the remove-candidate
+        pTemp->setParent(createNewAntiCrashNode());
     }
     else {
-        std::cout << "[CentralView] Could not find child named " << sIdentifier.toStdString() << std::endl;
-    }
-
-    // remove from pointer storage
-    for (int i = 0; i < m_vPointerStorage.size(); ++i)
-    {
-        if (m_vPointerStorage.at(i)->objectName().compare(sIdentifier) == 0)
-        {
-            m_vPointerStorage.remove(i);
-            // we trust in uniqueness of identifiers, break
-            break;
-        }
+        qDebug() << "[CentralView] Could not find child named " << sIdentifier;
     }
 }
 
 
 //*************************************************************************************************************
 
-void CentralView::dissasEntityTree()
+void CentralView::shutdown()
 {
-    QNodeVector vec = m_pRootEntity->childNodes();
-    for (QNode* pNode : vec)
+    // dissassemble the used entity tree
+    QNodeVector vChildren = m_pRootEntity->childNodes();
+    for (QNode* pNode : vChildren)
     {
-        QEntity* temp = (QEntity*) pNode;
-        if (temp)
+        QEntity* pTemp = (QEntity*) pNode;
+        if (pTemp)
         {
-            // Qt documentation says that this will remove the entity from the scene
-            // cast is necessary because of ambiguity
-            temp->setParent((QEntity* ) Q_NULLPTR);
+            // avoid double frees on program shutdown, caused by shared ownership
+            pTemp->setParent((QEntity*) nullptr);
+        }
+    }
+
+    // take care of dangling anti crash nodes
+    for (int i = 0; i < m_vAntiCrashNodes.size(); ++i)
+    {
+        int iNumChildren = m_vAntiCrashNodes.at(i)->childNodes().count();
+        if (iNumChildren == 0) {
+            // not used anymore, simply wait for vector destructor
+        }
+        else if (iNumChildren == 1) {
+            // still used, need to seperate the child from the anti crash nodes in order to avoid double frees
+            m_vAntiCrashNodes.at(i)->childNodes().at(0)->setParent((QEntity*) nullptr);
+        }
+        else {
+            qDebug() << "[CentralView] FATAL Shutdown: found anti crash node with more than one child !";
+            // best thing we can do is to seperate the parent anti crash node from every child
+            for (QNode* pNode : m_vAntiCrashNodes.at(i)->childNodes())
+            {
+                pNode->setParent((QEntity*) nullptr);
+            }
+        }
+    }
+}
+
+//*************************************************************************************************************
+
+QEntity* CentralView::createNewAntiCrashNode()
+{
+    QSharedPointer<QEntity> pAntiCrashNode = QSharedPointer<QEntity>::create();
+    m_vAntiCrashNodes.push_back(pAntiCrashNode);
+    return pAntiCrashNode.data();
+}
+
+
+//*************************************************************************************************************
+
+void CentralView::checkForUnusedAntiCrashNodes()
+{
+    for (int i = 0; i < m_vAntiCrashNodes.size(); ++i)
+    {
+        if (m_vAntiCrashNodes.at(i)->childNodes().count() == 0)
+        {
+            // no longer needed, delete and remove
+            m_vAntiCrashNodes[i]->deleteLater();
+            m_vAntiCrashNodes.remove(i);
+            --i;
         }
     }
 }
