@@ -31,7 +31,9 @@
 *
 * This view is the display for 3D content in MNEAnalyze. It inherits Qt3DExtras::Qt3DWindow and specifies
 * camera, initial view angle, camera controller etc.
-* It keeps track of a QEntity-Tree that reflects all registered content.
+* It keeps track of a QEntity-Tree that reflects all registered content. Unfortunately, the Qt3D backend
+* is a f-ing nightmare to use for dynamic scene managing, so there are quite a few things to pay attention
+* to. Read the documentation for methods addEntityTree and removeEntityTree for more details.
 * Registered SharedPointers are copied into a vector to keep their reference-count mechanism working.
 */
 
@@ -51,11 +53,9 @@
 //=============================================================================================================
 
 #include <QSharedPointer>
-#include <QGridLayout>
-#include <Qt3DCore>
-#include <QCloseEvent>
+#include <Qt3DExtras/Qt3DWindow>
+#include <Qt3DCore/QEntity>
 #include <QVector>
-#include <Qt3DExtras>
 
 
 //*************************************************************************************************************
@@ -68,22 +68,6 @@
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
-
-namespace Qt3DRender {
-    class QPickEvent;
-}
-
-namespace Qt3DCore {
-    class QEntity;
-}
-
-namespace Qt3DExtras {
-    class QSphereMesh;
-}
-
-namespace DISP3DLIB {
-    class CustomMesh;
-}
 
 
 //*************************************************************************************************************
@@ -102,9 +86,7 @@ namespace MAINVIEWEREXTENSION {
 
 //=============================================================================================================
 /**
-* Description of what this class is intended to do (in detail).
-*
-* @brief Brief description of this class.
+* The CentralView class manages the registration and usage of entity trees within MNE-Analzye.
 */
 class CentralView : public Qt3DExtras::Qt3DWindow
 {
@@ -127,7 +109,11 @@ public:
 
     //=========================================================================================================
     /**
-    * This will insert the passed QEntity below the views root.
+    * This will insert the passed QEntity below the views root. Note that, as the shared pointer implies, the
+    * ownership of the passed entity tree is now shared. NEVER call delete or clear on a weak or strong pointer
+    * to an entity tree that might be still in used, as this will definetely chrash the program. If you do not
+    * need a passed entity tree anymore call removeEntityTree and then simply drop all references to the shared
+    * pointer so that it will be deleted when the last references within the CentralView are dropped as well.
     *
     * @param[in] pEntity The QEntity to be added.
     */
@@ -137,6 +123,11 @@ public:
     /**
     * This will remove the child named with sIdentifier or give out a warning in case the child could not be found.
     *
+    * NB: When you want to use your entity tree after removing it (e.g. when passing it to another display), be
+    * aware that the root of your entity tree will have a new parent. This parent gets created by the CentralView
+    * upon removal and is necessary in order to keep the Qt3D backend alive. Best practice is to act as if you did
+    * not read this, meaning that you should just pass the "old" root to any further use cases.
+    *
     * @param[in] sIdentifier The name of the child to be removed.
     */
     void removeEntity(const QString& sIdentifier);
@@ -145,9 +136,7 @@ public:
     /**
     * This is called during shutdown of the program in order to prevent double frees
     */
-    void dissasEntityTree();
-
-protected:
+    void shutdown();
 
 private:
 
@@ -157,13 +146,32 @@ private:
     */
     void init();
 
+    //=========================================================================================================
+    /**
+    * Helper function for creating a so-called "Anti Crash Node". These are necessary because QEntites apparently
+    * always need a valid parent (i.e. one that is not null) once they were assigned a non-null parent in the
+    * first place. The Anti Crash Nodes are collected and occasionally cleaned up (see checkForUnusedAntiCrashNodes)
+    */
+    Qt3DCore::QEntity* createNewAntiCrashNode();
+
+    //=========================================================================================================
+    /**
+    * This checks for Anti Crash Nodes that are no longer used because the user has set a new parent for the
+    * removed entity tree (e.g. by moving the Entity to another display). This method does not need to be executed
+    * in a specific order, but should be called regularly and with a low frequency (e.g. whenever a new entity is
+    * added).
+    */
+    void checkForUnusedAntiCrashNodes();
+
     Qt3DCore::QEntity *m_pRootEntity;           /**< Root entity */
 
     /**
     * Since parent-child connections inside the tree are based on normal pointers, we need to keep track of
     * shared pointers in order for the reference-count mechanism to work correctly
     */
-    QVector<QSharedPointer<Qt3DCore::QEntity> > m_vPointerStorage;
+    QVector<QSharedPointer<Qt3DCore::QEntity> > m_vEntities;
+
+    QVector<QSharedPointer<Qt3DCore::QEntity> > m_vAntiCrashNodes;  /**< See docu of createNewAntiCrashNode for more details */
 };
 
 
