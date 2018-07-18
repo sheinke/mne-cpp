@@ -29,7 +29,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains the implementation of the RealTimeConnectivityEstimate class.
+* @brief    Definition of the RealTimeConnectivityEstimate class.
 *
 */
 
@@ -72,7 +72,7 @@ using namespace MNELIB;
 //=============================================================================================================
 
 RealTimeConnectivityEstimate::RealTimeConnectivityEstimate(QObject *parent)
-: NewMeasurement(QMetaType::type("RealTimeConnectivityEstimate::SPtr"), parent)
+: Measurement(QMetaType::type("RealTimeConnectivityEstimate::SPtr"), parent)
 , m_bConnectivitySend(true)
 , m_pNetwork(Network::SPtr(new Network))
 , m_pAnnotSet(AnnotationSet::SPtr(new AnnotationSet))

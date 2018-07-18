@@ -29,7 +29,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains the implementation of the RealTimeCov class.
+* @brief    Definition of the RealTimeCov class.
 *
 */
 
@@ -63,7 +63,7 @@ using namespace SCMEASLIB;
 //=============================================================================================================
 
 RealTimeCov::RealTimeCov(QObject *parent)
-: NewMeasurement(QMetaType::type("RealTimeCov::SPtr"), parent)
+: Measurement(QMetaType::type("RealTimeCov::SPtr"), parent)
 , m_pFiffCov(new FiffCov)
 , m_bInitialized(false)
 {
