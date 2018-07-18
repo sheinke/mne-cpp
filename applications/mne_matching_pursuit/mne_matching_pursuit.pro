@@ -44,7 +44,11 @@ QT += widgets
 QT += network core widgets concurrent
 QT += xml
 
-CONFIG   += console
+CONFIG += console
+
+contains(MNECPP_CONFIG, static) {
+    CONFIG += static
+}
 
 TARGET = mne_matching_pursuit
 
@@ -109,40 +113,24 @@ INCLUDEPATH += $${MNE_INCLUDE_DIR}
 
 unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
 
-# Deploy Qt Dependencies
+# Deploy dependencies
+win32 {
+    EXTRA_ARGS =
+    DEPLOY_CMD = $$winDeployAppArgs($${TARGET},$${TARGET_EXT},$${MNE_BINARY_DIR},$${LIBS},$${EXTRA_ARGS})
+    QMAKE_POST_LINK += $${DEPLOY_CMD}
+}
 unix:!macx {
-    #ToDo Unix
+    # === Unix ===
+    QMAKE_RPATHDIR += $ORIGIN/../lib
 }
 macx {
     # === Mac ===
     QMAKE_RPATHDIR += @executable_path/../Frameworks
-    QMAKE_RPATHDIR += @executable_path/../libs
+    EXTRA_ARGS =
 
-    #macdeployqt is done in an separate deploy script
-#    isEmpty(TARGET_EXT) {
-#        TARGET_CUSTOM_EXT = .app
-#    } else {
-#        TARGET_CUSTOM_EXT = $${TARGET_EXT}
-#    }
-#
-#    DEPLOY_COMMAND = macdeployqt
-#
-#    DEPLOY_TARGET = $$shell_quote($$shell_path($${MNE_BINARY_DIR}/$${TARGET}$${TARGET_CUSTOM_EXT}))
-#
-#    QMAKE_POST_LINK = $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
-}
-win32 {
-    isEmpty(TARGET_EXT) {
-        TARGET_CUSTOM_EXT = .exe
-    } else {
-        TARGET_CUSTOM_EXT = $${TARGET_EXT}
-    }
+    # 3 entries returned in DEPLOY_CMD
+    DEPLOY_CMD = $$macDeployArgs($${TARGET},$${TARGET_EXT},$${MNE_BINARY_DIR},$${MNE_LIBRARY_DIR},$${EXTRA_ARGS})
+    QMAKE_POST_LINK += $${DEPLOY_CMD}
 
-    DEPLOY_COMMAND = windeployqt
-
-    DEPLOY_TARGET = $$shell_quote($$shell_path($${MNE_BINARY_DIR}/$${TARGET}$${TARGET_CUSTOM_EXT}))
-
-    #  # Uncomment the following line to help debug the deploy command when running qmake
-    #  warning($${DEPLOY_COMMAND} $${DEPLOY_TARGET})
-    QMAKE_POST_LINK = $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+    QMAKE_CLEAN += -r $$member(DEPLOY_CMD, 1)
 }

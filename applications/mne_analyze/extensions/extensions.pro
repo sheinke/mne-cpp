@@ -51,5 +51,3 @@ SUBDIRS += \
         deepcntk \
         deepcntknets
 }
-
-CONFIG += ordered

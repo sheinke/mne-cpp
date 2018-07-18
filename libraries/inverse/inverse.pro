@@ -76,24 +76,12 @@ unix:!macx {
 
 DESTDIR = $${MNE_LIBRARY_DIR}
 
-contains(MNECPP_CONFIG, buildStaticLibraries) {
+contains(MNECPP_CONFIG, static) {
     CONFIG += staticlib
-    DEFINES += BUILD_STATIC_LIBRARIES
+    DEFINES += STATICLIB
 }
 else {
     CONFIG += dll
-
-    #
-    # win32: copy dll's to bin dir
-    # unix: add lib folder to LD_LIBRARY_PATH
-    #
-    win32 {
-        FILE = $${DESTDIR}/$${TARGET}.dll
-        BINDIR = $${DESTDIR}/../bin
-        FILE ~= s,/,\\,g
-        BINDIR ~= s,/,\\,g
-        QMAKE_POST_LINK += $${QMAKE_COPY} $$quote($${FILE}) $$quote($${BINDIR}) $$escape_expand(\\n\\t)
-    }
 }
 
 SOURCES += \
@@ -136,43 +124,37 @@ HEADERS +=\
     hpiFit/hpifit.h \
     hpiFit/hpifitdata.h
 
+RESOURCE_FILES +=\
+    $${ROOT_DIR}/resources/general/coilDefinitions/coil_def.dat \
+    $${ROOT_DIR}/resources/general/coilDefinitions/coil_def_Elekta.dat \
+
+# Copy resource files to bin resource folder
+for(FILE, RESOURCE_FILES) {
+    FILEDIR = $$dirname(FILE)
+    FILEDIR ~= s,/resources,/bin/resources,g
+    FILEDIR = $$shell_path($${FILEDIR})
+    TRGTDIR = $${FILEDIR}
+
+    QMAKE_POST_LINK += $$sprintf($${QMAKE_MKDIR_CMD}, "$${TRGTDIR}") $$escape_expand(\n\t)
+
+    FILE = $$shell_path($${FILE})
+    QMAKE_POST_LINK += $${QMAKE_COPY} $$quote($${FILE}) $$quote($${TRGTDIR}) $$escape_expand(\\n\\t)
+}
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
 
 # Install headers to include directory
-header_files.files = ./*.h
-header_files.path = $${MNE_INCLUDE_DIR}/inverse
-
-header_files_dipole_fit.files = ./dipoleFit/*.h
-header_files_dipole_fit.path = $${MNE_INCLUDE_DIR}/inverse/dipoleFit
-
-header_files_minimum_norm.files = ./minimumNorm/*.h
-header_files_minimum_norm.path = $${MNE_INCLUDE_DIR}/inverse/minimumNorm
-
-header_files_rap_music.files = ./rapMusic/*.h
-header_files_rap_music.path = $${MNE_INCLUDE_DIR}/inverse/rapMusic
+header_files.files = $${HEADERS}
+header_files.path = $${MNE_INSTALL_INCLUDE_DIR}/inverse
 
 INSTALLS += header_files
-INSTALLS += header_files_dipole_fit
-INSTALLS += header_files_minimum_norm
-INSTALLS += header_files_rap_music
 
 unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
 
-# Deploy Qt Dependencies
+# Deploy library
 win32 {
-    isEmpty(TARGET_EXT) {
-        TARGET_CUSTOM_EXT = .dll
-    } else {
-        TARGET_CUSTOM_EXT = $${TARGET_EXT}
-    }
-
-    DEPLOY_COMMAND = windeployqt
-
-    DEPLOY_TARGET = $$shell_quote($$shell_path($${MNE_BINARY_DIR}/$${TARGET}$${TARGET_CUSTOM_EXT}))
-
-    #  # Uncomment the following line to help debug the deploy command when running qmake
-    #  warning($${DEPLOY_COMMAND} $${DEPLOY_TARGET})
-    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+    EXTRA_ARGS =
+    DEPLOY_CMD = $$winDeployLibArgs($${TARGET},$${TARGET_EXT},$${MNE_BINARY_DIR},$${MNE_LIBRARY_DIR},$${EXTRA_ARGS})
+    QMAKE_POST_LINK += $${DEPLOY_CMD}
 }

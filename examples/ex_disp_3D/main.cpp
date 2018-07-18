@@ -39,7 +39,7 @@
 // INCLUDES
 //=============================================================================================================
 
-#include <disp3D/adapters/abstractview.h>
+#include <disp3D/viewers/abstractview.h>
 #include <disp3D/engine/model/items/sourcedata/mneestimatetreeitem.h>
 #include <disp3D/engine/model/items/sensordata/sensordatatreeitem.h>
 #include <disp3D/engine/model/data3Dtreemodel.h>
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
     p3DDataModel->addBemData(parser.value(subjectOption), "BEM", t_Bem);
 
     //Read and show sensor helmets
-    QFile t_filesensorSurfaceVV("./resources/general/sensorSurfaces/306m_rt.fif");
+    QFile t_filesensorSurfaceVV(QCoreApplication::applicationDirPath() + "/resources/general/sensorSurfaces/306m_rt.fif");
     MNEBem t_sensorSurfaceVV(t_filesensorSurfaceVV);
     p3DDataModel->addMegSensorInfo("Sensors", "VectorView", evoked.info.chs, t_sensorSurfaceVV);
 
@@ -289,8 +289,7 @@ int main(int argc, char *argv[])
                                                                              evoked.data,
                                                                              t_sensorSurfaceVV[0],
                                                                              evoked.info,
-                                                                             "MEG",
-                                                                             p3DAbstractView->getView()->format())) {
+                                                                             "MEG")) {
         pMegSensorTreeItem->setLoopState(true);
         pMegSensorTreeItem->setTimeInterval(17);
         pMegSensorTreeItem->setNumberAverages(1);
@@ -306,8 +305,7 @@ int main(int argc, char *argv[])
                                                                              evoked.data,
                                                                              t_Bem[0],
                                                                              evoked.info,
-                                                                             "EEG",
-                                                                             p3DAbstractView->getView()->format())) {
+                                                                             "EEG")) {
         pEegSensorTreeItem->setLoopState(true);
         pEegSensorTreeItem->setTimeInterval(17);
         pEegSensorTreeItem->setNumberAverages(1);
@@ -324,8 +322,7 @@ int main(int argc, char *argv[])
                                                                           sourceEstimate,
                                                                           t_clusteredFwd,
                                                                           tSurfSet,
-                                                                          tAnnotSet,
-                                                                          p3DAbstractView->getView()->format())) {
+                                                                          tAnnotSet)) {
             pRTDataItem->setLoopState(true);
             pRTDataItem->setTimeInterval(17);
             pRTDataItem->setNumberAverages(1);

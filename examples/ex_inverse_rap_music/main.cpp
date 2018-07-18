@@ -52,7 +52,7 @@
 
 #include <inverse/rapMusic/rapmusic.h>
 
-#include <disp3D/adapters/abstractview.h>
+#include <disp3D/viewers/abstractview.h>
 #include <disp3D/engine/view/view3D.h>
 #include <disp3D/engine/model/data3Dtreemodel.h>
 #include <disp3D/engine/model/items/sourcedata/mneestimatetreeitem.h>
@@ -217,8 +217,7 @@ int main(int argc, char *argv[])
                                                                       sourceEstimate,
                                                                       t_clusteredFwd,
                                                                       t_surfSet,
-                                                                      t_annotationSet,
-                                                                      p3DAbstractView->getView()->format())) {
+                                                                      t_annotationSet)) {
         pRTDataItem->setLoopState(true);
         pRTDataItem->setTimeInterval(17);
         pRTDataItem->setNumberAverages(1);

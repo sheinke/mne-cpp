@@ -50,7 +50,7 @@
 #include <mne/mne_sourceestimate.h>
 #include <inverse/rapMusic/pwlrapmusic.h>
 
-#include <disp3D/adapters/abstractview.h>
+#include <disp3D/viewers/abstractview.h>
 #include <disp3D/engine/view/view3D.h>
 #include <disp3D/engine/model/data3Dtreemodel.h>
 
@@ -394,8 +394,7 @@ int main(int argc, char *argv[])
                                                                    sourceEstimate,
                                                                    t_clusteredFwd,
                                                                    t_surfSet,
-                                                                   t_annotationSet,
-                                                                   p3DAbstractView->getView()->format());
+                                                                   t_annotationSet);
 
     p3DAbstractView->show();
 
