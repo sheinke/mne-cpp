@@ -80,9 +80,10 @@ using namespace INVERSELIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-EcdSetModel::EcdSetModel(DipoleFitSettings *pDipolSettings, QObject *pParent)
-    :AbstractModel(pParent)
+EcdSetModel::EcdSetModel(DipoleFitSettings *pDipolSettings, const QString &sPath, QObject *pParent)
+    : AbstractModel(sPath, pParent)
 {
+    pDipolSettings->checkIntegrity();
     DipoleFit dipFit(pDipolSettings);
     m_ecdSet = dipFit.calculateFit();
 }
@@ -91,6 +92,7 @@ EcdSetModel::EcdSetModel(DipoleFitSettings *pDipolSettings, QObject *pParent)
 //*************************************************************************************************************
 
 EcdSetModel::EcdSetModel(const QString &sDipFileName, QObject *pParent)
+    :AbstractModel(sDipFileName, pParent)
 {
     m_ecdSet = ECDSet::read_dipoles_dip(sDipFileName);
 }
@@ -176,6 +178,20 @@ bool EcdSetModel::setData(const QModelIndex &index, const QVariant &value, int r
     }
 
     return false;
+}
+
+
+//*************************************************************************************************************
+
+bool EcdSetModel::saveToFile()
+{
+    //Check if the current model path is imaginary
+    if(m_modelPath.sDirectoryPath == ECD_SET_MODEL_DEFAULT_DIR_PATH) {
+        qDebug() << "Can not save to " << getModelPath();
+        return false;
+    }
+
+    return m_ecdSet.save_dipoles_dip(getModelPath());
 }
 
 

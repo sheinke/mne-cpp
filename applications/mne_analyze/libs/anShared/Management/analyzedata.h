@@ -68,6 +68,10 @@ namespace Qt3DCore {
     class QEntity;
 }
 
+namespace INVERSELIB {
+    class DipoleFitSettings;
+}
+
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -76,6 +80,7 @@ namespace Qt3DCore {
 
 namespace ANSHAREDLIB
 {
+    class EcdSetModel;
 
 
 //*************************************************************************************************************
@@ -101,7 +106,7 @@ public:
     /**
     * Constructs the Analyze Data.
     */
-    AnalyzeData(QObject* parent = nullptr);
+    AnalyzeData(QObject* pParent = nullptr);
 
     //=========================================================================================================
     /**
@@ -121,22 +126,33 @@ public:
 
     //=========================================================================================================
     /**
+    * Returns the requested model.
+    * If the path name is not used a nullptr is returned.
+    *
+    * @param[in] sName               Model name
+    *
+    * @return                       Pointer to the model
+    */
+    QSharedPointer<AbstractModel> getModel(const QString &sName);
+
+    //=========================================================================================================
+    /**
     * This is the main function for instanciating models. It simply calls the models constructor with the
     * provided path and inserts the model into the hash. NO ERROR CHECKING IS PERFORMED !
     */
     template<class T>
-    QSharedPointer<T> loadModel(const QString path)
+    QSharedPointer<T> loadModel(const QString sPath)
     {
         // check if model was already loaded:
-        if (m_data.contains(path))
+        if (m_data.contains(sPath))
         {
-            return qSharedPointerDynamicCast<T>(m_data.value(path));
+            return qSharedPointerDynamicCast<T>(m_data.value(sPath));
         }
         else
         {
-            QSharedPointer<T> sm = QSharedPointer<T>::create(path);
+            QSharedPointer<T> sm = QSharedPointer<T>::create(sPath);
             QSharedPointer<AbstractModel> temp = qSharedPointerCast<AbstractModel>(sm);
-            m_data.insert(path, temp);
+            m_data.insert(sPath, temp);
             emit this->newModelAvailable(temp);
             return sm;
         }
@@ -146,25 +162,47 @@ public:
     /**
     * Loads a Surface from the specified filepath (only if the object is not loaded yet)
     *
-    * @param[in] path               The path of the object to load
+    * @param[in] sPath               The path of the object to load
     *
     * @return                       SurfaceModel that contains the specified surface
     */
-    QSharedPointer<SurfaceModel> loadSurfaceModel(const QString& path);
+    QSharedPointer<SurfaceModel> loadSurfaceModel(const QString& sPath);
 
     //=========================================================================================================
     /**
     * Constructs a filepath out of the passed parameters and calls the single-parameter version of loadSurface.
     * Path Construction is copied from Surface::read.
     *
-    * @param[in] subject_id         Name of subject
-    * @param[in] hemi               Which hemisphere to load {0 -> lh, 1 -> rh}
-    * @param[in] surf               Name of the surface to load (eg. inflated, orig ...)
-    * @param[in] subjects_dir       Subjects directory
+    * @param[in] sSubject_id         Name of subject
+    * @param[in] iHemi               Which hemisphere to load {0 -> lh, 1 -> rh}
+    * @param[in] sSurf               Name of the surface to load (eg. inflated, orig ...)
+    * @param[in] sSubjects_dir       Subjects directory
     *
     * @return                       SurfaceModel that contains the specified surface
     */
-    QSharedPointer<SurfaceModel> loadSurfaceModel(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir);
+    QSharedPointer<SurfaceModel> loadSurfaceModel(const QString &sSubject_id, qint32 iHemi, const QString &sSurf, const QString &sSubjects_dir);
+
+    //=========================================================================================================
+    /**
+    * Loads a ECD set from the specified filepath (only if the object is not loaded yet)
+    *
+    * @param[in] sPath               The path of the object to load
+    *
+    * @return                       EcdSetModel that contains the specified surface
+    */
+    QSharedPointer<EcdSetModel> loadEcdSetModel(const QString &sPath);
+
+    //=========================================================================================================
+    /**
+    * Creates a ECD set from the specified settings (only if the DIP path is not used yes).
+    * The function returns a nullptr when model loading fails.
+    *
+    * @param[in] pSettings          The settings used to construct the model.
+    * @param[in] sPath              The path where the Model is saved.
+    *
+    * @return                       EcdSetModel that contains the specified ECD set.
+    */
+    QSharedPointer<EcdSetModel> loadEcdSetModel(INVERSELIB::DipoleFitSettings *pSettings, const QString &sPath);
 
     //=========================================================================================================
     /**
@@ -172,10 +210,10 @@ public:
     * to display content. A unique name is required, we recommend using the name of the caller (plus further
     * letters / identifiers in case of multiple displays).
     *
-    * @param modelIdentifier The name of the new model to be created
-    * @return A shared pointer to the newly created model
+    * @param sModelIdentifier       The name of the new model to be created
+    * @return                       A shared pointer to the newly created model
     */
-    QSharedPointer<QEntityListModel> createQEntityListModel(const QString &modelIdentifier);
+    QSharedPointer<QEntityListModel> createQEntityListModel(const QString &sModelIdentifier);
 
     //=========================================================================================================
     /**
@@ -186,6 +224,23 @@ public:
     */
     QVector<QSharedPointer<QEntityListModel> > availableDisplays() const;
 
+    //=========================================================================================================
+    /**
+    * Removes model stored under the given path.
+    *
+    * @param[in] sModelPath     The model path.
+    */
+    void removeModel(const QString &sModelPath);
+
+    //=========================================================================================================
+    /**
+    * Changes the path where the model is stored.
+    *
+    * @param[in] sOldModelPath     The old model path.
+    * @param[in] sNewModelPath     The new model path.
+    */
+    void changeModelPath(const QString &sOldModelPath,const QString &sNewModelPath);
+
 protected:
 
 private:
@@ -194,12 +249,31 @@ private:
 
 signals:
 
+    //=========================================================================================================
     /**
     * This is emitted whenever a new model is loaded.
     *
-    * @param[in] model The newly available model
+    * @param[in] pModel      The newly available model
     */
-    void newModelAvailable(QSharedPointer<AbstractModel> model);
+    void newModelAvailable(QSharedPointer<AbstractModel> pModel);
+
+    //=========================================================================================================
+    /**
+    * This is emitted whenever a model is removed.
+    *
+    * @param[in] sModelPath      The path where the model is stored.
+    */
+    void modelRemoved(const QString &sModelPath);
+
+    //=========================================================================================================
+    /**
+    * This is emitted whenever a model changes its path.
+    *
+    * @param[in] pModel             Pointer to the model.
+    * @param[in] sOldModelPath      Old model path.
+    * @param[in] sNewModelPath      New model path.
+    */
+    void modelPathChanged(QSharedPointer<AbstractModel> pModel, const QString &sOldModelPath, const QString &sNewModelPath);
 };
 
 } //Namespace

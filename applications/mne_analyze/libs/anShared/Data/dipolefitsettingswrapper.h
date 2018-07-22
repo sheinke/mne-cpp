@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
-* @file     abstractmodel.h
-* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
+* @file     dipolefitsettingswrapper.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     April, 2018
+* @date     June, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,12 +30,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief     AbstractModel class declaration.
+* @brief     DipoleFitSettingsWrapper class declaration.
 *
 */
 
-#ifndef ANSHAREDLIB_ABSTRACTMODEL_H
-#define ANSHAREDLIB_ABSTRACTMODEL_H
+#ifndef ANSHAREDLIB_DIPOLEFITSETTINGSWRAPPER_H
+#define ANSHAREDLIB_DIPOLEFITSETTINGSWRAPPER_H
 
 
 //*************************************************************************************************************
@@ -44,7 +44,6 @@
 //=============================================================================================================
 
 #include "../anshared_global.h"
-#include "../Utils/types.h"
 
 
 //*************************************************************************************************************
@@ -53,8 +52,8 @@
 //=============================================================================================================
 
 #include <QSharedPointer>
-#include <QAbstractItemModel>
-#include <QDebug>
+#include <QObject>
+#include <QString>
 
 
 //*************************************************************************************************************
@@ -67,6 +66,10 @@
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
+
+namespace INVERSELIB {
+    class DipoleFitSettings;
+}
 
 
 //*************************************************************************************************************
@@ -85,115 +88,82 @@ namespace ANSHAREDLIB {
 
 //=============================================================================================================
 /**
+* This class is a wrapper for the INVERSELIB::DipoleFitSettings class.
+* It provides signals and slots for changing data.
 *
-* @brief Super class for all models that are intended to be used by AnalyzeData.
-*        Holds information such as model type.
+* @brief This class is a wrapper for the INVERSELIB::DipoleFitSettings class.
 */
-class ANSHAREDSHARED_EXPORT AbstractModel : public QAbstractItemModel
+class ANSHAREDSHARED_EXPORT DipoleFitSettingsWrapper : public QObject
 {
     Q_OBJECT
 
-    //=========================================================================================================
-    /**
-    * This Structure is used to store the complete model path.
-    * The path has uses the following pattern:
-    *   sDirectoryPath/sModelName
-    */
-    struct ModelPath {
-        ModelPath() {
-            sDirectoryPath = QStringLiteral("");
-            sModelName = QStringLiteral("");
-        }
-
-        ModelPath(const QString &sCompletePath) {
-            setCompleteModelPath(sCompletePath);
-        }
-
-        void setCompleteModelPath(const QString &sCompleteModelPath) {
-            sModelName = sCompleteModelPath.section('/', -1);
-            sDirectoryPath = sCompleteModelPath.left(sCompleteModelPath.size() - sModelName.size());
-        }
-
-    public:
-        QString sDirectoryPath;
-        QString sModelName;
-    };
-
 public:
-    typedef QSharedPointer<AbstractModel> SPtr;            /**< Shared pointer type for AbstractModel. */
-    typedef QSharedPointer<const AbstractModel> ConstSPtr; /**< Const shared pointer type for AbstractModel. */
+    typedef QSharedPointer<DipoleFitSettingsWrapper> SPtr;            /**< Shared pointer type for DipoleFitSettingsWrapper. */
+    typedef QSharedPointer<const DipoleFitSettingsWrapper> ConstSPtr; /**< Const shared pointer type for DipoleFitSettingsWrapper. */
 
     //=========================================================================================================
     /**
-    * Constructs a AbstractModel object. Simply pass potential parent object to super class.
+    * Constructs a DipoleFitSettingsWrapper object.
     */
-    AbstractModel(QObject *pParent = nullptr)
-        : QAbstractItemModel(pParent) {}
+    DipoleFitSettingsWrapper();
 
     //=========================================================================================================
     /**
-    * Constructs a AbstractModel object. It initializes the model path and passes potential parent object to super class.
+    * Constructs Dipole Fit Settings
+    *
+    * @param [in] argc (argument count) is an integer that indicates how many arguments were entered on the command line when the program was started.
+    * @param [in] argv (argument vector) is an array of pointers to arrays of character objects. The array objects are null-terminated strings, representing the arguments that were entered on the command line when the program was started.
     */
-    AbstractModel(const QString &sPath, QObject *pParent = nullptr)
-        : QAbstractItemModel(pParent)
-        , m_modelPath(ModelPath(sPath)) {}
+    explicit DipoleFitSettingsWrapper(int *argc,char **argv);
 
     //=========================================================================================================
     /**
     * Default destructor.
     */
-    virtual ~AbstractModel() = default;
+    ~DipoleFitSettingsWrapper();
 
     //=========================================================================================================
     /**
-    * Getter for the model type
-    *
-    * @return The type of the respective subclasses
+    * Check whether Dipole Fit Settings are correctly set.
     */
-    virtual inline MODEL_TYPE getType() const = 0;
+    void checkIntegrity();
 
     //=========================================================================================================
     /**
-    * Returns the a unique path for this model.
-    * If the model does not have an directory path a temporary path is used.
-    * Temporary path: MODELTYPE/ModelName
+    * Returns a pointer to the wapped object.
     */
-    virtual inline QString getModelPath() const;
+    INVERSELIB::DipoleFitSettings *getSettings();
 
-    //=========================================================================================================
-    /**
-    * Sets a new path for the model.
-    */
-    virtual inline void setModelPath(const QString &sNewPath);
+    //TODO Docu
+    void setMeasurementFilePath(const QString &sPath);
+    void setIsRaw(bool bValue);
+    void setSetNum(int iValue);
+    void setIncludeMeg(bool bValue);
+    void setIncludeEeg(bool bValue);
+    void setTMax(double dValue);
+    void setTMin(double dValue);
+    void setBMax(double dValue);
+    void setBMin(double dValue);
+    void setDipPath(const QString &sDipName);
 
-    //=========================================================================================================
-    /**
-    * Returns name of the model. The name is not unique!
-    */
-    virtual inline QString getModelName() const;
+signals:
+    //TODO Docu
+    void measurementFilePathChanged(const QString &sPath);
+    void isRawChanged(bool bValue);
+    void setNumChanged(int iSetNum);
+    void includeMegChanged(bool bValue);
+    void includeEegChanged(bool bValue);
+    void tMaxChanged(double dValue);
+    void tMinChanged(double dValue);
+    void bMaxChanged(double dValue);
+    void bMinChanged(double dValue);
+    void dipPathChanged(const QString &sDipName);
 
-    //=========================================================================================================
-    /**
-    * Saves model to the current model path if possible.
-    *
-    * @returns      True if saving was successful
-    */
-    virtual inline bool saveToFile();
+private:
 
-    //=========================================================================================================
-    // Inherited by QAbstractItemModel:
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override = 0;
-    virtual Qt::ItemFlags flags(const QModelIndex &index) const override = 0;
-    virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override = 0;
-    virtual QModelIndex parent(const QModelIndex &index) const override = 0;
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override = 0;
-    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const override = 0;
+    INVERSELIB::DipoleFitSettings*    m_pSettings;
 
-protected:
-
-    ModelPath m_modelPath;
 };
-
 
 
 //*************************************************************************************************************
@@ -201,36 +171,7 @@ protected:
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-QString AbstractModel::getModelPath() const
-{
-    return m_modelPath.sDirectoryPath + m_modelPath.sModelName;
-}
-
-
-//*************************************************************************************************************
-
-void AbstractModel::setModelPath(const QString &sNewPath)
-{
-    m_modelPath.setCompleteModelPath(sNewPath);
-}
-
-
-//*************************************************************************************************************
-
-QString AbstractModel::getModelName() const
-{
-    return m_modelPath.sModelName;
-}
-
-
-//*************************************************************************************************************
-
-bool AbstractModel::saveToFile()
-{
-    qDebug() << "Saving to file is not implemented for MODELTYPE = " << getType();
-    return false;
-}
 
 } // namespace ANSHAREDLIB
 
-#endif // ANSHAREDLIB_ABSTRACTMODEL_H
+#endif // ANSHAREDLIB_DIPOLEFITSETTINGSWRAPPER_H

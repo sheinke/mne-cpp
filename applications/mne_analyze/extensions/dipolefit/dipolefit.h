@@ -2,13 +2,15 @@
 /**
 * @file     dipolefit.h
 * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+*           Lars Debor <lars.debor@tu-ilmenau.de>;
+*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     February, 2017
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2017 Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,12 +31,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains the declaration of the FiffIO class.
+* @brief    Contains the declaration of the DipoleFit class.
 *
 */
 
-#ifndef DIPOLEFIT_H
-#define DIPOLEFIT_H
+#ifndef DIPOLEFITEXTENSION_DIPOLEFIT_H
+#define DIPOLEFITEXTENSION_DIPOLEFIT_H
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -44,7 +46,8 @@
 #include "dipolefit_global.h"
 
 #include <anShared/Interfaces/IExtension.h>
-
+#include <anShared/Data/dipolefitsettingswrapper.h>
+#include <inverse/dipoleFit/dipole_fit_settings.h>
 
 
 //*************************************************************************************************************
@@ -54,6 +57,7 @@
 
 #include <QtWidgets>
 #include <QtCore/QtPlugin>
+#include <QPair>
 
 
 //*************************************************************************************************************
@@ -62,6 +66,21 @@
 //=============================================================================================================
 
 class DipoleFitControl;
+
+namespace INVERSELIB {
+    class DipoleFitSettings;
+}
+
+namespace ANSHAREDLIB {
+    class Communicator;
+    class EcdSetModel;
+    class DipoleFitSettingsWrapper;
+    class QEntityListModel;
+}
+
+namespace Qt3DCore {
+    class QEntity;
+}
 
 
 //*************************************************************************************************************
@@ -121,11 +140,93 @@ public:
 protected:
 
 private:
+
+    //=========================================================================================================
+    /**
+    * This functions creates all connection to the gui.
+    */
+    void initGuiConnections();
+
+    //=========================================================================================================
+    /**
+    * Creates a new QEntity tree for the input model.
+    *
+    * @param[in] pModel     The input model.
+    */
+    QSharedPointer<Qt3DCore::QEntity> create3DEntityTree(QSharedPointer<ANSHAREDLIB::EcdSetModel> pModel) const;
+
+    //=========================================================================================================
+    /**
+    * This function gets called when the user presses the browse button.
+    */
+    void onBrowseButtonClicked();
+
+    //=========================================================================================================
+    /**
+    * This function gets called when the user presses the Fit button.
+    */
+    void onFitButtonClicked();
+
+    //=========================================================================================================
+    /**
+    * This functions is called when a new active model is selected.
+    *
+    * @param[in] sModelName       The name of the selected model.
+    */
+    void onActiveModelSelected(const QString &sModelName);
+
+    //=========================================================================================================
+    /**
+    * This functions is called when a new model is added to AnalyzeData.
+    *
+    * @param[in] pNewModel       Pointer to the model.
+    */
+    void onNewModelAvalible(QSharedPointer<ANSHAREDLIB::AbstractModel> pNewModel);
+
+    //=========================================================================================================
+    /**
+    * This functions is called when a model changes it's name.
+    *
+    * @param[in] pModel             Pointer to the model.
+    * @param[in] sOldModelPath      Old model path.
+    * @param[in] sNewModelPath      New model path.
+    */
+    void onModelPathChanged(QSharedPointer<ANSHAREDLIB::AbstractModel> pModel,
+                            const QString &sOldModelPath, const QString &sNewModelPath);
+
+    //=========================================================================================================
+    /**
+    * This functions is called when the "Load fit from file" button is pressed.
+    */
+    void onLoadFitFilePressed();
+
+    //=========================================================================================================
+    /**
+    * This functions is called when the "Save fit to file" button is pressed.
+    */
+    void onSaveFitToFilePressed();
+
     // Control
     QDockWidget*        m_pControl;             /**< Control Widget */
     DipoleFitControl*   m_pDipoleFitControl;    /**< The Dipole Fit Control Widget */
+
+    QMenu *m_pMenu;                             /**< The menu bar entry */
+    QAction *m_pLoadfitFromFile;                /**< Load file button in the menu */
+    QAction *m_pSaveFitToFile;                  /**< Save file button in the menu */
+
+    ANSHAREDLIB::Communicator *m_pCommu;        /**< Local commuicator */
+
+    QSharedPointer<ANSHAREDLIB::QEntityListModel> m_pDisplayModel;      /**< Pointer to the QEntityListModel of Mainviewer. */
+
+    bool m_bInitFinished;                                               /**< Is True if the EXTENSION_INIT_FINISHED event was received. */
+
+    QVector<QPair<QSharedPointer<ANSHAREDLIB::EcdSetModel>, QSharedPointer<Qt3DCore::QEntity>>> m_vEcdSetModels;      /**< This vector stores all loaded EcdSetModels and their QEnity tree if it exists. */
+    QSharedPointer<ANSHAREDLIB::EcdSetModel> m_pActiveEcdSetModel;          /**< The currently active / displayed EcdSetModel. */
+    QSharedPointer<Qt3DCore::QEntity> m_pDipoleRoot;                        /**< The currently active qEntity root. */
+
+    ANSHAREDLIB::DipoleFitSettingsWrapper m_dipoleSettings;                 /**< The settings for the next dipole fit. */
 };
 
 } // NAMESPACE
 
-#endif // DIPOLEFIT_H
+#endif // DIPOLEFITEXTENSION_DIPOLEFIT_H

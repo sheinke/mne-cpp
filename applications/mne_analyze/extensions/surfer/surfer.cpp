@@ -115,7 +115,7 @@ void Surfer::init()
 
     // create entity tree root node and name it
     m_pSurferRoot = QSharedPointer<QEntity>::create();
-    m_pSurferRoot->setObjectName(QString("SurferEntityTree"));
+    m_pSurferRoot->setObjectName(QStringLiteral("SurferEntityTree"));
 
     // load model
     m_pSurfaceModel = m_analyzeData->loadSurfaceModel(QStringLiteral("./MNE-sample-data/subjects/sample/surf/rh.pial"));
@@ -363,7 +363,7 @@ void Surfer::updateSurfaceModelMesh()
     Eigen::MatrixX3f colors;
     int rows = m_pSurfaceModel->columnCount(m_pSurfaceModel->index(0, 0, QModelIndex()));
     colors.resize(rows, 3);
-    colors.setConstant(rows, 3, 0.6);
+    colors.setConstant(rows, 3, 0.6f);
     m_pSurfaceMesh->setColor(colors);
 }
 

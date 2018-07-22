@@ -1,11 +1,11 @@
 //=============================================================================================================
 /**
-* @file     analyzecore.cpp
+* @file     dipolefitsettingswrapper.cpp
 * @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     June, 2018
 *
 * @section  LICENSE
 *
@@ -30,7 +30,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    AnalyzeCore class definition.
+* @brief    DipoleFitSettingsWrapper class definition.
 *
 */
 
@@ -40,23 +40,14 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzecore.h"
-#include "mainwindow.h"
-#include "../libs/anShared/Interfaces/IExtension.h"
-#include "../libs/anShared/Management/analyzesettings.h"
-#include "../libs/anShared/Management/analyzedata.h"
-#include "../libs/anShared/Management/extensionmanager.h"
-#include "../libs/anShared/Management/eventmanager.h"
-
-#include<iostream>
+#include "dipolefitsettingswrapper.h"
+#include <inverse/dipoleFit/dipole_fit_settings.h>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
-
-#include <QtWidgets>
 
 
 //*************************************************************************************************************
@@ -70,16 +61,14 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace MNEANALYZE;
 using namespace ANSHAREDLIB;
+using namespace INVERSELIB;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// CONST
+// DEFINE GLOBAL METHODS
 //=============================================================================================================
-
-const char* extensionsDir = "/mne_analyze_extensions";        /**< holds path to the extensions.*/
 
 
 //*************************************************************************************************************
@@ -87,23 +76,8 @@ const char* extensionsDir = "/mne_analyze_extensions";        /**< holds path to
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-AnalyzeCore::AnalyzeCore(QObject* parent)
-    : QObject(parent)
-{
-    registerMetaTypes();
-
-    initGlobalSettings();
-    initGlobalData();
-
-    initEventSystem();
-    initExtensionManager();
-    initMainWindow();
-}
-
-
-//*************************************************************************************************************
-
-AnalyzeCore::~AnalyzeCore()
+DipoleFitSettingsWrapper::DipoleFitSettingsWrapper()
+    : m_pSettings(new DipoleFitSettings())
 {
 
 }
@@ -111,76 +85,125 @@ AnalyzeCore::~AnalyzeCore()
 
 //*************************************************************************************************************
 
-void AnalyzeCore::showMainWindow()
+DipoleFitSettingsWrapper::DipoleFitSettingsWrapper(int *argc, char **argv)
+    : m_pSettings(new DipoleFitSettings(argc, argv))
 {
-    m_pMainWindow->show();
+
 }
 
 
 //*************************************************************************************************************
 
-QPointer<MainWindow> AnalyzeCore::getMainWindow()
+DipoleFitSettingsWrapper::~DipoleFitSettingsWrapper()
 {
-    return m_pMainWindow;
+    delete m_pSettings;
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initGlobalSettings()
+void DipoleFitSettingsWrapper::checkIntegrity()
 {
-    m_analyzeSettings = AnalyzeSettings::SPtr::create();
+    m_pSettings->checkIntegrity();
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initGlobalData()
+INVERSELIB::DipoleFitSettings *DipoleFitSettingsWrapper::getSettings()
 {
-    m_analyzeData = AnalyzeData::SPtr::create();
+    return m_pSettings;
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initEventSystem()
+void DipoleFitSettingsWrapper::setMeasurementFilePath(const QString &sPath)
 {
-    EventManager::getEventManager().startEventHandling(20.0f);
+    m_pSettings->measname = sPath;
+    emit measurementFilePathChanged(sPath);
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initExtensionManager()
+void DipoleFitSettingsWrapper::setIsRaw(bool bValue)
 {
-    m_pExtensionManager = QSharedPointer<ExtensionManager>::create();
-    m_pExtensionManager->loadExtension(qApp->applicationDirPath() +  extensionsDir);
-    m_pExtensionManager->initExtensions(m_analyzeSettings, m_analyzeData);
+    m_pSettings->is_raw = bValue;
+    emit isRawChanged(bValue);
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::initMainWindow()
+void DipoleFitSettingsWrapper::setSetNum(int iValue)
 {
-    m_pMainWindow = new MainWindow(m_pExtensionManager);
-    QObject::connect(m_pMainWindow, &MainWindow::mainWindowClosed, this, &AnalyzeCore::onMainWindowClosed);
+    m_pSettings->setno = iValue;
+    emit setNumChanged(iValue);
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::registerMetaTypes()
+void DipoleFitSettingsWrapper::setIncludeMeg(bool bValue)
 {
-    qRegisterMetaType<QSharedPointer<Event>>("QSharedPointer<Event>");
+    m_pSettings->include_meg = bValue;
+    emit includeMegChanged(bValue);
 }
 
 
 //*************************************************************************************************************
 
-void AnalyzeCore::onMainWindowClosed()
+void DipoleFitSettingsWrapper::setIncludeEeg(bool bValue)
 {
-    EventManager::getEventManager().shutdown();
-    // shutdown every extension, empty analzye data etc.
-    m_pExtensionManager->shutdown();
+    m_pSettings->include_eeg = bValue;
+    emit includeEegChanged(bValue);
 }
+
+
+//*************************************************************************************************************
+
+void DipoleFitSettingsWrapper::setTMax(double dValue)
+{
+    m_pSettings->tmax = dValue;
+    emit tMaxChanged(dValue);
+}
+
+
+//*************************************************************************************************************
+
+void DipoleFitSettingsWrapper::setTMin(double dValue)
+{
+    m_pSettings->tmin = dValue;
+    emit tMinChanged(dValue);
+}
+
+
+//*************************************************************************************************************
+
+void DipoleFitSettingsWrapper::setBMax(double dValue)
+{
+    m_pSettings->bmax = dValue;
+    emit bMaxChanged(dValue);
+}
+
+
+//*************************************************************************************************************
+
+void DipoleFitSettingsWrapper::setBMin(double dValue)
+{
+    m_pSettings->bmin = dValue;
+    emit bMinChanged(dValue);
+}
+
+
+//*************************************************************************************************************
+
+void DipoleFitSettingsWrapper::setDipPath(const QString &sDipName)
+{
+    m_pSettings->dipname = sDipName;
+    emit dipPathChanged(sDipName);
+}
+
+
+//*************************************************************************************************************
