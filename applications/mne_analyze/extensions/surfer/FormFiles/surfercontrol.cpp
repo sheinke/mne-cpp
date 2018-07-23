@@ -1,14 +1,15 @@
 //=============================================================================================================
 /**
-* @file     qentitylistmodel.cpp
+* @file     surfercontrol.cpp
 * @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
+*           Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     May, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,7 +30,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    QEntityListModel class definition.
+* @brief    SurferControl class definition.
 *
 */
 
@@ -39,8 +40,8 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "qentitylistmodel.h"
-#include "../Utils/metatypes.h"
+#include "surfercontrol.h"
+#include "ui_surfercontrol.h"
 
 
 //*************************************************************************************************************
@@ -48,7 +49,8 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <Qt3DCore/QEntity>
+#include <QDebug>
+#include <QListWidgetItem>
 
 
 //*************************************************************************************************************
@@ -62,9 +64,6 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace ANSHAREDLIB;
-using namespace Qt3DCore;
-
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -77,85 +76,106 @@ using namespace Qt3DCore;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-QEntityListModel::QEntityListModel(const QString &modelIdentifier, QObject *pParent)
-    : AbstractModel(pParent),
-      m_name(modelIdentifier)
+SurferControl::SurferControl(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::SurferControl)
 {
-
+    ui->setupUi(this);
+    // necessary connects
+    connect(ui->loadedSurfaces,
+            &QListWidget::itemChanged,
+            this,
+            &SurferControl::onSelectedSurfacesChanged);
+    connect(ui->loadedSurfaces,
+            &QListWidget::currentItemChanged,
+            this,
+            &SurferControl::onCurrentSurfaceChanged);
 }
 
 
 //*************************************************************************************************************
 
-QVariant QEntityListModel::data(const QModelIndex &index, int role) const
+SurferControl::~SurferControl()
 {
-    // this is not a real model
-    return QVariant();
-}
-
-//*************************************************************************************************************
-
-Qt::ItemFlags QEntityListModel::flags(const QModelIndex &index) const
-{
-    return QAbstractItemModel::flags(index);
-}
-
-//*************************************************************************************************************
-
-QModelIndex QEntityListModel::index(int row, int column, const QModelIndex &parent) const
-{
-    // this is not a real model
-    return QModelIndex();
-}
-
-//*************************************************************************************************************
-
-QModelIndex QEntityListModel::parent(const QModelIndex &index) const
-{
-    // this is not a real model
-    return QModelIndex();
-}
-
-//*************************************************************************************************************
-
-int QEntityListModel::rowCount(const QModelIndex &parent) const
-{
-    // this is not a real model
-    return 0;
+    delete ui;
 }
 
 
 //*************************************************************************************************************
 
-int QEntityListModel::columnCount(const QModelIndex &parent) const
+QListWidgetItem* SurferControl::addSurface(const QString &sName)
 {
-    // this is not a real model
-    return 0;
+    QListWidgetItem* pItem = new QListWidgetItem;
+    pItem->setFlags(pItem->flags() | Qt::ItemIsUserCheckable);
+    pItem->setCheckState(Qt::Checked);
+    pItem->setText(sName);
+    ui->loadedSurfaces->addItem(pItem);
+    return pItem;
 }
 
 
 //*************************************************************************************************************
 
-bool QEntityListModel::hasChildren(const QModelIndex &parent) const
+void SurferControl::onSelectedSurfacesChanged(QListWidgetItem* pItem)
 {
-    // this is not a real model
-    return false;
+    // tell surfer extension that user changed visibility of surface
+    emit surfaceSelectionChanged(pItem);
 }
 
 
 //*************************************************************************************************************
 
-void QEntityListModel::addEntityTree(QSharedPointer<QEntity> pEntity)
+void SurferControl::onCurrentSurfaceChanged(QListWidgetItem* pItem)
 {
-    // simply emit signal for connected display
-    emit entityTreeAdded(pEntity);
+    if (pItem) {
+        ui->surfaceNameEdit->setText(pItem->text());
+    }
 }
 
 
 //*************************************************************************************************************
 
-void QEntityListModel::removeEntityTree(QSharedPointer<QEntity> pEntity)
+void SurferControl::on_loadNewSurfaceButton_released()
 {
-    // simply emit signal for connected display
-    emit entityTreeRemoved(pEntity);
+    // tell surfer extension to open the user dialog
+    emit loadNewSurface();
+}
+
+
+//*************************************************************************************************************
+
+void SurferControl::on_surfaceNameEdit_editingFinished()
+{
+    QString sNewText = ui->surfaceNameEdit->text();
+    QListWidgetItem* pItem = ui->loadedSurfaces->currentItem();
+    if (pItem) {
+        pItem->setText(sNewText);
+    }
+}
+
+
+//*************************************************************************************************************
+
+void SurferControl::on_removeSurfaceButton_released()
+{
+    QListWidgetItem* pCurrentItem = ui->loadedSurfaces->currentItem();
+    if (pCurrentItem) {
+        // check if this is the last item in the list
+        if (ui->loadedSurfaces->count() == 1) {
+            // list about to rum empty
+            listAboutToRunEmpty();
+        }
+
+        // takeItem will remove it from the list. Qt docu says that the removed item must
+        // be deleted manually, but since the Surfer extension still needs it for the map access,
+        // we let the Surfer extension delete it when its done.
+        emit removeSurface(ui->loadedSurfaces->takeItem(ui->loadedSurfaces->row(pCurrentItem)));
+    }
+}
+
+
+//*************************************************************************************************************
+
+void SurferControl::listAboutToRunEmpty() {
+    ui->surfaceNameEdit->setText(QString(""));
 }

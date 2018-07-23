@@ -1,6 +1,6 @@
 //=============================================================================================================
 /**
-* @file     mainviewer.h
+* @file     surfercontrol.h
 * @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
@@ -30,12 +30,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief     MainViewer class declaration.
+* @brief    SurferControl class declaration
 *
 */
 
-#ifndef MAINVIEWEREXTENSION_MAINVIEWER_H
-#define MAINVIEWEREXTENSION_MAINVIEWER_H
+#ifndef SURFERCONTROL_H
+#define SURFERCONTROL_H
 
 
 //*************************************************************************************************************
@@ -43,20 +43,13 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "mainviewer_global.h"
-#include <anShared/Interfaces/IExtension.h>
-#include "centralview.h"
-#include "../../libs/anShared/Model/qentitylistmodel.h"
-
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QSharedPointer>
-#include <QtWidgets>
-#include <QtCore/QtPlugin>
+#include <QWidget>
 
 
 //*************************************************************************************************************
@@ -70,120 +63,100 @@
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
+class QListWidgetItem;
 
-//*************************************************************************************************************
-//=============================================================================================================
-// DEFINE NAMESPACE MAINVIEWEREXTENSION
-//=============================================================================================================
-
-namespace MAINVIEWEREXTENSION {
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// MAINVIEWEREXTENSION FORWARD DECLARATIONS
-//=============================================================================================================
+namespace Ui {
+    class SurferControl;
+}
 
 
 //=============================================================================================================
 /**
-* This extension is the main device of displaying 3D content.
-*
-* @brief This extension is the main device of displaying 3D content.
+* @brief The SurferControl class enables graphical user interaction.
 */
-class MAINVIEWERSHARED_EXPORT MainViewer : public ANSHAREDLIB::IExtension
+class SurferControl : public QWidget
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "ansharedlib/1.0" FILE "mainviewer.json") //New Qt5 Plugin system replaces Q_EXPORT_PLUGIN2 macro
-    // Use the Q_INTERFACES() macro to tell Qt's meta-object system about the interfaces
-    Q_INTERFACES(ANSHAREDLIB::IExtension)
 
 public:
-    typedef QSharedPointer<MainViewer> SPtr;            /**< Shared pointer type for MainViewer. */
-    typedef QSharedPointer<const MainViewer> ConstSPtr; /**< Const shared pointer type for MainViewer. */
+    //=========================================================================================================
+    /**
+    * Constructs a SurferControl
+    */
+    explicit SurferControl(QWidget *parent = 0);
 
     //=========================================================================================================
     /**
-    * Constructs a MainViewer object.
+    * Destructs a SurferControl
     */
-    MainViewer();
+    ~SurferControl();
 
     //=========================================================================================================
     /**
-    * Destroys the MainViewer
+    * This gets called by the Surfer extension whenever a new surface was loaded and should be added the UI.
+    *
+    * @param[in] sName The name of the surface that should be displayed in the view.
+    *
+    * @return A pointer to a newly created QListWidgetItem.
     */
-    ~MainViewer();
+    QListWidgetItem *addSurface(const QString& sName);
 
-    // IExtension functions
-    virtual QSharedPointer<IExtension> clone() const override;
-    virtual void init() override;
-    virtual void unload() override;
-    virtual QString getName() const override;
-    virtual QMenu* getMenu() override;
-    virtual QDockWidget* getControl() override;
-    virtual QWidget* getView() override;
-    virtual void handleEvent(QSharedPointer<ANSHAREDLIB::Event> e) override;
-    virtual QVector<ANSHAREDLIB::EVENT_TYPE> getEventSubscriptions() const override;
+signals:
+    //=========================================================================================================
+    /**
+    * This signal tells the Surfer extension to open a user dialog in order to load a new surface file
+    */
+    void loadNewSurface();
 
-protected:
+    //=========================================================================================================
+    /**
+    * This notifies the Surfer extension that visibility was toggled for a surface.
+    *
+    * @param pItem The corresponding item in the list view
+    */
+    void surfaceSelectionChanged(const QListWidgetItem* pItem);
+
+    //=========================================================================================================
+    /**
+    * This notifies the Surfer extension that a surface should be unloaded.
+    *
+    * @param pItem The corresponing item in the list view
+    */
+    void removeSurface(QListWidgetItem* pItem);
 
 private slots:
 
     //=========================================================================================================
     /**
-    * This gets connected to the QEntityListmodel m_pModel, so that we will get notified when a new QEntity
-    * been added to the scene.
+    * This is used for the custom interaction concerning visibility toggling
     *
-    * @param[in] pEntity A shared pointer to the newly added QEntity
+    * @param pItem The item that was toggled
     */
-    void onEntityTreeAdded(QSharedPointer<Qt3DCore::QEntity> pEntity);
+    void onSelectedSurfacesChanged(QListWidgetItem* pItem);
 
     //=========================================================================================================
     /**
-    * This gets connected to the QEntityListModel m_pModel, so that we will be notified when a QEntity should
-    * be removed from the scene.
+    * This is used for the custom interaction concerning the currently highlighted item / surface
     *
-    * @param[in] pEntity The QEntity that should be removed
+    * @param pItem The item that was clicked (not toggled) / highlighted
     */
-    void onEntityTreeRemoved(QSharedPointer<Qt3DCore::QEntity> pEntity);
+    void onCurrentSurfaceChanged(QListWidgetItem* pItem);
+
+    // auto-generated:
+    void on_loadNewSurfaceButton_released();
+
+    void on_surfaceNameEdit_editingFinished();
+
+    void on_removeSurfaceButton_released();
 
 private:
-
     //=========================================================================================================
     /**
-    * Call this when you want to hide the MainViewer.
+    * This is a helper function that holds all the operations necessary to avoid problems when the list runs empty.
     */
-    void hide();
+    void listAboutToRunEmpty();
 
-    //=========================================================================================================
-    /**
-    * Call this when you want to (re)open the MainViewer's display.
-    */
-    void show();
-
-    //=========================================================================================================
-    /**
-    * Helper function for initializing all the needed GUI elements.
-    */
-    void createDisplay();
-
-    //=========================================================================================================
-    /**
-    * This is called when the user interacts with the QAction in the QMenu for MainViewer
-    */
-    virtual void toggleVisibility(bool checked);
-
-    QDockWidget*                                    m_pControl; /**< Control Widget */
-    QSharedPointer<ANSHAREDLIB::QEntityListModel>   m_pModel; /**< Other extension register their stuff here */
-
-    // views / GUI stuff
-    CentralView*                                    m_pView; /**< Main 3D View */
-    QWidget*                                        m_pContainer; /**< Container for wrapping 3D Window in a widget */
-    QMdiSubWindow*                                  m_pSubWindow; /**< Window that wraps the container */
-    bool                                            m_bDisplayCreated; /**< Flag for remembering whether or not the display was already created */
-
-    QMenu*                                          m_pMenu;
-    QAction*                                        m_pToggleVisibility;
+    Ui::SurferControl *ui;
 };
 
 
@@ -192,7 +165,4 @@ private:
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-
-} // namespace MAINVIEWEREXTENSION
-
-#endif // MAINVIEWEREXTENSION_MAINVIEWER_H
+#endif // SURFERCONTROL_H
