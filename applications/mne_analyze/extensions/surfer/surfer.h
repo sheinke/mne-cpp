@@ -151,7 +151,7 @@ private slots:
     *
     * @param[in] pItem The Item that was changed.
     */
-    void onSurfaceSelectionChanged(const QListWidgetItem* pItem);
+    void onSurfaceVisibilityChanged(const QListWidgetItem* pItem);
 
     //=========================================================================================================
     /**
