@@ -9,7 +9,7 @@
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017 Christoph Dinh, Lorenz Esch and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2017 Christoph Dinh, Lorenz Esch Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -45,14 +45,13 @@
 #include "../libs/anShared/Management/extensionmanager.h"
 #include "../libs/anShared/Management/statusbar.h"
 
-#include <iostream>
-
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
+#include <QDebug>
 #include <QtWidgets>
 #include <QMenu>
 #include <QMenuBar>
@@ -60,7 +59,6 @@
 #include <QAction>
 #include <QLabel>
 #include <QTextEdit>
-#include <QFileDialog>
 #include <QtWidgets/QGridLayout>
 #include <QStandardPaths>
 
@@ -98,7 +96,7 @@ MainWindow::MainWindow(QSharedPointer<ANSHAREDLIB::ExtensionManager> pExtensionM
         createMenus(pExtensionManager);
     }
     else {
-        std::cerr << "ERROR MainWindow::MainWindow extension manager is nullptr" << std::endl;
+        qDebug() << "[MainWindow::MainWindow] CRITICAL ! Extension manager is nullptr";
     }
 
     this->setStatusBar(new StatusBar());
@@ -127,33 +125,27 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::createActions()
 {
-    //File QMenu
-    m_pActionOpenDataFile = new QAction(tr("&Open Fiff File"), this);
-    m_pActionOpenDataFile->setShortcuts(QKeySequence::New);
-    m_pActionOpenDataFile->setStatusTip(tr("Opens a Fiff File"));
-    connect(m_pActionOpenDataFile, &QAction::triggered, this, &MainWindow::openFiffFile);
-
-    m_pActionExit = new QAction(tr("E&xit"), this);
+    m_pActionExit = new QAction(tr("Exit"), this);
     m_pActionExit->setShortcuts(QKeySequence::Quit);
     m_pActionExit->setStatusTip(tr("Exit the application"));
     connect(m_pActionExit, &QAction::triggered, this, &MainWindow::close);
 
     //View QMenu
-    m_pActionCascade = new QAction(tr("&Cascade"), this);
+    m_pActionCascade = new QAction(tr("Cascade"), this);
     m_pActionCascade->setStatusTip(tr("Cascade the windows in the mdi window"));
     connect(m_pActionCascade, &QAction::triggered, this->m_pMdiView, &MdiView::cascadeSubWindows);
 
-    m_pActionTile = new QAction(tr("&Tile"), this);
+    m_pActionTile = new QAction(tr("Tile"), this);
     m_pActionTile->setStatusTip(tr("Tile the windows in the mdi window"));
     connect(m_pActionTile, &QAction::triggered, this->m_pMdiView, &MdiView::tileSubWindows);
 
-    m_pActionPrint = new QAction(tr("&Print..."), this);
+    m_pActionPrint = new QAction(tr("Print..."), this);
     m_pActionPrint->setStatusTip(tr("Prints the current view."));
     m_pActionPrint->setShortcut(QKeySequence::Print);
     connect(m_pActionPrint, &QAction::triggered, this->m_pMdiView, &MdiView::printCurrentSubWindow);
 
     //Help QMenu
-    m_pActionAbout = new QAction(tr("&About"), this);
+    m_pActionAbout = new QAction(tr("About"), this);
     m_pActionAbout->setStatusTip(tr("Show the application's About box"));
     connect(m_pActionAbout, &QAction::triggered, this, &MainWindow::about);
 }
@@ -163,12 +155,10 @@ void MainWindow::createActions()
 
 void MainWindow::createMenus(QSharedPointer<ANSHAREDLIB::ExtensionManager> pExtensionManager)
 {
-    m_pMenuFile = menuBar()->addMenu(tr("&File"));
-    m_pMenuFile->addAction(m_pActionOpenDataFile);
-    m_pMenuFile->addSeparator();
+    m_pMenuFile = menuBar()->addMenu(tr("File"));
     m_pMenuFile->addAction(m_pActionExit);
 
-    m_pMenuView = menuBar()->addMenu(tr("&View"));
+    m_pMenuView = menuBar()->addMenu(tr("View"));
     m_pMenuView->addAction(m_pActionCascade);
     m_pMenuView->addAction(m_pActionTile);
     m_pMenuView->addSeparator();
@@ -176,7 +166,7 @@ void MainWindow::createMenus(QSharedPointer<ANSHAREDLIB::ExtensionManager> pExte
 
     menuBar()->addSeparator();
 
-    m_pMenuHelp = menuBar()->addMenu(tr("&Help"));
+    m_pMenuHelp = menuBar()->addMenu(tr("Help"));
     m_pMenuHelp->addAction(m_pActionAbout);
 
     // add extensions menus
@@ -201,11 +191,10 @@ void MainWindow::createDockWindows(QSharedPointer<ANSHAREDLIB::ExtensionManager>
 
     //Add Extension views to mdi
     for(IExtension* pExtension : pExtensionManager->getExtensions()) {
-        qDebug() << "create dock" << pExtension->getName();
-
         QDockWidget* pControl = pExtension->getControl();
         if(pControl) {
-            addDockWidget(Qt::LeftDockWidgetArea,pControl);
+            addDockWidget(Qt::LeftDockWidgetArea, pControl);
+            qDebug() << "[MainWindow::createDockWindows] Found and added dock widget for " << pExtension->getName();
         }
     }
 
@@ -222,11 +211,10 @@ void MainWindow::createMdiView(QSharedPointer<ExtensionManager> pExtensionManage
 
     //Add Extension views to mdi
     for(IExtension* pExtension : pExtensionManager->getExtensions()) {
-        qDebug() << "create mdi" << pExtension->getName();
-
         QWidget* pView = pExtension->getView();
         if(pView) {
             m_pMdiView->addSubWindow(pView);
+            qDebug() << "[MainWindow::createMdiView] Found and added subwindow for " << pExtension->getName();
         }
     }
 
@@ -238,62 +226,54 @@ void MainWindow::createMdiView(QSharedPointer<ExtensionManager> pExtensionManage
 
 void MainWindow::tabifyDockWindows()
 {
-    //
     // get a list of all the docks
-    //
     QList<QDockWidget*> docks = findChildren<QDockWidget*>();
 
-    //
     // first, un-float all the tabs
-    //
-    std::for_each(docks.begin(), docks.end(), std::bind(&QDockWidget::setFloating, std::placeholders::_1 /* the dock widget*/, false));
+    for (QDockWidget* pDockWidget : docks) pDockWidget->setFloating(false);
 
-    //
     // sort them into dockWidget areas
-    //
     QVector<QDockWidget*> topArea, leftArea, rightArea, bottomArea;
-    QVector<QVector<QDockWidget*>*> dockAreas;
+    QVector<QVector<QDockWidget*>*> dockAreas{&topArea, &leftArea, &rightArea, &bottomArea};
 
-    dockAreas.push_back(&topArea);
-    dockAreas.push_back(&leftArea);
-    dockAreas.push_back(&rightArea);
-    dockAreas.push_back(&bottomArea);
+    for (QDockWidget* pDockWidget : docks) {
+        // default with left area
+        Qt::DockWidgetArea area = Qt::LeftDockWidgetArea;
+        switch (dockWidgetArea(pDockWidget))
+        {
+        case Qt::TopDockWidgetArea:
+            topArea.push_back(pDockWidget);
+            area = Qt::TopDockWidgetArea;
+            break;
+        case Qt::LeftDockWidgetArea:
+            leftArea.push_back(pDockWidget);
+            area = Qt::LeftDockWidgetArea;
+            break;
+        case Qt::RightDockWidgetArea:
+            rightArea.push_back(pDockWidget);
+            area = Qt::RightDockWidgetArea;
+            break;
+        case Qt::BottomDockWidgetArea:
+            bottomArea.push_back(pDockWidget);
+            area = Qt::BottomDockWidgetArea;
+            break;
+        default:
+            qDebug() << "[MainWindow::tabifyDockWindows] Unhandled dock widget area";
+            break;
+        }
+        removeDockWidget(pDockWidget);
+        pDockWidget->resize(pDockWidget->minimumSizeHint());
+        addDockWidget(area, pDockWidget);
+        pDockWidget->setVisible(true);
+    }
 
-    std::for_each(docks.begin(), docks.end(), [&] (QDockWidget* dock)
-    {
-        if      (dockWidgetArea(dock) ==  Qt::TopDockWidgetArea     )   {topArea.   push_back(dock);    this->removeDockWidget(dock); dock->resize(dock->minimumSizeHint());    this->addDockWidget(Qt::TopDockWidgetArea   , dock); dock->setVisible(true);}
-        else if (dockWidgetArea(dock) ==  Qt::LeftDockWidgetArea    )   {leftArea.  push_back(dock);    this->removeDockWidget(dock); dock->resize(dock->minimumSizeHint());    this->addDockWidget(Qt::LeftDockWidgetArea  , dock); dock->setVisible(true);}
-        else if (dockWidgetArea(dock) ==  Qt::RightDockWidgetArea   )   {rightArea. push_back(dock);    this->removeDockWidget(dock); dock->resize(dock->minimumSizeHint());    this->addDockWidget(Qt::RightDockWidgetArea , dock); dock->setVisible(true);}
-        else if (dockWidgetArea(dock) ==  Qt::BottomDockWidgetArea  )   {bottomArea.push_back(dock);    this->removeDockWidget(dock); dock->resize(dock->minimumSizeHint());    this->addDockWidget(Qt::BottomDockWidgetArea, dock); dock->setVisible(true);}
-    });
-
-    //
     // then, tab them all
-    //
-    for (QVector<QVector<QDockWidget*>*>::iterator areasItr = dockAreas.begin(); areasItr != dockAreas.end(); areasItr++)
-    {
+    for (const QVector<QDockWidget*>* pArea : dockAreas) {
         // within each area, tab all the docks if there are more than 1
-        QVector<QDockWidget*> area = **areasItr;
-        for (int i = 1; i < area.size(); ++i) {
-            this->tabifyDockWidget(area[i-1], area[i]);
+        for (int i = 1; i < pArea->size(); ++i) {
+            tabifyDockWidget((*pArea)[i - 1], (*pArea)[i]);
         }
     }
-}
-
-
-//*************************************************************************************************************
-
-void MainWindow::openFiffFile()
-{
-    //Open a FIFF file
-
-    //Get the path
-    m_fiffFileName = QFileDialog::getOpenFileName(this,
-                                                    ("Open File"),
-                                                    "C:/",
-                                                    ("fiff File(*.fiff)"));
-    //Open file
-    QFile m_fiffFile(m_fiffFileName);
 }
 
 
@@ -347,7 +327,7 @@ void MainWindow::about()
                                           "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
                                           "p, li { white-space: pre-wrap; }\n"
                                           "</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;\">\n"
-                                          "<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:8pt; font-weight:600;\">Copyright (C) 2017 Christoph Dinh, Lorenz Esch, Matti Hamalainen. All rights reserved.</span></p>\n"
+                                          "<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:8pt; font-weight:600;\">Copyright (C) 2017 Christoph Dinh, Lorenz Esch, Lars Debor, Simon Heinke, Matti Hamalainen. All rights reserved.</span></p>\n"
                                           "<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\"><br /></p>\n"
                                           "<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:8pt;\">For more information visit the MNE-CPP/MNE Analyze project on its homepage:</span></p>\n"
                                           "<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\"><br /></p>\n"

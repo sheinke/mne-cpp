@@ -56,7 +56,6 @@
 
 #include <QtWidgets>
 #include <QtCore/QtPlugin>
-#include <QDebug>
 #include <QPickingSettings>
 #include <QMap>
 #include <QPair>
@@ -152,7 +151,7 @@ private slots:
     *
     * @param[in] pItem The Item that was changed.
     */
-    void onSurfaceSelectionChanged(const QListWidgetItem* pItem);
+    void onSurfaceVisibilityChanged(const QListWidgetItem* pItem);
 
     //=========================================================================================================
     /**
@@ -215,7 +214,7 @@ private:
     ANSHAREDLIB::Communicator* m_pCommu;                /**< Connection to the event system */
 
     // Control
-    QDockWidget*        m_pControl;                     /**< Control Dock */
+    QDockWidget*        m_pDock;                     /**< Control Dock */
     SurferControl*      m_pSurferControl;               /**< Control Widget */
 
     // entity tree root

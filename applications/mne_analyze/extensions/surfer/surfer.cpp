@@ -61,6 +61,7 @@
 #include <Qt3DRender>
 #include <Qt3DExtras>
 #include <QEntity>
+#include <QDebug>
 
 
 //*************************************************************************************************************
@@ -83,7 +84,7 @@ using namespace Qt3DCore;
 
 Surfer::Surfer()
 : m_pCommu(Q_NULLPTR)
-, m_pControl(Q_NULLPTR)
+, m_pDock(Q_NULLPTR)
 , m_pSurferControl(Q_NULLPTR)
 , m_pSurferRoot(Q_NULLPTR)
 , m_mLoadedSurfaces()
@@ -96,7 +97,8 @@ Surfer::Surfer()
 
 Surfer::~Surfer()
 {
-
+    delete m_pCommu;
+    delete m_pSurferControl;
 }
 
 
@@ -154,9 +156,9 @@ void Surfer::init()
                 this,
                 &Surfer::onLoadNewSurface);
         connect(m_pSurferControl,
-                &SurferControl::surfaceSelectionChanged,
+                &SurferControl::surfaceVisibilityChanged,
                 this,
-                &Surfer::onSurfaceSelectionChanged);
+                &Surfer::onSurfaceVisibilityChanged);
         connect(m_pSurferControl,
                 &SurferControl::removeSurface,
                 this,
@@ -199,16 +201,16 @@ QMenu *Surfer::getMenu()
 
 QDockWidget *Surfer::getControl()
 {
-    if(!m_pControl) {
-        m_pControl = new QDockWidget(tr("Surfer Control"));
-        m_pControl->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-        m_pControl->setMinimumWidth(180);
+    if(!m_pDock) {
+        m_pDock = new QDockWidget(tr("Surfer"));
+        m_pDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+
         if (m_pSurferControl) {
-            m_pControl->setWidget(m_pSurferControl);
+            m_pDock->setWidget(m_pSurferControl);
         }
     }
 
-    return m_pControl;
+    return m_pDock;
 }
 
 
@@ -231,15 +233,15 @@ void Surfer::handleEvent(QSharedPointer<Event> e)
         QVector<QSharedPointer<QEntityListModel> > availableDisplays = m_analyzeData->availableDisplays();
         if (availableDisplays.size() >= 1) {
             availableDisplays.at(0)->addEntityTree(m_pSurferRoot);
-            qDebug() << "[Surfer] successfully registered Surfer root";
+            qDebug() << "[Surfer::handleEvent] Registered Surfer root";
         }
         else {
-            qDebug() << "[Surfer] Could not find any displays...";
+            qDebug() << "[Surfer::handleEvent] Could not find any displays...";
         }
         break;
     }
     default:
-        qDebug() << "[Surfer] Received an Event that is not handled by switch-cases";
+        qDebug() << "[Surfer::handleEvent] Received an Event that is not handled by switch-cases";
         break;
     }
 }
@@ -259,14 +261,14 @@ QVector<EVENT_TYPE> Surfer::getEventSubscriptions(void) const
 
 void Surfer::onLoadNewSurface()
 {
-    QString filePath = QFileDialog::getOpenFileName(m_pControl,
+    QString filePath = QFileDialog::getOpenFileName(m_pDock,
                                                     tr("Open Surface File"),
                                                     QDir::currentPath() + "/MNE-sample-data");
     if (filePath.isEmpty() == false) {
         helpLoadNewSurface(filePath);
     }
     else {
-        qDebug() << "[Surfer] Empty filepath, returning...";
+        qDebug() << "[Surfer::onLoadNewSurface] Empty filepath, returning...";
         return;
     }
 }
@@ -274,7 +276,7 @@ void Surfer::onLoadNewSurface()
 
 //*************************************************************************************************************
 
-void Surfer::onSurfaceSelectionChanged(const QListWidgetItem *pItem)
+void Surfer::onSurfaceVisibilityChanged(const QListWidgetItem *pItem)
 {
     // reestablish consistency of visibility
     QSharedPointer<QEntity> pEntity = m_mLoadedSurfaces.value(pItem).second;
@@ -359,12 +361,12 @@ void Surfer::helpLoadNewSurface(const QString& filePath)
 void Surfer::updateSurfaceModelMesh(QSharedPointer<SurfaceModel> pModel, CustomMesh* pMesh)
 {
     if (! pModel) {
-        qDebug() << "[Surfer] updateSurfaceModelMesh: model is null";
+        qDebug() << "[Surfer::updateSurfaceModelMesh] Model is null";
         return;
     }
 
     if (! pMesh) {
-        qDebug() << "[Surfer] updateSurfaceModelMesh: mesh is null";
+        qDebug() << "[Surfer::updateSurfaceModelMesh] Mesh is null";
         return;
     }
 
@@ -430,7 +432,7 @@ void Surfer::setSelectionModel(QItemSelectionModel *pSelectionModel)
 void Surfer::onClick(QPickEvent *event)
 {
     if(QPickTriangleEvent* tri = dynamic_cast<QPickTriangleEvent*>(event)) {
-        qDebug() << "picked triangle index: " << tri->triangleIndex();
+        qDebug() << "[Surfer::onClick] Picked triangle index: " << tri->triangleIndex();
         qDebug() << tri->vertex1Index() << " " << tri->vertex2Index() << " " << tri->vertex3Index() << " ";
         //qDebug() << m_surface.tris(tri->triangleIndex(), 0);
         qDebug() << "local intersection " << tri->localIntersection();
@@ -470,6 +472,6 @@ void Surfer::onClick(QPickEvent *event)
 
     }
     else {
-        qDebug() << "failed";
+        qDebug() << "[Surfer::onClick] Failed";
     }
 }

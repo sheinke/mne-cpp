@@ -1,14 +1,15 @@
 //=============================================================================================================
 /**
-* @file     neuronalconnectivityyourwidget.cpp
-* @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
+* @file     mainviewercontrol.h
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>;
+*           Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     October, 2016
+* @date     May, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2016, Lorenz Esch and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -29,42 +30,87 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Definition of the NeuronalConnectivityYourWidget class.
+* @brief    MainViewerControl class declaration
 *
 */
+
+#ifndef MAINVIEWERCONTROL_H
+#define MAINVIEWERCONTROL_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "neuronalconnectivityyourwidget.h"
+
+//*************************************************************************************************************
+//=============================================================================================================
+// QT INCLUDES
+//=============================================================================================================
+
+#include <QWidget>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// Eigen INCLUDES
 //=============================================================================================================
-
-using namespace NEURONALCONNECTIVITYPLUGIN;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE MEMBER METHODS
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
-NeuronalConnectivityYourWidget::NeuronalConnectivityYourWidget(QWidget *parent)
-: QWidget(parent)
-, ui(new Ui::NeuronalConnectivityYourToolbarWidget)
-{
-    ui->setupUi(this);
+namespace Ui {
+    class MainViewerControl;
 }
 
 
-//*************************************************************************************************************
-
-NeuronalConnectivityYourWidget::~NeuronalConnectivityYourWidget()
+//=============================================================================================================
+/**
+* @brief The MainViewerControl class enables graphical user interaction.
+*/
+class MainViewerControl : public QWidget
 {
-    delete ui;
-}
+    Q_OBJECT
+
+public:
+    //=========================================================================================================
+    /**
+    * Constructs a MainViewerControl
+    */
+    explicit MainViewerControl(QWidget *parent = 0);
+
+    //=========================================================================================================
+    /**
+    * Destructs a MainViewerControl
+    */
+    ~MainViewerControl();
+
+signals:
+    //=========================================================================================================
+    /**
+    * This signal tells the MainViewer extension that the user has changed the MainViewers visibility
+    *
+    * @param[in] visible Whether or not the MainViewer currently should be displayed.
+    */
+    void visibilityChanged(bool visible);
+
+private slots:
+
+    // auto-generated:
+    void on_toggleVisibility_toggled(bool checked);
+
+private:
+    Ui::MainViewerControl *ui;
+};
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
+#endif // MAINVIEWERCONTROL_H

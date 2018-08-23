@@ -41,7 +41,6 @@
 
 #include "eventmanager.h"
 #include "communicator.h"
-#include <iostream>
 #include <chrono>
 
 
@@ -50,6 +49,7 @@
 // QT INCLUDES
 //=============================================================================================================
 
+#include <QDebug>
 #include <QMutexLocker>
 
 //*************************************************************************************************************
@@ -76,6 +76,9 @@ EventManager::EventManager()
 
 }
 
+
+//*************************************************************************************************************
+
 void EventManager::addCommunicator(Communicator* commu)
 {
     QMutexLocker temp(&m_routingTableMutex);
@@ -86,8 +89,8 @@ void EventManager::addCommunicator(Communicator* commu)
     }
 }
 
-//*************************************************************************************************************
 
+//*************************************************************************************************************
 
 void EventManager::issueEvent(QSharedPointer<Event> e)
 {
@@ -95,8 +98,8 @@ void EventManager::issueEvent(QSharedPointer<Event> e)
     m_eventQ.enqueue(e);
 }
 
-//*************************************************************************************************************
 
+//*************************************************************************************************************
 
 void EventManager::addSubscriptions(Communicator* commu, QVector<EVENT_TYPE> newsubs)
 {
@@ -107,8 +110,8 @@ void EventManager::addSubscriptions(Communicator* commu, QVector<EVENT_TYPE> new
     }
 }
 
-//*************************************************************************************************************
 
+//*************************************************************************************************************
 
 void EventManager::updateSubscriptions(Communicator* commu,const QVector<EVENT_TYPE> &subs)
 {
@@ -118,8 +121,8 @@ void EventManager::updateSubscriptions(Communicator* commu,const QVector<EVENT_T
     addSubscriptions(commu, subs);
 }
 
-//*************************************************************************************************************
 
+//*************************************************************************************************************
 
 void EventManager::removeCommunicator(Communicator* commu)
 {
@@ -130,20 +133,20 @@ void EventManager::removeCommunicator(Communicator* commu)
         // consistency check:
         if (removed != 1)
         {
-            std::cerr << "EventManager: WARNING ! Found " << removed << " entries instead of 1 for event type ";
-            std::cerr << etype << " and communicator ID " << commu->getID() << std::endl;
+            qDebug() << "[EventManager::removeCommunicator] WARNING ! Found " << removed << " entries instead of 1 for event type ";
+            qDebug() << etype << " and communicator ID " << commu->getID();
         }
     }
 }
 
-//*************************************************************************************************************
 
+//*************************************************************************************************************
 
 bool EventManager::startEventHandling(float frequency)
 {
     if (m_running)
     {
-        std::cout << "[EventManager] Warning somebody tried to call startEventHandling when already running..." << std::endl;
+        qDebug() << "[EventManager::startEventHandling] WARNING ! somebody tried to call startEventHandling when already running...";
         return false;
     }
     else {
@@ -156,8 +159,8 @@ bool EventManager::startEventHandling(float frequency)
 
 }
 
-//*************************************************************************************************************
 
+//*************************************************************************************************************
 
 bool EventManager::stopEventHandling()
 {
@@ -169,10 +172,11 @@ bool EventManager::stopEventHandling()
         return true;
     }
     else {
-        std::cout << "[EventManager] Warning somebody tried to call stopEventHandling when already stopped..." << std::endl;
+        qDebug() << "[EventManager] WARNING ! Somebody tried to call stopEventHandling when already stopped...";
         return false;
     }
 }
+
 
 //*************************************************************************************************************
 
@@ -191,8 +195,8 @@ EventManager& EventManager::getEventManager()
     return em;
 }
 
-//*************************************************************************************************************
 
+//*************************************************************************************************************
 
 void EventManager::run()
 {
@@ -231,7 +235,7 @@ void EventManager::run()
         else
         {
             // issue warning
-            std::cout << "[EventManager] WARNING, running behind on event handling...";
+            qDebug() << "[EventManager::run] WARNING ! Running behind on event handling...";
         }
         if (isInterruptionRequested())
         {
@@ -240,8 +244,8 @@ void EventManager::run()
     }
 }
 
-//*************************************************************************************************************
 
+//*************************************************************************************************************
 
 void EventManager::shutdown()
 {
