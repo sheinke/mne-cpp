@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     analyzedata.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lars Debor <lars.debor@tu-ilmenau.de>;
+* @file     dataviewer.cpp
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     February, 2017
+* @date     August, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2017, Christoph Dinh, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2017 Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,7 +30,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Definition of the Analyze Data Container Class.
+* @brief    Definition of the DataViewer class.
 *
 */
 
@@ -40,9 +39,10 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "analyzedata.h"
-#include "../Model/ecdsetmodel.h"
-#include <inverse/dipoleFit/dipole_fit_settings.h>
+#include "dataviewer.h"
+#include "FormFiles/dataviewercontrol.h"
+#include <anShared/Management/analyzedata.h>
+#include "anShared/Utils/metatypes.h"
 
 
 //*************************************************************************************************************
@@ -50,11 +50,7 @@
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QDebug>
-#include <QVector>
-#include <QSharedPointer>
-#include <QString>
-#include <QtConcurrent/QtConcurrent>
+#include <QListWidgetItem>
 
 
 //*************************************************************************************************************
@@ -62,6 +58,7 @@
 // USED NAMESPACES
 //=============================================================================================================
 
+using namespace DATAVIEWEREXTENSION;
 using namespace ANSHAREDLIB;
 
 
@@ -70,8 +67,9 @@ using namespace ANSHAREDLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-AnalyzeData::AnalyzeData(QObject *pParent)
-: QObject(pParent)
+DataViewer::DataViewer()
+    : m_pControl(Q_NULLPTR)
+    , m_pDataViewerControl(Q_NULLPTR)
 {
 
 }
@@ -79,144 +77,132 @@ AnalyzeData::AnalyzeData(QObject *pParent)
 
 //*************************************************************************************************************
 
-AnalyzeData::~AnalyzeData()
+DataViewer::~DataViewer()
 {
-    // @TODO make sure all objects are safely deleted
+
 }
 
 
 //*************************************************************************************************************
 
-QVector<QSharedPointer<AbstractModel> > AnalyzeData::getObjectsOfType(MODEL_TYPE mtype)
+QSharedPointer<IExtension> DataViewer::clone() const
 {
-    // simply iterate over map, number of objects in memory should be small enough
-    QVector<QSharedPointer<AbstractModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::const_iterator iter = m_data.cbegin();
-    for (; iter != m_data.cend(); iter++)
+    QSharedPointer<DataViewer> pDataViewerClone = QSharedPointer<DataViewer>::create();
+    return pDataViewerClone;
+}
+
+
+//*************************************************************************************************************
+
+void DataViewer::init()
+{
+    m_pDataViewerControl = new DataViewerControl;
+
+    updateListWidget();
+
+    connect(m_analyzeData.data(), &AnalyzeData::newModelAvailable,
+            this, &DataViewer::updateListWidget);
+    connect(m_analyzeData.data(), &AnalyzeData::modelPathChanged,
+            this, &DataViewer::updateListWidget);
+    connect(m_analyzeData.data(), &AnalyzeData::modelRemoved,
+            this, &DataViewer::updateListWidget);
+
+}
+
+
+//*************************************************************************************************************
+
+void DataViewer::unload()
+{
+}
+
+
+//*************************************************************************************************************
+
+QString DataViewer::getName() const
+{
+    return "DataViewer";
+}
+
+
+//*************************************************************************************************************
+
+QMenu *DataViewer::getMenu()
+{
+    return Q_NULLPTR;
+}
+
+
+//*************************************************************************************************************
+
+QDockWidget *DataViewer::getControl()
+{
+    if(!m_pControl) {
+        m_pControl = new QDockWidget(tr("Data View Control"));
+        m_pControl->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+        m_pControl->setMinimumWidth(180);
+        m_pControl->setWidget(m_pDataViewerControl);
+    }
+
+    return m_pControl;
+}
+
+
+//*************************************************************************************************************
+
+QWidget *DataViewer::getView()
+{
+    return Q_NULLPTR;
+}
+
+
+//*************************************************************************************************************
+
+void DataViewer::handleEvent(QSharedPointer<Event> e)
+{
+    switch(e->getType())
     {
-        if (iter.value()->getType() == mtype)
-        {
-            result.push_back(iter.value());
-        }
-    }
-    return result;
-}
-
-
-//*************************************************************************************************************
-
-QSharedPointer<AbstractModel> AnalyzeData::getModel(const QString &sName)
-{
-    return m_data.value(sName);
-}
-
-
-//*************************************************************************************************************
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurfaceModel(const QString& sPath)
-{
-    return loadModel<SurfaceModel>(sPath);
-}
-
-
-//*************************************************************************************************************
-
-QSharedPointer<SurfaceModel> AnalyzeData::loadSurfaceModel(const QString &sSubject_id, qint32 iHemi, const QString &sSurf, const QString &sSubjects_dir)
-{
-    // copied from Surface::read
-    QString p_sFile = QString("%1/%2/surf/%3.%4").arg(sSubjects_dir).arg(sSubject_id).arg(iHemi == 0 ? "lh" : "rh").arg(sSurf);
-    return loadSurfaceModel(p_sFile);
-}
-
-
-//*************************************************************************************************************
-
-QSharedPointer<EcdSetModel> AnalyzeData::loadEcdSetModel(const QString &sPath)
-{
-    return loadModel<EcdSetModel>(sPath);
-}
-
-
-//*************************************************************************************************************
-
-QSharedPointer<EcdSetModel> AnalyzeData::loadEcdSetModel(INVERSELIB::DipoleFitSettings *pSettings, const QString &sPath)
-{
-    if(pSettings == nullptr || sPath.isEmpty()) {
-        qDebug() << "[AnalyzeData::loadEcdSetModel] Could not load model!";
-        return QSharedPointer<EcdSetModel>();
-    }
-    if (m_data.contains(sPath)) {
-        qDebug() << "[AnalyzeData::loadEcdSetModel] Path already exists " << sPath;
-        return qSharedPointerDynamicCast<EcdSetModel>(m_data.value(sPath));
-    }
-
-    QSharedPointer<EcdSetModel> pModel = QSharedPointer<EcdSetModel>::create(pSettings, sPath);
-    m_data.insert(sPath, pModel);
-    emit newModelAvailable(pModel);
-    return pModel;
-}
-
-
-//*************************************************************************************************************
-
-QSharedPointer<QEntityListModel> AnalyzeData::createQEntityListModel(const QString &sModelIdentifier)
-{
-    return loadModel<QEntityListModel>(sModelIdentifier);
-}
-
-
-//*************************************************************************************************************
-
-QVector<QSharedPointer<QEntityListModel> > AnalyzeData::availableDisplays() const
-{
-    // similiar to "getObjectOfType"
-    QVector<QSharedPointer<QEntityListModel> > result;
-    QHash<QString, QSharedPointer<AbstractModel> >::const_iterator iter = m_data.cbegin();
-    for (; iter != m_data.cend(); iter++)
+    case EXTENSION_INIT_FINISHED:
     {
-        if (iter.value()->getType() == MODEL_TYPE::ANSHAREDLIB_QENTITYLIST_MODEL)
-        {
-            result.push_back(qSharedPointerDynamicCast<QEntityListModel>(iter.value()));
+
+    }
+    default:
+        qDebug() << "[DataViewer::handleEvent] received an Event that is not handled by switch-cases";
+        break;
+    }
+}
+
+
+//*************************************************************************************************************
+
+QVector<EVENT_TYPE> DataViewer::getEventSubscriptions(void) const
+{
+    QVector<EVENT_TYPE> temp;
+    temp.push_back(EXTENSION_INIT_FINISHED);
+    return temp;
+}
+
+
+//*************************************************************************************************************
+
+void DataViewer::updateListWidget()
+{
+    m_pDataViewerControl->clearList();
+
+    QList<QSharedPointer<AbstractModel>> lModels = m_analyzeData->getModels();
+
+    //add all model names to the listView
+    for(QSharedPointer<AbstractModel> pModel: lModels) {
+
+        if(pModel->getType() == MODEL_TYPE::ANSHAREDLIB_QENTITYLIST_MODEL) {
+            continue;
         }
+
+        QListWidgetItem* tempListItem = new QListWidgetItem;
+        tempListItem->setText(pModel->getModelName());
+        tempListItem->setToolTip(pModel->getModelPath());
+        m_pDataViewerControl->addListItem(tempListItem);
     }
-    return result;
-}
-
-
-//*************************************************************************************************************
-
-void AnalyzeData::removeModel(const QString &sModelPath)
-{
-    int numRemovedModels = m_data.remove(sModelPath);
-    if(numRemovedModels > 0) {
-        emit modelRemoved(sModelPath);
-    }
-}
-
-
-//*************************************************************************************************************
-
-void AnalyzeData::changeModelPath(const QString &sOldModelPath, const QString &sNewModelPath)
-{
-    QSharedPointer<AbstractModel> pModel = m_data.value(sOldModelPath);
-    if(!pModel.isNull() && !m_data.contains(sNewModelPath)) {
-        m_data.remove(sOldModelPath);
-        m_data.insert(sNewModelPath, pModel);
-        pModel->setModelPath(sNewModelPath);
-        emit modelPathChanged(pModel, sOldModelPath, sNewModelPath);
-    }
-    else {
-        qDebug() << "[AnalyzeData::changeModelPath] Changing model name from " << sOldModelPath <<
-                    " to " << sNewModelPath << " unsuccessful!";
-    }
-}
-
-
-//*************************************************************************************************************
-
-QList<QSharedPointer<AbstractModel> > AnalyzeData::getModels()
-{
-    return m_data.values();
 }
 
 

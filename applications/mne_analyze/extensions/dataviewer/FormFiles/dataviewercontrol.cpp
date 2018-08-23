@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
-* @file     surfacesettings.cpp
+* @file     dataviewercontrol.h
 * @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     August, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2017 Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,7 +30,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    SurfaceSettings class definition.
+* @brief    Contains the declaration of the DataViewerControl class.
 *
 */
 
@@ -40,37 +40,15 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "surfacesettings.h"
-#include "abstractdata.h"
-#include <fs/surface.h>
-
-#include <iostream>
-
+#include "dataviewercontrol.h"
+#include "ui_dataviewercontrol.h"
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// Eigen INCLUDES
-//=============================================================================================================
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// USED NAMESPACES
-//=============================================================================================================
-
-using namespace ANSHAREDLIB;
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// DEFINE GLOBAL METHODS
-//=============================================================================================================
+#include <QListWidgetItem>
 
 
 //*************************************************************************************************************
@@ -78,57 +56,35 @@ using namespace ANSHAREDLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-SurfaceSettings::SurfaceSettings(FSLIB::Surface *pSurface)
-: m_pSurface(pSurface)
+DataViewerControl::DataViewerControl(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::DataViewerControl)
 {
+    ui->setupUi(this);
 }
 
 
 //*************************************************************************************************************
 
-qint32 SurfaceSettings::getHemi() const
+DataViewerControl::~DataViewerControl()
 {
-    return m_pSurface->hemi();
+    delete ui;
 }
 
 
 //*************************************************************************************************************
 
-QString SurfaceSettings::getSurfaceType() const
+void DataViewerControl::addListItem(QListWidgetItem *pNewItem)
 {
-    return m_pSurface->surf();
+    ui->m_qListWidget->addItem(pNewItem);
 }
 
 
 //*************************************************************************************************************
 
-Eigen::Vector3f SurfaceSettings::getOffset() const
+void DataViewerControl::clearList()
 {
-    return m_pSurface->offset();
-}
-
-
-//*************************************************************************************************************
-
-QString SurfaceSettings::getFilePath() const
-{
-    return m_pSurface->filePath();
-}
-
-
-//*************************************************************************************************************
-
-QString SurfaceSettings::getFileName() const
-{
-    return m_pSurface->fileName();
-}
-
-
-//*************************************************************************************************************
-
-void SurfaceSettings::setOffset(const Eigen::Vector3f &vOffset)
-{
-    m_pSurface->offset() = vOffset;
+    ui->m_qListWidget->clear();
 }
 
 
