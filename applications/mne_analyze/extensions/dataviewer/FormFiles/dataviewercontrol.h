@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
-* @file     surfacesetdata.cpp
+* @file     dataviewercontrol.h
 * @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     August, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2017 Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,63 +30,75 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    SurfaceSetData class definition.
+* @brief    Contains the declaration of the DataViewerControl class.
 *
 */
 
+#ifndef DATAVIEWERCONTROL_H
+#define DATAVIEWERCONTROL_H
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "surfacesetdata.h"
-#include "surfacedata.h"
+#include <QWidget>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// QT INCLUDES
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// Eigen INCLUDES
-//=============================================================================================================
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// USED NAMESPACES
-//=============================================================================================================
-
-using namespace ANSHAREDLIB;
-using namespace FSLIB;
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// DEFINE GLOBAL METHODS
-//=============================================================================================================
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// DEFINE MEMBER METHODS
-//=============================================================================================================
-
-SurfaceSetData::SurfaceSetData()
-{
+namespace Ui {
+    class DataViewerControl;
 }
 
+class QListWidgetItem;
 
-//*************************************************************************************************************
 
-SurfaceSetData::SurfaceSetData(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
+//=============================================================================================================
+/**
+* DataViewerControl Extension Control
+*
+* @brief The DataViewerControl class provides the extension control.
+*/
+class DataViewerControl : public QWidget
 {
+    Q_OBJECT
 
-}
+public:
+    //=========================================================================================================
+    /**
+    * Constructs the DataViewerControl
+    *
+    * @param[in] parent     If parent is not NULL the QWidget becomes a child of QWidget inside parent.
+    */
+    explicit DataViewerControl(QWidget *parent = 0);
 
+    //=========================================================================================================
+    /**
+    * Destroys the DataViewerControl.
+    */
+    virtual ~DataViewerControl();
 
-//*************************************************************************************************************
+    //=========================================================================================================
+    /**
+    * Removes all entries from the QListWidget.
+    *
+    * @param[in] pNewItem       The new item.
+    */
+    void addListItem(QListWidgetItem* pNewItem);
+
+    //=========================================================================================================
+    /**
+    * Removes all entries from the QListWidget.
+    */
+    void clearList();
+
+private:
+
+    Ui::DataViewerControl *ui;   /**< The user interface */
+};
+
+#endif // DATAVIEWERCONTROL_H

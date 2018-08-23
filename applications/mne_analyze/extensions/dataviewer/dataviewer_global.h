@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
-* @file     datasettings.cpp
+* @file     dataviewer_global.h
 * @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     August, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2017, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,17 +30,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    DataSettings class definition.
+* @brief    Contains the DataViewer library export/import macros.
 *
 */
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// INCLUDES
-//=============================================================================================================
-
-#include "datasettings.h"
+#ifndef DATAVIEWER_GLOBAL_H
+#define DATAVIEWER_GLOBAL_H
 
 
 //*************************************************************************************************************
@@ -48,43 +43,18 @@
 // QT INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// Eigen INCLUDES
-//=============================================================================================================
+#include <QtCore/qglobal.h>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// PREPROCESSOR DEFINES
 //=============================================================================================================
 
-using namespace ANSHAREDLIB;
+#if defined(DATAVIEWER_LIBRARY)
+#  define DATAVIEWERSHARED_EXPORT Q_DECL_EXPORT   /**< Q_DECL_EXPORT must be added to the declarations of symbols used when compiling a shared library. */
+#else
+#  define DATAVIEWERSHARED_EXPORT Q_DECL_IMPORT   /**< Q_DECL_IMPORT must be added to the declarations of symbols used when compiling a client that uses the shared library. */
+#endif
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// DEFINE GLOBAL METHODS
-//=============================================================================================================
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// DEFINE MEMBER METHODS
-//=============================================================================================================
-
-DataSettings::DataSettings()
-{
-}
-
-
-//*************************************************************************************************************
-
-DataSettings::~DataSettings()
-{
-
-}
-
-
-//*************************************************************************************************************
+#endif // DATAVIEWER_GLOBAL_H

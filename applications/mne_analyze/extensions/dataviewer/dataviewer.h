@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
-* @file     surfacedata.cpp
-* @author   Lars Debor <lars.debor@tu-ilmenaul.de>;
+* @file     dataviewer.h
+* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     August, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2017 Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,9 +30,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    SurfaceData class definition.
+* @brief    Contains the declaration of the DataViewer class.
 *
 */
+
+#ifndef DATAVIEWER_H
+#define DATAVIEWER_H
 
 
 //*************************************************************************************************************
@@ -40,9 +43,9 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "surfacedata.h"
-#include <fs/surface.h>
-#include "surfacesettings.h"
+#include "dataviewer_global.h"
+#include <anShared/Interfaces/IExtension.h>
+#include <anShared/Management/communicator.h>
 
 
 //*************************************************************************************************************
@@ -50,102 +53,84 @@
 // QT INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// Eigen INCLUDES
-//=============================================================================================================
+#include <QtWidgets>
+#include <QtCore/QtPlugin>
+#include <QDebug>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
-using namespace ANSHAREDLIB;
-using namespace FSLIB;
+class DataViewerControl;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE GLOBAL METHODS
+// DEFINE NAMESPACE SURFEREXTENSION
 //=============================================================================================================
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// DEFINE MEMBER METHODS
-//=============================================================================================================
-
-SurfaceData::SurfaceData(const QString &p_sFile)
-: m_surface(Surface(p_sFile))
+namespace DATAVIEWEREXTENSION
 {
 
-}
 
-
-//*************************************************************************************************************
-
-SurfaceData::SurfaceData(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
-: m_surface(Surface(subject_id, hemi, surf, subjects_dir))
+//=============================================================================================================
+/**
+* DataViewer Extension
+*
+* @brief The DataViewer class provides a view with all currently loaded models.
+*/
+class DATAVIEWERSHARED_EXPORT DataViewer : public ANSHAREDLIB::IExtension
 {
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "ansharedlib/1.0" FILE "dataviewer.json") //New Qt5 Plugin system replaces Q_EXPORT_PLUGIN2 macro
+    // Use the Q_INTERFACES() macro to tell Qt's meta-object system about the interfaces
+    Q_INTERFACES(ANSHAREDLIB::IExtension)
 
-}
+public:
+    //=========================================================================================================
+    /**
+    * Constructs a DataViewer.
+    */
+    DataViewer();
 
+    //=========================================================================================================
+    /**
+    * Destroys the DataViewer.
+    */
+    virtual ~DataViewer();
 
-//*************************************************************************************************************
+    // IExtension functions
+    virtual QSharedPointer<IExtension> clone() const override;
+    virtual void init() override;
+    virtual void unload() override;
+    virtual QString getName() const override;
+    virtual QMenu* getMenu() override;
+    virtual QDockWidget* getControl() override;
+    virtual QWidget* getView() override;
+    virtual void handleEvent(QSharedPointer<ANSHAREDLIB::Event> e) override;
+    virtual QVector<ANSHAREDLIB::EVENT_TYPE> getEventSubscriptions() const override;
 
-void SurfaceData::initiSettings()
-{
-    m_pSettings = QSharedPointer<SurfaceSettings>::create(&m_surface);
-}
+private:
 
+    //=========================================================================================================
+    /**
+    * Updated the content of the list widget.
+    */
+    void updateListWidget();
 
-//*************************************************************************************************************
-
-Vector3f SurfaceData::vertexAt(int idx) const
-{
-    Eigen::Vector3f vector;
-    vector[0] = m_surface.rr()(idx, 0);
-    vector[1] = m_surface.rr()(idx, 1);
-    vector[2] = m_surface.rr()(idx, 2);
-
-    return vector;
-}
-
-
-//*************************************************************************************************************
-
-Vector3f SurfaceData::normalAt(int idx) const
-{
-    Eigen::Vector3f vector;
-    vector[0] = m_surface.nn()(idx, 0);
-    vector[1] = m_surface.nn()(idx, 1);
-    vector[2] = m_surface.nn()(idx, 2);
-
-    return vector;
-}
-
-
-//*************************************************************************************************************
-
-Vector3i SurfaceData::triAt(int idx) const
-{
-    Eigen::Vector3i vector;
-    vector[0] = m_surface.tris()(idx, 0);
-    vector[1] = m_surface.tris()(idx, 1);
-    vector[2] = m_surface.tris()(idx, 2);
-
-    return vector;
-}
-
+    // Control
+    QDockWidget*        m_pControlDock; /**< Control Widget */
+    DataViewerControl*  m_pDataViewerControl;
+};
 
 //*************************************************************************************************************
-
-float SurfaceData::curvAt(int idx) const
-{
-    return m_surface.curv()[idx];
-}
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
 
 
-//*************************************************************************************************************
+} // NAMESPACE
+
+#endif // DATAVIEWER_H

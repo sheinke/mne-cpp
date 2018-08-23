@@ -1,14 +1,15 @@
 #--------------------------------------------------------------------------------------------------------------
 #
-# @file     anShared.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+# @file     dataviewer.pro
+# @author   Lars Debor <lars.debor@tu-ilmenau.de>;
+#           Simon Heinke <simon.heinke@tu-ilmenau.de>;
 #           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 # @version  1.0
 # @date     March, 2017
 #
 # @section  LICENSE
 #
-# Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2017 Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -29,7 +30,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# @brief    This project file builds the mne_x library.
+# @brief    This project file generates the makefile for the dataviewer plug-in.
 #
 #--------------------------------------------------------------------------------------------------------------
 
@@ -37,90 +38,71 @@ include(../../../../mne-cpp.pri)
 
 TEMPLATE = lib
 
-QT += widgets svg
+CONFIG += plugin
 
-DEFINES += ANSHARED_LIBRARY
+DEFINES += DATAVIEWER_LIBRARY
 
-TARGET = anShared
+QT += gui widgets
+
+TARGET = dataviewer
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
 
 LIBS += -L$${MNE_LIBRARY_DIR}
 CONFIG(debug, debug|release) {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Fsd \
+    LIBS += -lMNE$${MNE_LIB_VERSION}Utilsd \
+            -lMNE$${MNE_LIB_VERSION}Fsd \
             -lMNE$${MNE_LIB_VERSION}Fiffd \
-            -lMNE$${MNE_LIB_VERSION}Mned  \
+            -lMNE$${MNE_LIB_VERSION}Mned \
             -lMNE$${MNE_LIB_VERSION}Fwdd \
             -lMNE$${MNE_LIB_VERSION}Inversed \
-            -lMNE$${MNE_LIB_VERSION}Dispd
+            -lMNE$${MNE_LIB_VERSION}Connectivityd \
+            -lMNE$${MNE_LIB_VERSION}Realtimed \
+            -lMNE$${MNE_LIB_VERSION}Dispd \
+            -lMNE$${MNE_LIB_VERSION}Disp3Dd \
+            -lanSharedd
 }
 else {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Fs \
+    LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
+            -lMNE$${MNE_LIB_VERSION}Fs \
             -lMNE$${MNE_LIB_VERSION}Fiff \
             -lMNE$${MNE_LIB_VERSION}Mne \
             -lMNE$${MNE_LIB_VERSION}Fwd \
             -lMNE$${MNE_LIB_VERSION}Inverse \
-            -lMNE$${MNE_LIB_VERSION}Disp
+            -lMNE$${MNE_LIB_VERSION}Connectivity \
+            -lMNE$${MNE_LIB_VERSION}Realtime \
+            -lMNE$${MNE_LIB_VERSION}Disp \
+            -lMNE$${MNE_LIB_VERSION}Disp3D \
+            -lanShared
 }
 
-DESTDIR = $${MNE_LIBRARY_DIR}
+win32: DLLDESTDIR = $${MNE_BINARY_DIR}/mne_analyze_extensions
+unix: DESTDIR = $${MNE_BINARY_DIR}/mne_analyze_extensions
 
 SOURCES += \
-    Management/analyzedata.cpp \
-    Management/analyzesettings.cpp \
-    Management/extensionmanager.cpp \
-    Model/surfacemodel.cpp \
-    Management/event.cpp \
-    Management/communicator.cpp \
-    Management/eventmanager.cpp \
-    Model/ecdsetmodel.cpp \
-    Model/qentitylistmodel.cpp \
-    Data/dipolefitsettingswrapper.cpp \
-    Management/statusbar.cpp
+    dataviewer.cpp \
+    FormFiles/dataviewercontrol.cpp
 
 HEADERS += \
-    anshared_global.h \
-    Management/analyzedata.h \
-    Management/analyzesettings.h \
-    Management/extensionmanager.h \
-    Interfaces/IStandardView.h \
-    Interfaces/IExtension.h \
-    Model/surfacemodel.h \
-    Utils/types.h \
-    anshared_global.h \
-    Management/event.h \
-    Management/communicator.h \
-    Management/eventmanager.h \
-    Model/abstractmodel.h \
-    Model/ecdsetmodel.h \
-    Utils/metatypes.h \
-    Model/qentitylistmodel.h \
-    Data/dipolefitsettingswrapper.h \
-    Management/statusbar.h
+    dataviewer_global.h \
+    dataviewer.h    \
+    FormFiles/dataviewercontrol.h
 
+FORMS += \
+    FormFiles/dataviewercontrol.ui
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_ANALYZE_INCLUDE_DIR}
 
-# Install headers to include directory
-header_files.files = $${HEADERS}
-header_files.path = $${MNE_INSTALL_INCLUDE_DIR}/anShared
+OTHER_FILES += dataviewer.json
 
-INSTALLS += header_files
+# Put generated form headers into the origin --> cause other src is pointing at them
+UI_DIR = $$PWD
 
-# Deploy library
-win32 {
-    EXTRA_ARGS =
-    DEPLOY_CMD = $$winDeployLibArgs($${TARGET},$${TARGET_EXT},$${MNE_BINARY_DIR},$${MNE_LIBRARY_DIR},$${EXTRA_ARGS})
-    QMAKE_POST_LINK += $${DEPLOY_CMD}
-}
-unix:!macx {
-    QMAKE_CXXFLAGS += -std=c++0x
-    QMAKE_CXXFLAGS += -Wno-attributes
-}
-macx {
-    QMAKE_CXXFLAGS = -mmacosx-version-min=10.7 -std=gnu0x -stdlib=libc++
-    CONFIG +=c++11
-}
+unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
+
+# suppress visibility warnings
+unix: QMAKE_CXXFLAGS += -Wno-attributes
+
