@@ -77,7 +77,8 @@ SOURCES += \
     Model/ecdsetmodel.cpp \
     Model/qentitylistmodel.cpp \
     Data/dipolefitsettingswrapper.cpp \
-    Management/statusbar.cpp
+    Management/statusbar.cpp \
+    Model/fiffrawmodel.cpp
 
 HEADERS += \
     anshared_global.h \
@@ -97,7 +98,8 @@ HEADERS += \
     Utils/metatypes.h \
     Model/qentitylistmodel.h \
     Data/dipolefitsettingswrapper.h \
-    Management/statusbar.h
+    Management/statusbar.h \
+    Model/fiffrawmodel.h
 
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
@@ -124,3 +126,6 @@ macx {
     QMAKE_CXXFLAGS = -mmacosx-version-min=10.7 -std=gnu0x -stdlib=libc++
     CONFIG +=c++11
 }
+
+DISTFILES += \
+    Model/fiffrawmodel
