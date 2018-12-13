@@ -2,13 +2,14 @@
 /**
 * @file     debiasedsquaredweightedphaselagindex.cpp
 * @author   Daniel Strohmeier <daniel.strohmeier@tu-ilmenau.de>;
+*           Lorenz Esch <lorenz.esch@mgh.harvard.edu>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Daniel Strohmeier and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Daniel Strohmeier, Lorenz Esch and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -95,49 +96,87 @@ DebiasedSquaredWeightedPhaseLagIndex::DebiasedSquaredWeightedPhaseLagIndex()
 
 //*******************************************************************************************************
 
-Network DebiasedSquaredWeightedPhaseLagIndex::debiasedSquaredWeightedPhaseLagIndex(const QList<MatrixXd> &matDataList,
-                                                                                   const MatrixX3f& matVert,
-                                                                                   int iNfft,
-                                                                                   const QString &sWindowType)
+Network DebiasedSquaredWeightedPhaseLagIndex::calculate(ConnectivitySettings& connectivitySettings)
 {
+//    QElapsedTimer timer;
+//    qint64 iTime = 0;
+//    timer.start();
+
     Network finalNetwork("Debiased Squared Weighted Phase Lag Index");
 
-    if(matDataList.empty()) {
-        qDebug() << "DebiasedSquaredWeightedPhaseLagIndex::debiasedSquaredWeightedPhaseLagIndex - Input data is empty";
+    if(connectivitySettings.isEmpty()) {
+        qDebug() << "DebiasedSquaredWeightedPhaseLagIndex::calculate - Input data is empty";
         return finalNetwork;
     }
 
+    #ifdef EIGEN_FFTW_DEFAULT
+        fftw_make_planner_thread_safe();
+    #endif
+
     //Create nodes
-    int rows = matDataList.first().rows();
+    int rows = connectivitySettings.at(0).matData.rows();
     RowVectorXf rowVert = RowVectorXf::Zero(3);
 
     for(int i = 0; i < rows; ++i) {
-        if(matVert.rows() != 0 && i < matVert.rows()) {
-            rowVert(0) = matVert.row(i)(0);
-            rowVert(1) = matVert.row(i)(1);
-            rowVert(2) = matVert.row(i)(2);
+        rowVert = RowVectorXf::Zero(3);
+
+        if(connectivitySettings.getNodePositions().rows() != 0 && i < connectivitySettings.getNodePositions().rows()) {
+            rowVert(0) = connectivitySettings.getNodePositions().row(i)(0);
+            rowVert(1) = connectivitySettings.getNodePositions().row(i)(1);
+            rowVert(2) = connectivitySettings.getNodePositions().row(i)(2);
         }
 
         finalNetwork.append(NetworkNode::SPtr(new NetworkNode(i, rowVert)));
     }
 
-    //Calculate all-to-all coherence matrix over epochs
-    QVector<MatrixXd> vecDebiasedSquaredWPLI = DebiasedSquaredWeightedPhaseLagIndex::computeDebiasedSquaredWPLI(matDataList,
-                                                                                                                iNfft,
-                                                                                                                sWindowType);
-
-    //Add edges to network
-    for(int i = 0; i < vecDebiasedSquaredWPLI.length(); ++i) {
-        for(int j = j; j < matDataList.at(0).rows(); ++j) {
-            MatrixXd matWeight = vecDebiasedSquaredWPLI.at(i).row(j).transpose();
-
-            QSharedPointer<NetworkEdge> pEdge = QSharedPointer<NetworkEdge>(new NetworkEdge(i, j, matWeight));
-
-            finalNetwork.getNodeAt(i)->append(pEdge);
-            finalNetwork.getNodeAt(j)->append(pEdge);
-            finalNetwork.append(pEdge);
-        }
+    // Check that iNfft >= signal length
+    int iSignalLength = connectivitySettings.at(0).matData.cols();
+    int iNfft = connectivitySettings.getNumberFFT();
+    if(iNfft > iSignalLength) {
+        iNfft = iSignalLength;
     }
+
+    // Generate tapers
+    QPair<MatrixXd, VectorXd> tapers = Spectral::generateTapers(iSignalLength, connectivitySettings.getWindowType());
+
+    // Initialize
+    int iNRows = connectivitySettings.at(0).matData.rows();
+    int iNFreqs = int(floor(iNfft / 2.0)) + 1;
+
+    QMutex mutex;
+
+    std::function<void(ConnectivitySettings::IntermediateTrialData&)> computeLambda = [&](ConnectivitySettings::IntermediateTrialData& inputData) {
+        return compute(inputData,
+                       connectivitySettings.getIntermediateSumData().vecPairCsdSum,
+                       connectivitySettings.getIntermediateSumData().vecPairCsdImagAbsSum,
+                       connectivitySettings.getIntermediateSumData().vecPairCsdImagSqrdSum,
+                       mutex,
+                       iNRows,
+                       iNFreqs,
+                       iNfft,
+                       tapers);
+    };
+
+    //    iTime = timer.elapsed();
+    //    qDebug() << "DebiasedSquaredWeightedPhaseLagIndex::calculate timer - Preparation:" << iTime;
+    //    timer.restart();
+
+    // Compute DSWPLI in parallel for all trials
+    QFuture<void> result = QtConcurrent::map(connectivitySettings.getTrialData(),
+                                             computeLambda);
+    result.waitForFinished();
+
+//    iTime = timer.elapsed();
+//    qDebug() << "DebiasedSquaredWeightedPhaseLagIndex::calculate timer - Compute DSWPLI per trial:" << iTime;
+//    timer.restart();
+
+    // Compute DSWPLI
+    computeDSWPLI(connectivitySettings,
+                  finalNetwork);
+
+//    iTime = timer.elapsed();
+//    qDebug() << "DebiasedSquaredWeightedPhaseLagIndex::calculate timer - Compute DSWPLI, Network creation:" << iTime;
+//    timer.restart();
 
     return finalNetwork;
 }
@@ -145,66 +184,168 @@ Network DebiasedSquaredWeightedPhaseLagIndex::debiasedSquaredWeightedPhaseLagInd
 
 //*************************************************************************************************************
 
-QVector<MatrixXd> DebiasedSquaredWeightedPhaseLagIndex::computeDebiasedSquaredWPLI(const QList<MatrixXd> &matDataList,
-                                                                                   int iNfft,
-                                                                                   const QString &sWindowType)
+void DebiasedSquaredWeightedPhaseLagIndex::compute(ConnectivitySettings::IntermediateTrialData& inputData,
+                                                   QVector<QPair<int,MatrixXcd> >& vecPairCsdSum,
+                                                   QVector<QPair<int,MatrixXd> >& vecPairCsdImagAbsSum,
+                                                   QVector<QPair<int,MatrixXd> >& vecPairCsdImagSqrdSum,
+                                                   QMutex& mutex,
+                                                   int iNRows,
+                                                   int iNFreqs,
+                                                   int iNfft,
+                                                   const QPair<MatrixXd, VectorXd>& tapers)
 {
-    // Check that iNfft >= signal length
-    int iSignalLength = matDataList.at(0).cols();
-    if (iNfft < iSignalLength) {
-        iNfft = iSignalLength;
+    if(inputData.vecPairCsd.size() == iNRows &&
+       inputData.vecPairCsdImagSqrd.size() == iNRows &&
+       inputData.vecPairCsdImagAbs.size() == iNRows) {
+        //qDebug() << "DebiasedSquaredWeightedPhaseLagIndex::compute - vecPairCsd, vecPairCsdImagSqrd and vecPairCsdImagAbs were already computed for this trial.";
+        return;
     }
 
-    // Generate tapers
-    QPair<MatrixXd, VectorXd> tapers = Spectral::generateTapers(iSignalLength, sWindowType);
+    int i,j;
 
-    // Initialize vecPsdAvg and vecCsdAvg
-    int iNRows = matDataList.at(0).rows();
-    int iNFreqs = int(floor(iNfft / 2.0)) + 1;
-    QVector<MatrixXd> vecCsdAvg;
-    QVector<MatrixXd> vecSquaredCsdAvg;
-    QVector<MatrixXd> vecCsdAbsAvg;
-    for (int j = 0; j < iNRows; ++j) {
-        vecCsdAvg.append(MatrixXd::Zero(iNRows, iNFreqs));
-        vecSquaredCsdAvg.append(MatrixXd::Zero(iNRows, iNFreqs));
-        vecCsdAbsAvg.append(MatrixXd::Zero(iNRows, iNFreqs));
-    }
+    // Calculate tapered spectra if not available already
+    // This code was copied and changed modified Utils/Spectra since we do not want to call the function due to time loss.
+    if(inputData.vecTapSpectra.isEmpty()) {
+        RowVectorXd vecInputFFT, rowData;
+        RowVectorXcd vecTmpFreq;
 
-    // Generate tapered spectra and CSD and sum over epoch
-    // This part could be parallelized with QtConcurrent::mappedReduced
-    for (int i = 0; i < matDataList.length(); ++i) {
-        //Remove mean
-        MatrixXd matInputData = matDataList.at(i);
-        for (int i = 0; i < matInputData.rows(); ++i) {
-            matInputData.row(i).array() -= matInputData.row(i).mean();
-        }
+        MatrixXcd matTapSpectrum(tapers.first.rows(), iNFreqs);
 
-        // This part could be parallelized with QtConcurrent::mapped
-        QVector<MatrixXcd> vecTapSpectra = Spectral::computeTaperedSpectraMatrix(matInputData, tapers.first, iNfft);
+        FFT<double> fft;
+        fft.SetFlag(fft.HalfSpectrum);
 
-        // This part could be parallelized with QtConcurrent::mappedReduced
-        for (int j = 0; j < iNRows; ++j) {
-            MatrixXcd matCsd = MatrixXcd(iNRows, iNFreqs);
-            for (int k = 0; k < iNRows; ++k) {
-                matCsd.row(k) = Spectral::csdFromTaperedSpectra(vecTapSpectra.at(j), vecTapSpectra.at(k),
-                                                                tapers.second, tapers.second, iNfft, 1.0);
+        for (i = 0; i < iNRows; ++i) {
+            // Substract mean
+            rowData.array() = inputData.matData.row(i).array() - inputData.matData.row(i).mean();
+
+            // Calculate tapered spectra if not available already
+            for(j = 0; j < tapers.first.rows(); j++) {
+                vecInputFFT = rowData.cwiseProduct(tapers.first.row(j));
+                // FFT for freq domain returning the half spectrum and multiply taper weights
+                fft.fwd(vecTmpFreq, vecInputFFT, iNfft);
+                matTapSpectrum.row(j) = vecTmpFreq * tapers.second(j);
             }
-            MatrixXd matCsdImag = matCsd.imag();
-            vecCsdAvg.replace(j, vecCsdAvg.at(j) + matCsdImag);
-            MatrixXd matCsdImag2 = matCsdImag.array().square();
-            vecSquaredCsdAvg.replace(j, vecSquaredCsdAvg.at(j) + matCsdImag2);
-            vecCsdAbsAvg.replace(j, vecCsdAbsAvg.at(j) + matCsdImag.cwiseAbs());
+
+            inputData.vecTapSpectra.append(matTapSpectrum);
         }
     }
 
-    QVector<MatrixXd> vecDebiasedSquaredWPLI;
-    for (int j = 0; j < iNRows; ++j) {
-        MatrixXd matNom = vecCsdAvg.at(j).array().square();
-        matNom -= vecSquaredCsdAvg.at(j);
-        MatrixXd matDenom = vecCsdAbsAvg.at(j).array().square();
-        matDenom -= vecSquaredCsdAvg.at(j);
-        matDenom = (matDenom.array() == 0.).select(INFINITY, matDenom);
-        vecDebiasedSquaredWPLI.append(matNom.cwiseQuotient(matDenom));
+    // Compute CSD
+    if(inputData.vecPairCsd.isEmpty()) {
+        MatrixXcd matCsd(iNRows, iNFreqs);
+
+        bool bNfftEven = false;
+        if (iNfft % 2 == 0){
+            bNfftEven = true;
+        }
+
+        double denomCSD = sqrt(tapers.second.cwiseAbs2().sum()) * sqrt(tapers.second.cwiseAbs2().sum()) / 2.0;
+
+        for (i = 0; i < iNRows; ++i) {
+            for (j = i; j < iNRows; ++j) {
+                // Compute CSD (average over tapers if necessary)
+                matCsd.row(j) = inputData.vecTapSpectra.at(i).cwiseProduct(inputData.vecTapSpectra.at(j).conjugate()).colwise().sum() / denomCSD;
+
+                // Divide first and last element by 2 due to half spectrum
+                matCsd.row(j)(0) /= 2.0;
+                if(bNfftEven) {
+                    matCsd.row(j).tail(1) /= 2.0;
+                }
+            }
+
+            inputData.vecPairCsd.append(QPair<int,MatrixXcd>(i,matCsd));
+            inputData.vecPairCsdImagSqrd.append(QPair<int,MatrixXd>(i,matCsd.imag().array().square()));
+            inputData.vecPairCsdImagAbs.append(QPair<int,MatrixXd>(i,matCsd.imag().cwiseAbs()));
+        }
+
+        mutex.lock();
+
+        if(vecPairCsdSum.isEmpty()) {
+            vecPairCsdSum = inputData.vecPairCsd;
+            vecPairCsdImagSqrdSum = inputData.vecPairCsdImagSqrd;
+            vecPairCsdImagAbsSum = inputData.vecPairCsdImagAbs;
+        } else {
+            for (int j = 0; j < vecPairCsdSum.size(); ++j) {
+                vecPairCsdSum[j].second += inputData.vecPairCsd.at(j).second;
+                vecPairCsdImagSqrdSum[j].second += inputData.vecPairCsdImagSqrd.at(j).second;
+                vecPairCsdImagAbsSum[j].second += inputData.vecPairCsdImagAbs.at(j).second;
+            }
+        }
+
+        mutex.unlock();
+    } else {
+        if(inputData.vecPairCsdImagSqrd.isEmpty()) {
+            for (i = 0; i < inputData.vecPairCsd.size(); ++i) {
+                inputData.vecPairCsdImagSqrd.append(QPair<int,MatrixXd>(i,inputData.vecPairCsd.at(i).second.imag().array().square()));
+            }
+
+            mutex.lock();
+
+            if(vecPairCsdImagSqrdSum.isEmpty()) {
+                vecPairCsdImagSqrdSum = inputData.vecPairCsdImagSqrd;
+            } else {
+                for (int j = 0; j < vecPairCsdSum.size(); ++j) {
+                    vecPairCsdImagSqrdSum[j].second += inputData.vecPairCsdImagSqrd.at(j).second;
+                }
+            }
+
+            mutex.unlock();
+        }
+
+        if(inputData.vecPairCsdImagAbs.isEmpty()) {
+            for (i = 0; i < inputData.vecPairCsd.size(); ++i) {
+                inputData.vecPairCsdImagAbs.append(QPair<int,MatrixXd>(i,inputData.vecPairCsd.at(i).second.imag().cwiseAbs()));
+            }
+
+            mutex.lock();
+
+            if(vecPairCsdImagAbsSum.isEmpty()) {
+                vecPairCsdImagAbsSum = inputData.vecPairCsdImagAbs;
+            } else {
+                for (int j = 0; j < vecPairCsdSum.size(); ++j) {
+                    vecPairCsdImagAbsSum[j].second += inputData.vecPairCsdImagAbs.at(j).second;
+                }
+            }
+
+            mutex.unlock();
+        }
     }
-    return vecDebiasedSquaredWPLI;
 }
+
+
+//*************************************************************************************************************
+
+void DebiasedSquaredWeightedPhaseLagIndex::computeDSWPLI(ConnectivitySettings &connectivitySettings,
+                                                         Network& finalNetwork)
+{
+    // Compute final DSWPLI and create Network
+    MatrixXd matNom, matDenom;
+    MatrixXd matWeight;
+    QSharedPointer<NetworkEdge> pEdge;
+    int j;
+
+    for (int i = 0; i < connectivitySettings.at(0).matData.rows(); ++i) {
+
+        matNom = connectivitySettings.getIntermediateSumData().vecPairCsdSum.at(i).second.imag().array().square();
+        matNom -= connectivitySettings.getIntermediateSumData().vecPairCsdImagSqrdSum.at(i).second;
+
+        matDenom = connectivitySettings.getIntermediateSumData().vecPairCsdImagAbsSum.at(i).second.array().square();
+        matDenom -= connectivitySettings.getIntermediateSumData().vecPairCsdImagSqrdSum.at(i).second;
+
+        matDenom = (matDenom.array() == 0.).select(INFINITY, matDenom);
+        matDenom = matNom.cwiseQuotient(matDenom);
+
+        for(j = i; j < connectivitySettings.at(0).matData.rows(); ++j) {
+            matWeight = matDenom.row(j).transpose();
+
+            pEdge = QSharedPointer<NetworkEdge>(new NetworkEdge(i, j, matWeight));
+
+            finalNetwork.getNodeAt(i)->append(pEdge);
+            finalNetwork.getNodeAt(j)->append(pEdge);
+            finalNetwork.append(pEdge);
+        }
+
+    }
+}
+
+

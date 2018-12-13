@@ -39,7 +39,6 @@ TEMPLATE = lib
 
 QT  += core widgets svg concurrent
 
-# Deep Model Viewer
 qtHaveModule(printsupport): QT += printsupport
 qtHaveModule(opengl): QT += opengl
 qtHaveModule(charts): QT += charts
@@ -117,6 +116,9 @@ SOURCES += \
     viewers/triggerdetectionview.cpp \
     viewers/quickcontrolview.cpp \
     viewers/connectivitysettingsview.cpp \
+    viewers/minimumnormsettingsview.cpp \
+    viewers/averagingsettingsview.cpp \
+    viewers/projectsettingsview.cpp \
     viewers/helpers/evokedsetmodel.cpp \
     viewers/helpers/layoutscene.cpp \
     viewers/helpers/averagescene.cpp \
@@ -159,6 +161,9 @@ HEADERS += \
     viewers/triggerdetectionview.h \
     viewers/quickcontrolview.h \
     viewers/connectivitysettingsview.h \
+    viewers/minimumnormsettingsview.h \
+    viewers/averagingsettingsview.h \
+    viewers/projectsettingsview.h \
     viewers/helpers/evokedsetmodel.h \
     viewers/helpers/layoutscene.h \
     viewers/helpers/averagescene.h \
@@ -218,6 +223,9 @@ FORMS += \
     viewers/formfiles/triggerdetectionview.ui \
     viewers/formfiles/quickcontrolview.ui \
     viewers/formfiles/connectivitysettingsview.ui \
+    viewers/formfiles/minimumnormsettingsview.ui \
+    viewers/formfiles/averagingsettingsview.ui \
+    viewers/formfiles/projectsettingsview.ui \
 
 RESOURCE_FILES +=\
     $${ROOT_DIR}/resources/general/default_filters/BP_1Hz_40Hz_Fs1kHz.txt \
@@ -262,4 +270,24 @@ win32 {
     EXTRA_ARGS =
     DEPLOY_CMD = $$winDeployLibArgs($${TARGET},$${TARGET_EXT},$${MNE_BINARY_DIR},$${MNE_LIBRARY_DIR},$${EXTRA_ARGS})
     QMAKE_POST_LINK += $${DEPLOY_CMD}
+}
+
+# Activate FFTW backend in Eigen
+contains(MNECPP_CONFIG, useFFTW) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
+
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
+    }
+
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
 }

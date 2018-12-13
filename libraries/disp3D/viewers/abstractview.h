@@ -148,7 +148,7 @@ public:
     *
     * @param[in] lControlWidgets    The new extra control widgets.
     */
-    void setQuickControlWidgets(const QList<QWidget*>& lControlWidgets);
+    void setQuickControlWidgets(const QList<QSharedPointer<QWidget> >& lControlWidgets);
 
 protected:
     //=========================================================================================================
@@ -162,7 +162,6 @@ protected:
     QSharedPointer<DISP3DLIB::Data3DTreeModel>          m_pData3DModel;         /**< The Disp3D model. */
 
     QPointer<DISPLIB::QuickControlView>                 m_pQuickControlView;    /**< The quick control view. */
-
 };
 
 } // NAMESPACE

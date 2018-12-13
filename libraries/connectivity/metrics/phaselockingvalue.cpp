@@ -2,13 +2,14 @@
 /**
 * @file     phaselockingvalue.cpp
 * @author   Daniel Strohmeier <daniel.strohmeier@tu-ilmenau.de>;
+*           Lorenz Esch <lorenz.esch@mgh.harvard.edu>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Daniel Strohmeier and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Daniel Strohmeier, Lorenz Esch and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -95,47 +96,85 @@ PhaseLockingValue::PhaseLockingValue()
 
 //*******************************************************************************************************
 
-Network PhaseLockingValue::phaseLockingValue(const QList<MatrixXd> &matDataList,
-                                             const MatrixX3f& matVert,
-                                             int iNfft,
-                                             const QString &sWindowType)
+Network PhaseLockingValue::calculate(ConnectivitySettings& connectivitySettings)
 {
+//    QElapsedTimer timer;
+//    qint64 iTime = 0;
+//    timer.start();
+
     Network finalNetwork("Phase Locking Value");
 
-    if(matDataList.empty()) {
-        qDebug() << "PhaseLockingValue::phaseLockingValue - Input data is empty";
+    if(connectivitySettings.isEmpty()) {
+        qDebug() << "PhaseLockingValue::calculate - Input data is empty";
         return finalNetwork;
     }
 
+    #ifdef EIGEN_FFTW_DEFAULT
+        fftw_make_planner_thread_safe();
+    #endif
+
     //Create nodes
-    int rows = matDataList.first().rows();
+    int iNRows = connectivitySettings.at(0).matData.rows();
     RowVectorXf rowVert = RowVectorXf::Zero(3);
 
-    for(int i = 0; i < rows; ++i) {
-        if(matVert.rows() != 0 && i < matVert.rows()) {
-            rowVert(0) = matVert.row(i)(0);
-            rowVert(1) = matVert.row(i)(1);
-            rowVert(2) = matVert.row(i)(2);
+    for(int i = 0; i < iNRows; ++i) {
+        rowVert = RowVectorXf::Zero(3);
+
+        if(connectivitySettings.getNodePositions().rows() != 0 && i < connectivitySettings.getNodePositions().rows()) {
+            rowVert(0) = connectivitySettings.getNodePositions().row(i)(0);
+            rowVert(1) = connectivitySettings.getNodePositions().row(i)(1);
+            rowVert(2) = connectivitySettings.getNodePositions().row(i)(2);
         }
 
         finalNetwork.append(NetworkNode::SPtr(new NetworkNode(i, rowVert)));
     }
 
-    //Calculate all-to-all coherence matrix over epochs
-    QVector<MatrixXd> vecPLV = PhaseLockingValue::computePLV(matDataList, iNfft, sWindowType);
-
-    //Add edges to network
-    for(int i = 0; i < vecPLV.length(); ++i) {
-        for(int j = i; j < matDataList.at(0).rows(); ++j) {
-            MatrixXd matWeight = vecPLV.at(i).row(j).transpose();
-
-            QSharedPointer<NetworkEdge> pEdge = QSharedPointer<NetworkEdge>(new NetworkEdge(i, j, matWeight));
-
-            finalNetwork.getNodeAt(i)->append(pEdge);
-            finalNetwork.getNodeAt(j)->append(pEdge);
-            finalNetwork.append(pEdge);
-        }
+    // Check that iNfft >= signal length
+    int iSignalLength = connectivitySettings.at(0).matData.cols();
+    int iNfft = connectivitySettings.getNumberFFT();
+    if(iNfft > iSignalLength) {
+        iNfft = iSignalLength;
     }
+
+    // Generate tapers
+    QPair<MatrixXd, VectorXd> tapers = Spectral::generateTapers(iSignalLength, connectivitySettings.getWindowType());
+
+    // Initialize
+    int iNFreqs = int(floor(iNfft / 2.0)) + 1;
+
+    QMutex mutex;
+
+    std::function<void(ConnectivitySettings::IntermediateTrialData&)> computeLambda = [&](ConnectivitySettings::IntermediateTrialData& inputData) {
+        compute(inputData,
+                connectivitySettings.getIntermediateSumData().vecPairCsdSum,
+                connectivitySettings.getIntermediateSumData().vecPairCsdNormalizedSum,
+                mutex,
+                iNRows,
+                iNFreqs,
+                iNfft,
+                tapers);
+    };
+
+//    iTime = timer.elapsed();
+//    qDebug() << "PhaseLockingValue::calculate timer - Preparation:" << iTime;
+//    timer.restart();
+
+    // Compute PLV in parallel for all trials
+    QFuture<void> result = QtConcurrent::map(connectivitySettings.getTrialData(),
+                                             computeLambda);
+    result.waitForFinished();
+
+//    iTime = timer.elapsed();
+//    qDebug() << "PhaseLockingValue::calculate timer - Compute PLV per trial:" << iTime;
+//    timer.restart();
+
+    // Compute PLV
+    computePLV(connectivitySettings,
+               finalNetwork);
+
+//    iTime = timer.elapsed();
+//    qDebug() << "PhaseLockingValue::PhaseLagIndex timer - Compute PLV, Network creation:" << iTime;
+//    timer.restart();
 
     return finalNetwork;
 }
@@ -143,53 +182,133 @@ Network PhaseLockingValue::phaseLockingValue(const QList<MatrixXd> &matDataList,
 
 //*************************************************************************************************************
 
-QVector<MatrixXd> PhaseLockingValue::computePLV(const QList<MatrixXd> &matDataList,
-                                                int iNfft,
-                                                const QString &sWindowType)
+void PhaseLockingValue::compute(ConnectivitySettings::IntermediateTrialData& inputData,
+                                QVector<QPair<int,Eigen::MatrixXcd> >& vecPairCsdSum,
+                                QVector<QPair<int,MatrixXcd> >& vecPairCsdNormalizedSum,
+                                QMutex& mutex,
+                                int iNRows,
+                                int iNFreqs,
+                                int iNfft,
+                                const QPair<MatrixXd, VectorXd>& tapers)
 {
-    // Check that iNfft >= signal length
-    int iSignalLength = matDataList.at(0).cols();
-    if (iNfft < iSignalLength) {
-        iNfft = iSignalLength;
+    if(inputData.vecPairCsdNormalized.size() == iNRows) {
+        //qDebug() << "PhaseLockingValue::compute - vecPairCsdNormalized was already computed for this trial.";
+        return;
     }
 
-    // Generate tapers
-    QPair<MatrixXd, VectorXd> tapers = Spectral::generateTapers(iSignalLength, sWindowType);
+    int i,j;
 
-    // Initialize vecPsdAvg and vecCsdAvg
-    int iNRows = matDataList.at(0).rows();
-    int iNFreqs = int(floor(iNfft / 2.0)) + 1;
-    QVector<MatrixXcd> vecCsdAvg;
-    for (int j = 0; j < iNRows; ++j) {
-        vecCsdAvg.append(MatrixXcd::Zero(iNRows, iNFreqs));
-    }
+    // Calculate tapered spectra if not available already
+    // This code was copied and changed modified Utils/Spectra since we do not want to call the function due to time loss.
+    if(inputData.vecTapSpectra.isEmpty()) {
+        RowVectorXd vecInputFFT, rowData;
+        RowVectorXcd vecTmpFreq;
 
-    // Generate tapered spectra and CSD and sum over epoch
-    // This part could be parallelized with QtConcurrent::mappedReduced
-    for (int i = 0; i < matDataList.length(); ++i) {
-        //Remove mean
-        MatrixXd matInputData = matDataList.at(i);
-        for (int i = 0; i < matInputData.rows(); ++i) {
-            matInputData.row(i).array() -= matInputData.row(i).mean();
-        }
+        MatrixXcd matTapSpectrum(tapers.first.rows(), iNFreqs);
 
-        // This part could be parallelized with QtConcurrent::mapped
-        QVector<MatrixXcd> vecTapSpectra = Spectral::computeTaperedSpectraMatrix(matInputData, tapers.first, iNfft);
+        FFT<double> fft;
+        fft.SetFlag(fft.HalfSpectrum);
 
-        // This part could be parallelized with QtConcurrent::mappedReduced
-        for (int j = 0; j < iNRows; ++j) {
-            MatrixXcd matCsd = MatrixXcd(iNRows, iNFreqs);
-            for (int k = 0; k < iNRows; ++k) {
-                matCsd.row(k) = Spectral::csdFromTaperedSpectra(vecTapSpectra.at(j), vecTapSpectra.at(k),
-                                                                tapers.second, tapers.second, iNfft, 1.0);
+        for (i = 0; i < iNRows; ++i) {
+            // Substract mean
+            rowData.array() = inputData.matData.row(i).array() - inputData.matData.row(i).mean();
+
+            // Calculate tapered spectra if not available already
+            for(j = 0; j < tapers.first.rows(); j++) {
+                vecInputFFT = rowData.cwiseProduct(tapers.first.row(j));
+                // FFT for freq domain returning the half spectrum and multiply taper weights
+                fft.fwd(vecTmpFreq, vecInputFFT, iNfft);
+                matTapSpectrum.row(j) = vecTmpFreq * tapers.second(j);
             }
-            vecCsdAvg.replace(j, vecCsdAvg.at(j) + matCsd.cwiseQuotient(matCsd.cwiseAbs()));
+
+            inputData.vecTapSpectra.append(matTapSpectrum);
         }
     }
 
-    QVector<MatrixXd> vecPLV;
-    for (int i = 0; i < iNRows; ++i) {
-        vecPLV.append(vecCsdAvg.at(i).cwiseAbs() / matDataList.length());
+    // Compute CSD
+    if(inputData.vecPairCsd.isEmpty()) {
+        MatrixXcd matCsd = MatrixXcd(iNRows, iNFreqs);
+
+        bool bNfftEven = false;
+        if (iNfft % 2 == 0){
+            bNfftEven = true;
+        }
+
+        double denomCSD = sqrt(tapers.second.cwiseAbs2().sum()) * sqrt(tapers.second.cwiseAbs2().sum()) / 2.0;
+
+        for (i = 0; i < iNRows; ++i) {
+            for (j = i; j < iNRows; ++j) {
+                // Compute CSD (average over tapers if necessary)
+                matCsd.row(j) = inputData.vecTapSpectra.at(i).cwiseProduct(inputData.vecTapSpectra.at(j).conjugate()).colwise().sum() / denomCSD;
+
+                // Divide first and last element by 2 due to half spectrum
+                matCsd.row(j)(0) /= 2.0;
+                if(bNfftEven) {
+                    matCsd.row(j).tail(1) /= 2.0;
+                }
+            }
+
+            inputData.vecPairCsd.append(QPair<int,MatrixXcd>(i,matCsd));
+            inputData.vecPairCsdNormalized.append(QPair<int,MatrixXcd>(i,matCsd.cwiseQuotient(matCsd.cwiseAbs())));
+        }
+
+        mutex.lock();
+
+        if(vecPairCsdSum.isEmpty()) {
+            vecPairCsdSum = inputData.vecPairCsd;
+            vecPairCsdNormalizedSum = inputData.vecPairCsdNormalized;
+        } else {
+            for (int j = 0; j < vecPairCsdSum.size(); ++j) {
+                vecPairCsdSum[j].second += inputData.vecPairCsd.at(j).second;
+                vecPairCsdNormalizedSum[j].second += inputData.vecPairCsdNormalized.at(j).second;
+            }
+        }
+
+        mutex.unlock();
+    } else {
+        if(inputData.vecPairCsdNormalized.isEmpty()) {
+            for (i = 0; i < iNRows; ++i) {
+                inputData.vecPairCsdNormalized.append(QPair<int,MatrixXcd>(i,inputData.vecPairCsd.at(i).second.cwiseQuotient(inputData.vecPairCsd.at(i).second.cwiseAbs())));
+            }
+
+            mutex.lock();
+
+            if(vecPairCsdNormalizedSum.isEmpty()) {
+                vecPairCsdNormalizedSum = inputData.vecPairCsdNormalized;
+            } else {
+                for (int j = 0; j < vecPairCsdNormalizedSum.size(); ++j) {
+                    vecPairCsdNormalizedSum[j].second += inputData.vecPairCsdNormalized.at(j).second;
+                }
+            }
+
+            mutex.unlock();
+        }
     }
-    return vecPLV;
+}
+
+
+//*************************************************************************************************************
+
+void PhaseLockingValue::computePLV(ConnectivitySettings &connectivitySettings,
+                                   Network& finalNetwork)
+{
+    // Compute final PLV and create Network
+    MatrixXd matNom;
+    MatrixXd matWeight;
+    QSharedPointer<NetworkEdge> pEdge;
+    int j;
+
+    for (int i = 0; i < connectivitySettings.at(0).matData.rows(); ++i) {
+        matNom = connectivitySettings.getIntermediateSumData().vecPairCsdNormalizedSum.at(i).second.cwiseAbs() / connectivitySettings.size();
+
+        for(j = i; j < connectivitySettings.at(0).matData.rows(); ++j) {
+            matWeight = matNom.row(j).transpose();
+
+            pEdge = QSharedPointer<NetworkEdge>(new NetworkEdge(i, j, matWeight));
+
+            finalNetwork.getNodeAt(i)->append(pEdge);
+            finalNetwork.getNodeAt(j)->append(pEdge);
+            finalNetwork.append(pEdge);
+        }
+    }
 }

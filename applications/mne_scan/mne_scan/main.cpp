@@ -51,7 +51,6 @@
 #include <scShared/Management/plugininputdata.h>
 #include <scShared/Interfaces/IPlugin.h>
 
-
 #include <Eigen/Core>
 
 
@@ -189,6 +188,10 @@ int main(int argc, char *argv[])
     //ToDo Check the message handler and FiffSimulator
 
 //    qInstallMessageHandler(customMessageHandler);
+
+    QSurfaceFormat fmt;
+    fmt.setSamples(10);
+    QSurfaceFormat::setDefaultFormat(fmt);
 
     return app.exec();
 }

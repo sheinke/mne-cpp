@@ -44,7 +44,7 @@
 #include <fiff/fiff.h>
 #include <fiff/fiff_types.h>
 
-#include <realtime/rtCommand/command.h>
+#include <communication/rtCommand/command.h>
 
 
 //*************************************************************************************************************
@@ -103,12 +103,11 @@ FiffSimulator::FiffSimulator()
 
 FiffSimulator::~FiffSimulator()
 {
-    qDebug() << "Destroy FiffSimulator::~FiffSimulator()";
-
-    delete m_pFiffProducer;
-
     m_bIsRunning = false;
     QThread::wait();
+
+    delete m_pFiffProducer;
+    delete m_pRawMatrixBuffer;
 }
 
 

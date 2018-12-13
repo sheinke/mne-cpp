@@ -125,7 +125,8 @@ QVariant Data3DTreeModel::data(const QModelIndex& index,
 int Data3DTreeModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 2;
+    // Return 2 to activate item description in tree view
+    return 1;
 }
 
 
@@ -214,8 +215,8 @@ FsSurfaceTreeItem* Data3DTreeModel::addSurface(const QString& subject,
 //*************************************************************************************************************
 
 QList<SourceSpaceTreeItem*> Data3DTreeModel::addSourceSpace(const QString& sSubject,
-                                                     const QString& sMeasurementSetName,
-                                                     const MNESourceSpace& sourceSpace)
+                                                            const QString& sMeasurementSetName,
+                                                            const MNESourceSpace& sourceSpace)
 {
     QList<SourceSpaceTreeItem*> pReturnItem;
 
@@ -241,8 +242,8 @@ QList<SourceSpaceTreeItem*> Data3DTreeModel::addSourceSpace(const QString& sSubj
 //*************************************************************************************************************
 
 QList<SourceSpaceTreeItem*> Data3DTreeModel::addForwardSolution(const QString& sSubject,
-                                                         const QString& sMeasurementSetName,
-                                                         const MNEForwardSolution& forwardSolution)
+                                                                const QString& sMeasurementSetName,
+                                                                const MNEForwardSolution& forwardSolution)
 {
     return this->addSourceSpace(sSubject, sMeasurementSetName, forwardSolution.src);
 }

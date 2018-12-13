@@ -30,14 +30,13 @@ defineReplace(macDeployArgs) {
     mne_library_dir = $$4
     extra_args = $$5
 
-    target_custom_ext = $${target_ext}
-    isEmpty($${target_custom_ext}) {
-        target_custom_ext = .app
+    isEmpty(target_ext) {
+        target_ext = .app
     }
 
     deploy_cmd = macdeployqt
 
-    deploy_target = $$shell_quote($$shell_path($${mne_binary_dir}/$${target}$${target_custom_ext}))
+    deploy_target = $$shell_quote($$shell_path($${mne_binary_dir}/$${target}$${target_ext}))
 
     deploy_libs_to_copy = -libpath=$${mne_library_dir}
     !isEmpty(extra_args) {
@@ -54,16 +53,15 @@ defineReplace(winDeployLibArgs) {
     mne_library_dir = $$4
     extra_args = $$5
 
-    target_custom_ext = $${target_ext}
-    isEmpty($${target_custom_ext}) {
-        target_custom_ext = .dll
+    isEmpty(target_ext) {
+        target_ext = .dll
     }
 
-    file = $$shell_quote($$shell_path($${mne_library_dir}/$${target}$${target_custom_ext}))
+    file = $$shell_quote($$shell_path($${mne_library_dir}/$${target}$${target_ext}))
     final_deploy_command += $${QMAKE_COPY} $${file} $$shell_quote($${mne_binary_dir}) $$escape_expand(\\n\\t)
 
     # Deploy qt dependecies for the library
-    deploy_target = $$shell_quote($$shell_path($${mne_binary_dir}/$${target}$${target_custom_ext}))
+    deploy_target = $$shell_quote($$shell_path($${mne_binary_dir}/$${target}$${target_ext}))
     deploy_cmd = windeployqt
 
     final_deploy_command += $$deploy_cmd $$deploy_target $$extra_args $$escape_expand(\\n\\t)
@@ -78,12 +76,11 @@ defineReplace(winDeployAppArgs) {
     extra_args = $$5
 
     # Deploy qt dependecies for the application
-    target_custom_ext = $${target_ext}
-    isEmpty($${target_custom_ext}) {
-        target_custom_ext = .exe
+    isEmpty(target_ext) {
+        target_ext = .exe
     }
 
-    deploy_target = $$shell_quote($$shell_path($${mne_binary_dir}/$${target}$${target_custom_ext}))
+    deploy_target = $$shell_quote($$shell_path($${mne_binary_dir}/$${target}$${target_ext}))
     deploy_cmd = windeployqt
 
     final_deploy_command += $$deploy_cmd $$deploy_target $$extra_args $$escape_expand(\\n\\t)
@@ -129,6 +126,10 @@ QMAKE_TARGET_COPYRIGHT = Copyright (C) 2018 Authors of mne-cpp. All rights reser
 ## To build basic MNE Scan version run: qmake MNECPP_CONFIG+=buildBasicMneScanVersion
 ## To build MNE-CPP libraries as static libs: qmake MNECPP_CONFIG+=static
 ## To build MNE-CPP Deep library based CNTK: qmake MNECPP_CONFIG+=buildDeep
+## To build MNE-CPP with FFTW support in Eigen (make sure to specify FFTW_DIRs below): qmake MNECPP_CONFIG+=useFFTW
+
+# Default flags
+MNECPP_CONFIG +=
 
 #Build minimalVersion for qt versions < 5.10.0
 !minQtVersion(5, 10, 0) {
@@ -213,3 +214,7 @@ isEmpty( MNE_INSTALL_INCLUDE_DIR ) {
     MNE_INSTALL_INCLUDE_DIR = $$shell_path($${PWD}/include)
 }
 
+
+# FFTW dir
+FFTW_DIR_LIBS = $$shell_path(C:\fftw-3.3.5-dll64)
+FFTW_DIR_INCLUDE = $$shell_path(C:\fftw-3.3.5-dll64)

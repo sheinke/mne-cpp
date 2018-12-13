@@ -168,7 +168,7 @@ void MneEstimateTreeItem::initItem()
     data.setValue(17);
     pItemStreamingInterval->setData(data, MetaTreeItemRoles::StreamingTimeInterval);
 
-    MetaTreeItem *pItemLoopedStreaming = new MetaTreeItem(MetaTreeItemTypes::LoopedStreaming, "Looping on/off");
+    MetaTreeItem *pItemLoopedStreaming = new MetaTreeItem(MetaTreeItemTypes::LoopedStreaming, "Loop last data");
     connect(pItemLoopedStreaming, &MetaTreeItem::checkStateChanged,
             this, &MneEstimateTreeItem::onCheckStateLoopedStateChanged);
     pItemLoopedStreaming->setCheckable(true);
@@ -426,7 +426,8 @@ void MneEstimateTreeItem::addData(const MNESourceEstimate& tSourceEstimate)
     data.setValue(tSourceEstimate.data);
     this->setData(data, Data3DTreeModelItemRoles::Data);
 
-    if(m_pRtSourceDataController) {
+    // Only draw activation if item is checked
+    if(m_pRtSourceDataController && this->checkState() == Qt::Checked) {
         m_pRtSourceDataController->addData(tSourceEstimate.data);
     }
 }
@@ -594,6 +595,25 @@ void MneEstimateTreeItem::setSFreq(const double dSFreq)
 {
     if(m_pRtSourceDataController) {
         m_pRtSourceDataController->setSFreq(dSFreq);
+    }
+}
+
+
+//*************************************************************************************************************
+
+void MneEstimateTreeItem::setAlpha(float fAlpha)
+{
+    if(m_pInterpolationItemLeftCPU) {
+        m_pInterpolationItemLeftCPU->setAlpha(fAlpha);
+    }
+    if(m_pInterpolationItemLeftGPU) {
+        m_pInterpolationItemLeftGPU->setAlpha(fAlpha);
+    }
+    if(m_pInterpolationItemRightCPU) {
+        m_pInterpolationItemRightCPU->setAlpha(fAlpha);
+    }
+    if(m_pInterpolationItemRightGPU) {
+        m_pInterpolationItemRightGPU->setAlpha(fAlpha);
     }
 }
 

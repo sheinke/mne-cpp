@@ -69,7 +69,7 @@ using namespace DISPLIB;
 //=============================================================================================================
 
 ConnectivitySettingsView::ConnectivitySettingsView(QWidget *parent,
-                         Qt::WindowFlags f)
+                                                   Qt::WindowFlags f)
 : QWidget(parent, f)
 , ui(new Ui::ConnectivitySettingsViewWidget)
 {
@@ -81,9 +81,23 @@ ConnectivitySettingsView::ConnectivitySettingsView(QWidget *parent,
     connect(ui->m_comboBox_windowType, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentTextChanged),
             this, &ConnectivitySettingsView::onWindowTypeChanged);
 
-    connect(ui->m_spinBox_numberTrials, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+//    connect(ui->m_spinBox_numberTrials, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+//            this, &ConnectivitySettingsView::onNumberTrialsChanged);
+
+    connect(ui->m_spinBox_numberTrials, &QSpinBox::editingFinished,
             this, &ConnectivitySettingsView::onNumberTrialsChanged);
 
+    connect(ui->m_comboBox_triggerType, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentTextChanged),
+            this, &ConnectivitySettingsView::onTriggerTypeChanged);
+
+//    connect(ui->m_spinBox_freqLow, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+//            this, &ConnectivitySettingsView::onFrequencyBandChanged);
+
+    connect(ui->m_spinBox_freqLow, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+            this, &ConnectivitySettingsView::onFrequencyBandChanged);
+
+    connect(ui->m_spinBox_freqHigh, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+            this, &ConnectivitySettingsView::onFrequencyBandChanged);
 
     this->setWindowTitle("Connectivity Settings");
     this->setMinimumWidth(330);
@@ -101,23 +115,61 @@ ConnectivitySettingsView::~ConnectivitySettingsView()
 
 //*************************************************************************************************************
 
-void ConnectivitySettingsView::onMetricChanged(const QString& metric)
+void ConnectivitySettingsView::setTriggerTypes(const QStringList& lTriggerTypes)
 {
-    emit connectivityMetricChanged(metric);
+    for(const QString &sTriggerType : lTriggerTypes) {
+        if(ui->m_comboBox_triggerType->findText(sTriggerType) == -1) {
+            ui->m_comboBox_triggerType->addItem(sTriggerType);
+        }
+    }
 }
 
 
 //*************************************************************************************************************
 
-void ConnectivitySettingsView::onWindowTypeChanged(const QString& windowType)
+void ConnectivitySettingsView::setNumberTrials(int iNumberTrials)
 {
-    emit windowTypeChanged(windowType);
+    ui->m_spinBox_numberTrials->setValue(iNumberTrials);
 }
 
 
 //*************************************************************************************************************
 
-void ConnectivitySettingsView::onNumberTrialsChanged(int iNumberTrials)
+void ConnectivitySettingsView::onMetricChanged(const QString& sMetric)
 {
-    emit numberTrialsChanged(iNumberTrials);
+    emit connectivityMetricChanged(sMetric);
+}
+
+
+//*************************************************************************************************************
+
+void ConnectivitySettingsView::onWindowTypeChanged(const QString& sWindowType)
+{
+    emit windowTypeChanged(sWindowType);
+}
+
+
+//*************************************************************************************************************
+
+void ConnectivitySettingsView::onNumberTrialsChanged()
+{
+    emit numberTrialsChanged(ui->m_spinBox_numberTrials->value());
+}
+
+
+//*************************************************************************************************************
+
+void ConnectivitySettingsView::onTriggerTypeChanged(const QString& sTriggerType)
+{
+    emit triggerTypeChanged(sTriggerType);
+}
+
+
+//*************************************************************************************************************
+
+void ConnectivitySettingsView::onFrequencyBandChanged()
+{
+    //Q_UNUSED(value)
+    emit freqBandChanged(ui->m_spinBox_freqLow->value(),
+                         ui->m_spinBox_freqHigh->value());
 }

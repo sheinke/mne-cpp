@@ -45,6 +45,7 @@
 #include "../connectivity_global.h"
 
 #include "abstractmetric.h"
+#include "../connectivitysettings.h"
 
 
 //*************************************************************************************************************
@@ -108,34 +109,22 @@ public:
     /**
     * Calculates the correlation coefficient between the rows of the data matrix.
     *
-    * @param[in] matDataList    The input data.
-    * @param[in] matVert        The vertices of each network node.
+    * @param[in] connectivitySettings   The input data and parameters.
     *
     * @return                   The connectivity information in form of a network structure.
     */
-    static Network correlationCoeff(const QList<Eigen::MatrixXd> &matDataList, const Eigen::MatrixX3f& matVert);
+    static Network calculate(ConnectivitySettings &connectivitySettings);
 
 protected:
     //=========================================================================================================
     /**
-    * Calculates the actual correlation coefficient between two data vectors.
-    *
-    * @param[in] vecFirst    The first input data row.
-    * @param[in] vecSecond   The second input data row.
-    *
-    * @return               The correlation coefficient.
-    */
-    static double calcCorrelationCoeff(const Eigen::RowVectorXd &vecFirst, const Eigen::RowVectorXd &vecSecond);
-
-    //=========================================================================================================
-    /**
     * Calculates the connectivity matrix for a given input data matrix based on the correlation coefficient.
     *
-    * @param[in] data       The input data.
+    * @param[in] inputData      The input data.
     *
-    * @return               The connectivity matrix.
+    * @return                   The connectivity matrix.
     */
-    static Eigen::MatrixXd calculate(const Eigen::MatrixXd &data);
+    static Eigen::MatrixXd compute(const ConnectivitySettings::IntermediateTrialData& inputData);
 
     //=========================================================================================================
     /**
@@ -144,7 +133,8 @@ protected:
     * @param[out] resultData    The result data.
     * @param[in]  data          The incoming, temporary result data.
     */
-    static void sum(Eigen::MatrixXd &resultData, const Eigen::MatrixXd &data);
+    static void reduce(Eigen::MatrixXd &resultData,
+                       const Eigen::MatrixXd &data);
 };
 
 

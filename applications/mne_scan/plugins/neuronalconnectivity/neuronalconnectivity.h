@@ -59,6 +59,7 @@
 
 #include <QMutex>
 #include <QElapsedTimer>
+#include <QPointer>
 
 
 //*************************************************************************************************************
@@ -82,7 +83,7 @@ namespace DISPLIB {
     class ConnectivitySettingsView;
 }
 
-namespace REALTIMELIB {
+namespace RTPROCESSINGLIB {
     class RtConnectivity;
 }
 
@@ -177,6 +178,12 @@ public:
 protected:
     //=========================================================================================================
     /**
+    * Generate the node positions based on the current incoming data. Also take into account selected bad channels.
+    */
+    void generateNodeVertices();
+
+    //=========================================================================================================
+    /**
     * IAlgorithm function
     */
     virtual void run();
@@ -187,7 +194,8 @@ protected:
     *
     * @param [in] connectivityResult        The new connectivity estimate
     */
-    void onNewConnectivityResultAvailable(const CONNECTIVITYLIB::Network& connectivityResult);
+    void onNewConnectivityResultAvailable(const CONNECTIVITYLIB::Network& connectivityResult,
+                                          const CONNECTIVITYLIB::ConnectivitySettings& connectivitySettings);
 
     //=========================================================================================================
     /**
@@ -213,14 +221,34 @@ protected:
     */
     void onWindowTypeChanged(const QString& windowType);
 
+    //=========================================================================================================
+    /**
+    * Slot called when the trigger type changed.
+    *
+    * @param [in] triggerType        The new trigger type.
+    */
+    void onTriggerTypeChanged(const QString& triggerType);
+
+    //=========================================================================================================
+    /**
+    * Slot called when the frequency band changed.
+    *
+    * @param [in] iFreqLow        The new lower frequency band.
+    * @param [in] iFreqHigh       The new higher frequency band.
+    */
+    void onFrequencyBandChanged(int iFreqLow, int iFreqHigh);
+
 private:
     bool                m_bIsRunning;           /**< Flag whether thread is running.*/
     qint32              m_iDownSample;          /**< Sampling rate. */
     qint32              m_iNumberAverages;      /**< The number of averages used to calculate the connectivity estimate. Use this only for resting state data when the averaging plugin is not connected.*/
-    QString             m_sAtlasDir;            /**< File to Atlas. */
-    QString             m_sSurfaceDir;          /**< File to Surface. */
+    qint32              m_iNumberBadChannels;   /**< The current number of bad channels. USed to test if new bad channels were selected. */
+    qint32              m_iFreqBandLow;         /**< The lower frequency band to average the connectivy weights from. */
+    qint32              m_iFreqBandHigh;        /**< The higher frequency band to average the connectivy weights to. In frequency bins. */
+    qint32              m_iBlockSize;           /**< The block size of teh last received data block. In frequency bins. */
 
     QString             m_sAvrType;             /**< The average type */
+    QStringList         m_sConnectivityMethods; /**< The connectivity metric to use */
 
     QMutex              m_mutex;
 
@@ -229,9 +257,9 @@ private:
     CONNECTIVITYLIB::ConnectivitySettings                                           m_connectivitySettings;         /**< The connectivity settings.*/
 
     QSharedPointer<IOBUFFER::CircularBuffer<CONNECTIVITYLIB::Network> >             m_pCircularNetworkBuffer;       /**< The circular buffer holding the connectivity estimates.*/
-    QSharedPointer<REALTIMELIB::RtConnectivity>                                     m_pRtConnectivity;              /**< The real-time connectivity estimation object.*/
+    QSharedPointer<RTPROCESSINGLIB::RtConnectivity>                                 m_pRtConnectivity;              /**< The real-time connectivity estimation object.*/
     QSharedPointer<FIFFLIB::FiffInfo>                                               m_pFiffInfo;                    /**< Fiff measurement info.*/
-    QSharedPointer<DISPLIB::ConnectivitySettingsView>                               m_pConnectivitySettingsView;    /**< The connectivity settings widget which will be added to the Quick Control view.*/
+    QSharedPointer<DISPLIB::ConnectivitySettingsView>                               m_pConnectivitySettingsView;    /**< The connectivity settings widget which will be added to the Quick Control view. The QuickControlView will not take ownership. Ownership will be managed by the QSharedPointer.*/
     QAction*                                                                        m_pActionShowYourWidget;        /**< flag whether thread is running.*/
 
     SCSHAREDLIB::PluginInputData<SCMEASLIB::RealTimeSourceEstimate>::SPtr           m_pRTSEInput;                   /**< The RealTimeSourceEstimate input.*/
@@ -240,12 +268,14 @@ private:
 
     SCSHAREDLIB::PluginOutputData<SCMEASLIB::RealTimeConnectivityEstimate>::SPtr    m_pRTCEOutput;                  /**< The RealTimeSourceEstimate output.*/
 
-    CONNECTIVITYLIB::Network    m_connectivityEstimate;     /**< The current connectivity estimate.*/
-    Eigen::MatrixX3f            m_matNodeVertLeft;          /**< Holds the left hemi vertex postions of the network nodes. Corresponding to the neuronal sources.*/
-    Eigen::MatrixX3f            m_matNodeVertRight;         /**< Holds the right hemi vertex postions of the network nodes. Corresponding to the neuronal sources.*/
-    Eigen::MatrixX3f            m_matNodeVertComb;          /**< Holds both hemi vertex postions of the network nodes. Corresponding to the neuronal sources.*/
+    CONNECTIVITYLIB::Network    m_connectivityEstimate;         /**< The current connectivity estimate.*/
+    Eigen::MatrixX3f            m_matNodeVertLeft;              /**< Holds the left hemi vertex postions of the network nodes. Corresponding to the neuronal sources.*/
+    Eigen::MatrixX3f            m_matNodeVertRight;             /**< Holds the right hemi vertex postions of the network nodes. Corresponding to the neuronal sources.*/
+    Eigen::MatrixX3f            m_matNodeVertComb;              /**< Holds both hemi vertex postions of the network nodes. Corresponding to the neuronal sources.*/
 
-    QVector<int>                m_chIdx;                    /**< The channel indeces to pick from the incoming data.*/
+    QVector<int>                m_chIdx;                        /**< The channel indeces to pick from the incoming data.*/
+
+    CONNECTIVITYLIB::Network    m_currentConnectivityResult;    /**< The current connectivity result.*/
 };
 
 } // NAMESPACE

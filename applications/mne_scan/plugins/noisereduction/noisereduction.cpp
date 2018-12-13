@@ -53,7 +53,7 @@ using namespace UTILSLIB;
 using namespace IOBUFFER;
 using namespace Eigen;
 using namespace DISPLIB;
-using namespace REALTIMELIB;
+using namespace RTPROCESSINGLIB;
 
 
 //*************************************************************************************************************
@@ -226,7 +226,7 @@ IPlugin::PluginType NoiseReduction::getType() const
 
 QString NoiseReduction::getName() const
 {
-    return "NoiseReduction";
+    return "Noise Reduction";
 }
 
 
