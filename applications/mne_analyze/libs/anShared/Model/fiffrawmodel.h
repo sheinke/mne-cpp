@@ -119,7 +119,7 @@ public:
     /**
     * Constructs a FiffRawModel object.
     */
-    FiffRawModel(QFile& inFile,
+    FiffRawModel(const QString &sFilePath,
                  qint32 iSamplesPerBlock,
                  qint32 iWindowSize,
                  qint32 iPreloadBufferSize,
@@ -133,16 +133,15 @@ public:
 
     //=========================================================================================================
     /**
-    * Resets the model and reads new data from inFile
-    *
-    * @param inFile The file to read data from.
+    * Helper function for initialization
     */
-    void initFiffData(QFile& inFile);
+    void initFiffData();
 
     //=========================================================================================================
     /**
     * Returns the data stored under the given role for the index.
-    * Currently only Qt::DisplayRole is supported
+    * Currently only Qt::DisplayRole is supported.
+    * Index rows reflect channels, first column is channel names, second is raw data.
     *
     * @param[in] index   The index that referres to the requested item.
     * @param[in] role    The requested role.
@@ -160,6 +159,8 @@ public:
     //=========================================================================================================
     /**
     * Returns the index for the item in the model specified by the given row, column and parent index.
+    * Currently only Qt::DisplayRole is supported.
+    * Index rows reflect channels, first column is channel names, second is raw data.
     *
     * @param[in] row      The specified row.
     * @param[in] column   The specified column.
@@ -202,9 +203,9 @@ public:
 
     //=========================================================================================================
     /**
-    * The type of this model (QEntityListModel)
+    * The type of this model (FiffRawModel)
     *
-    * @return The type of this model (QEntityListModel)
+    * @return The type of this model (FiffRawModel)
     */
     inline MODEL_TYPE getType() const override;
 
@@ -240,11 +241,30 @@ public:
     */
     inline qint32 absoluteLastSample() const;
 
+    //=========================================================================================================
+    /**
+    * Returns the the number of samples that can be loaded in the window.
+    *
+    * @return The the number of samples that can be loaded in the window
+    */
+    inline qint32 SampleWindowSize() const;
+
 public slots:
 
-    void updateScrollPosition(qint32 relativeFiffCursor);
+    /**
+    * This tells the model where the view currently is.
+    *
+    * @param newScrollPosition Absolute sample number.
+    */
+    void updateScrollPosition(qint32 newScrollPosition);
 
 private:
+
+    //=========================================================================================================
+    /**
+    * This is a helper method thats is meant to correctly set the endOfFile / startOfFile flags whenever needed
+    */
+    void updateEndStartFlags();
 
     //=========================================================================================================
     /**
@@ -279,24 +299,32 @@ private:
     */
     void postBlockLoad(int result);
 
+signals:
+     void newBlocksLoaded();
+
 private:
 
     std::list<QSharedPointer<QPair<MatrixXd, MatrixXd>>> m_lData;    /**< Data */
     std::list<QSharedPointer<QPair<MatrixXd, MatrixXd>>> m_lNewData; /**< Data that is to be appended or prepended */
 
-    qint32 m_iSamplesPerBlock;  /**< Number of samples per block */
-    qint32 m_iWindowSize;       /**< Number of blocks per window */
-    qint32 m_iPreloadBufferSize;/**< Number of blocks that are preloaded left and right */
-    qint32 m_iTotalBlockCount;  /**< Total block count */
+    // model config
+    qint32 m_iSamplesPerBlock;      /**< Number of samples per block */
+    qint32 m_iVisibleWindowSize;    /**< Number of blocks per window */
+    qint32 m_iPreloadBufferSize;    /**< Number of blocks that are preloaded left and right */
+    qint32 m_iTotalBlockCount;      /**< Total block count ( =  m_iVisibleWindowSize + 2 * m_iPreloadBufferSize) */
 
+    // management
     qint32 m_iFiffCursorBegin;      /**< This always points to the very first sample that is currently held (in the earliest block) */
+    bool m_bStartOfFileReached;     /**< Flag for having reached the start of the file */
+    bool m_bEndOfFileReached;       /**< Flag for having reached the end of the file */
 
     // concurrent reloading
     QFutureWatcher<int> m_blockLoadFutureWatcher;   /**< QFutureWatcher for watching process of reloading fiff data. */
     bool m_bCurrentlyLoading;                       /**< Flag to indicate whether or not a background operation is going on. */
     mutable QMutex m_dataMutex;                     /**< Using mutable is not a pretty solution */
+    QFile m_file;
 
-     // Fiff
+    // fiff stuff
     QSharedPointer<FIFFLIB::FiffIO> m_pFiffIO;      /**< Fiff IO */
     FIFFLIB::FiffInfo::SPtr m_pFiffInfo;            /**< Fiff info of whole fiff file */
     QList<FIFFLIB::FiffChInfo> m_ChannelInfoList;   /**< List of FiffChInfo objects that holds the corresponding channels information */
@@ -355,6 +383,13 @@ inline qint32 FiffRawModel::absoluteLastSample() const {
 
 
 //*************************************************************************************************************
+
+inline qint32 FiffRawModel::SampleWindowSize() const {
+    return m_iVisibleWindowSize * m_iSamplesPerBlock;
+}
+
+
+//*************************************************************************************************************
 //=============================================================================================================
 // CHANNELDATA / CHANNELITERATOR DEFINITION
 //=============================================================================================================
@@ -371,7 +406,7 @@ private:
     // This prevents that pointers into the Eigen-matrices will become invalid when the background thread returns and changes the matrices.
     std::list<QSharedPointer<QPair<MatrixXd, MatrixXd>>> m_lData;
     qint32 m_iRowNumber;
-    unsigned long m_NumSamples;
+    qint64 m_NumSamples;
 
 public:
 
@@ -384,13 +419,13 @@ public:
         const ChannelData* cd;  /**< Pointer to the associated ChannelData container */
         // Remember at which point we are currently (this is NOT the absolute sample number,
         // but the index relative to all stored samples in the associated ChannelData container):
-        unsigned long currentIndex;
+        qint32 currentIndex;
         // Remember which block we are currently in
         std::list<QSharedPointer<QPair<MatrixXd, MatrixXd>>>::const_iterator currentBlockToAccess;
-        unsigned long currentRelativeIndex; /**< Remember the relative sample in the current block */
+        qint32 currentRelativeIndex; /**< Remember the relative sample in the current block */
 
     public:
-        ChannelIterator(const ChannelData* cd, unsigned long index)
+        ChannelIterator(const ChannelData* cd, qint32 index)
             : std::iterator<std::random_access_iterator_tag, const double>(),
               cd(cd),
               currentIndex(index),
@@ -398,7 +433,7 @@ public:
               currentRelativeIndex(0)
         {
             // calculate current block to access and current relative index
-            unsigned long temp = currentIndex;
+            qint32 temp = currentIndex;
             // comparing temp against 0 to avoid index-out-of bound scenario for ChannelData::end()
             while (temp > 0 && temp >= (*currentBlockToAccess)->first.cols()) {
                 temp -= (*currentBlockToAccess)->first.cols();
@@ -406,6 +441,11 @@ public:
             }
 
             currentRelativeIndex = temp;
+        }
+
+        ChannelIterator(const ChannelIterator &other)
+            : ChannelIterator(other.cd, other.currentIndex)
+        {
         }
 
         ChannelIterator& operator ++ (int)
@@ -437,7 +477,7 @@ public:
             return currentIndex != rhs.currentIndex;
         }
 
-        const double operator * ()
+        double operator * ()
         {
             const double* pointerToMatrix = (*currentBlockToAccess)->first.data();
             // go to row
@@ -449,14 +489,27 @@ public:
         }
     };
 
-    ChannelData(const std::list<QSharedPointer<QPair<MatrixXd, MatrixXd>>>& data, qint32 rowNumber)
-        : m_lData(data),
+    ChannelData(std::list<QSharedPointer<QPair<MatrixXd, MatrixXd>>>::const_iterator it,
+                qint32 numBlocks,
+                qint32 rowNumber)
+        : m_lData(),
           m_iRowNumber(rowNumber),
           m_NumSamples(0)
     {
+        for (int i = 0; i < numBlocks; ++i) {
+            m_lData.push_back(*it);
+            it++;
+        }
+
         for (const auto &a : m_lData) {
             m_NumSamples += a->first.cols();
         }
+    }
+
+    ChannelData(const std::list<QSharedPointer<QPair<MatrixXd, MatrixXd>>> data, unsigned long rowNumber)
+        : ChannelData(data.begin(), data.size(), rowNumber)
+    {
+
     }
 
     // we need a public copy constructor in order to register this as QMetaType
@@ -472,7 +525,7 @@ public:
             m_iRowNumber(-1),
             m_NumSamples(0)
     {
-        // do nothing in default constructor
+        qDebug() << "[FiffRawModel::ChannelData::ChannelData] WARNING: default constructor called, this is probably wrong ...";
     }
 
     // we need a public destructor in order to register this as QMetaType
@@ -483,7 +536,7 @@ public:
     {
         // see which block we have to access
         std::list<QSharedPointer<QPair<MatrixXd, MatrixXd>>>::const_iterator blockToAccess = m_lData.begin();
-        while (i >= (*blockToAccess)->first.cols())
+        while (i >= (unsigned long)(*blockToAccess)->first.cols())
         {
             i -= (*blockToAccess)->first.cols();
             blockToAccess++;
@@ -509,13 +562,13 @@ public:
 
     ChannelIterator begin() const
     {
-        static ChannelIterator begin(this, 0);
+        ChannelIterator begin(this, 0);
         return begin;
     }
 
     ChannelIterator end() const
     {
-        static ChannelIterator end(this, m_NumSamples);
+        ChannelIterator end(this, m_NumSamples);
         return end;
     }
 };

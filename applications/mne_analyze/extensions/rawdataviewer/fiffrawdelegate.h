@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     types.h
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-*
+* @file     fiffrawdelegate.h
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>
+*           Lars Debor <lars.debor@tu-ilmenau.de>
+*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     January, 2019
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2014, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,76 +30,99 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains general application specific types
+* @brief    Declaration of the FiffRawDelegate Class.
 *
 */
-#ifndef ANSHARED_TYPES_H
-#define ANSHARED_TYPES_H
+
+#ifndef FIFFRAWDELEGATE_H
+#define FIFFRAWDELEGATE_H
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <Eigen/Core>
+#include "rawdataviewer_global.h"
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-#include <QSharedPointer>
+#include <QAbstractItemDelegate>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// Eigen INCLUDES
 //=============================================================================================================
-
-using namespace Eigen;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE MNEANALYZE
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
-namespace ANSHAREDLIB
+
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE RAWDATAVIEWEREXTENSION
+//=============================================================================================================
+
+namespace RAWDATAVIEWEREXTENSION {
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE TYPEDEFS
+//=============================================================================================================
+
+
+//=============================================================================================================
+/**
+* FiffRawDelegate
+*/
+class RAWDATAVIEWERSHARED_EXPORT FiffRawDelegate : public QAbstractItemDelegate
 {
+    Q_OBJECT
+public:
+    typedef QSharedPointer<FiffRawDelegate> SPtr;              /**< Shared pointer type for FiffRawDelegate. */
+    typedef QSharedPointer<const FiffRawDelegate> ConstSPtr;   /**< Const shared pointer type for FiffRawDelegate. */
+
     //=========================================================================================================
     /**
-    * The following directory paths are only imaginary.
-    * They should be used for models that are not stored to the file system yet.
+    * Creates a new abstract item delegate with the given parent.
     *
-    * Convention: Imaginary paths start with '*', end with '/' and all characters are upper case.
+    * @param[in] parent     Parent of the delegate
     */
-    #define ECD_SET_MODEL_DEFAULT_DIR_PATH  QStringLiteral("*ECDSETMODEL/")
+    FiffRawDelegate(QObject *parent = 0);
 
     //=========================================================================================================
     /**
-    * The MODEL_TYPE enum lists all available model types.
-    * Naming convention: NAMESPACE_CLASSNAME_MODEL
+    * Use the painter and style option to render the item specified by the item index.
+    *
+    * (sizeHint() must be implemented also)
+    *
+    * @param[in] painter    Low-level painting on widgets and other paint devices
+    * @param[in] option     Describes the parameters used to draw an item in a view widget
+    * @param[in] index      Used to locate data in a data model.
     */
-    enum MODEL_TYPE
-    {
-        ANSHAREDLIB_SURFACE_MODEL,
-        ANSHAREDLIB_QENTITYLIST_MODEL,
-        ANSHAREDLIB_ECDSET_MODEL,
-        ANSHAREDLIB_FIFFRAW_MODEL
-    };
+    virtual void paint(QPainter *painter,
+                       const QStyleOptionViewItem &option,
+                       const QModelIndex &index) const override;
 
     //=========================================================================================================
     /**
-    * Public enum for all available Event types.
+    * Item size
+    *
+    * @param[in] option     Describes the parameters used to draw an item in a view widget
+    * @param[in] index      Used to locate data in a data model.
     */
-    enum EVENT_TYPE
-    {
-        PING,                       // dummy event for testing and debuggin purposes
-        EXTENSION_INIT_FINISHED,    // send when all extensions finished initializing
-        STATUS_BAR_MSG              // sending a message to the status bar (part of gui)
+    virtual QSize sizeHint(const QStyleOptionViewItem &option,
+                           const QModelIndex &index) const override;
+};
 
-    };
-} //NAMESPACE
+} // NAMESPACE RAWDATAVIEWEREXTENSION
 
-#endif // TYPES_H
+#endif // FIFFRAWDELEGATE_H

@@ -170,7 +170,7 @@ QWidget *Music::getView()
 
 void Music::handleEvent(QSharedPointer<Event> e)
 {
-
+    Q_UNUSED(e);
 }
 
 

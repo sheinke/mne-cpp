@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     types.h
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-*
+* @file     fiffrawview.h
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>
+*           Lars Debor <lars.debor@tu-ilmenau.de>
+*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     July, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,76 +30,105 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains general application specific types
+* @brief    Declaration of the FiffRawView Class.
 *
 */
-#ifndef ANSHARED_TYPES_H
-#define ANSHARED_TYPES_H
+
+#ifndef FIFFRAWVIEW_H
+#define FIFFRAWVIEW_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <Eigen/Core>
+#include "rawdataviewer_global.h"
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QSharedPointer>
+#include <QWidget>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// Eigen INCLUDES
 //=============================================================================================================
-
-using namespace Eigen;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE MNEANALYZE
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
-namespace ANSHAREDLIB
+namespace ANSHAREDLIB {
+    class FiffRawModel;
+}
+
+class QTableView;
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// DEFINE NAMESPACE RAWDATAVIEWEREXTENSION
+//=============================================================================================================
+
+namespace RAWDATAVIEWEREXTENSION {
+
+//*************************************************************************************************************
+//=============================================================================================================
+// RAWDATAVIEWEREXTENSION FORWARD DECLARATIONS
+//=============================================================================================================
+
+class FiffRawDelegate;
+
+
+//=============================================================================================================
+/**
+* TableView for Fiff data.
+*/
+class RAWDATAVIEWERSHARED_EXPORT FiffRawView : public QWidget
 {
+    Q_OBJECT
+
+public:
+    typedef QSharedPointer<FiffRawView> SPtr;            /**< Shared pointer type for FiffRawView. */
+    typedef QSharedPointer<const FiffRawView> ConstSPtr; /**< Const shared pointer type for FiffRawView. */
+
     //=========================================================================================================
     /**
-    * The following directory paths are only imaginary.
-    * They should be used for models that are not stored to the file system yet.
+    * Constructs a FiffRawView which is a child of parent.
     *
-    * Convention: Imaginary paths start with '*', end with '/' and all characters are upper case.
+    * @param [in] parent    The parent of widget.
     */
-    #define ECD_SET_MODEL_DEFAULT_DIR_PATH  QStringLiteral("*ECDSETMODEL/")
+    FiffRawView(QWidget *parent = nullptr);
 
     //=========================================================================================================
     /**
-    * The MODEL_TYPE enum lists all available model types.
-    * Naming convention: NAMESPACE_CLASSNAME_MODEL
+    * Destructor.
     */
-    enum MODEL_TYPE
-    {
-        ANSHAREDLIB_SURFACE_MODEL,
-        ANSHAREDLIB_QENTITYLIST_MODEL,
-        ANSHAREDLIB_ECDSET_MODEL,
-        ANSHAREDLIB_FIFFRAW_MODEL
-    };
+    virtual ~FiffRawView();
 
-    //=========================================================================================================
-    /**
-    * Public enum for all available Event types.
-    */
-    enum EVENT_TYPE
-    {
-        PING,                       // dummy event for testing and debuggin purposes
-        EXTENSION_INIT_FINISHED,    // send when all extensions finished initializing
-        STATUS_BAR_MSG              // sending a message to the status bar (part of gui)
+    void setModel(const QSharedPointer<ANSHAREDLIB::FiffRawModel> pModel);
 
-    };
-} //NAMESPACE
+    void setDelegate(const QSharedPointer<RAWDATAVIEWEREXTENSION::FiffRawDelegate>& pDelegate);
 
-#endif // TYPES_H
+private:
+    QTableView* m_pTableView;
+};
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
+
+} // NAMESPACE RAWDATAVIEWEREXTENSION
+
+#endif // FIFFRAWVIEW_H

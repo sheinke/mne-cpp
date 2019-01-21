@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     types.h
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-*
+* @file     fiffrawview.cpp
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>
+*           Lars Debor <lars.debor@tu-ilmenau.de>
+*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     July, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,18 +30,19 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains general application specific types
+* @brief    Definition of FiffRawView Class.
 *
 */
-#ifndef ANSHARED_TYPES_H
-#define ANSHARED_TYPES_H
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <Eigen/Core>
+#include "fiffrawview.h"
+
+#include "fiffrawdelegate.h"
+#include <anShared/Model/fiffrawmodel.h>
 
 
 //*************************************************************************************************************
@@ -50,7 +50,9 @@
 // Qt INCLUDES
 //=============================================================================================================
 
-#include <QSharedPointer>
+#include <QTableView>
+#include <QVBoxLayout>
+#include <QDebug>
 
 
 //*************************************************************************************************************
@@ -58,49 +60,48 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace Eigen;
+using namespace RAWDATAVIEWEREXTENSION;
+using namespace ANSHAREDLIB;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE MNEANALYZE
+// DEFINE MEMBER METHODS
 //=============================================================================================================
 
-namespace ANSHAREDLIB
+FiffRawView::FiffRawView(QWidget *parent)
+    : QWidget(parent)
+    , m_pTableView(Q_NULLPTR)
 {
-    //=========================================================================================================
-    /**
-    * The following directory paths are only imaginary.
-    * They should be used for models that are not stored to the file system yet.
-    *
-    * Convention: Imaginary paths start with '*', end with '/' and all characters are upper case.
-    */
-    #define ECD_SET_MODEL_DEFAULT_DIR_PATH  QStringLiteral("*ECDSETMODEL/")
+    m_pTableView = new QTableView;
 
-    //=========================================================================================================
-    /**
-    * The MODEL_TYPE enum lists all available model types.
-    * Naming convention: NAMESPACE_CLASSNAME_MODEL
-    */
-    enum MODEL_TYPE
-    {
-        ANSHAREDLIB_SURFACE_MODEL,
-        ANSHAREDLIB_QENTITYLIST_MODEL,
-        ANSHAREDLIB_ECDSET_MODEL,
-        ANSHAREDLIB_FIFFRAW_MODEL
-    };
+    //set vertical layout
+    QVBoxLayout *neLayout = new QVBoxLayout(this);
 
-    //=========================================================================================================
-    /**
-    * Public enum for all available Event types.
-    */
-    enum EVENT_TYPE
-    {
-        PING,                       // dummy event for testing and debuggin purposes
-        EXTENSION_INIT_FINISHED,    // send when all extensions finished initializing
-        STATUS_BAR_MSG              // sending a message to the status bar (part of gui)
+    neLayout->addWidget(m_pTableView);
 
-    };
-} //NAMESPACE
+    //set layouts
+    this->setLayout(neLayout);
+}
 
-#endif // TYPES_H
+
+//*************************************************************************************************************
+
+FiffRawView::~FiffRawView()
+{
+    delete m_pTableView;
+}
+
+
+//*************************************************************************************************************
+
+void FiffRawView::setModel(const QSharedPointer<FiffRawModel> pModel)
+{
+    m_pTableView->setModel(pModel.data());
+}
+
+
+void FiffRawView::setDelegate(const QSharedPointer<FiffRawDelegate>& pDelegate)
+{
+    m_pTableView->setItemDelegate(pDelegate.data());
+}

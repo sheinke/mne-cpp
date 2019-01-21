@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     types.h
+* @file     rawdataviewer.h
 * @author   Lars Debor <lars.debor@tu-ilmenau.de>;
 *           Simon Heinke <simon.heinke@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-*
+*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     October, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018 Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,76 +30,121 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains general application specific types
+* @brief    Contains the declaration of the RawDataViewer class.
 *
 */
-#ifndef ANSHARED_TYPES_H
-#define ANSHARED_TYPES_H
+
+#ifndef RAWDATAVIEWER_H
+#define RAWDATAVIEWER_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <Eigen/Core>
+#include "rawdataviewer_global.h"
+#include <anShared/Interfaces/IExtension.h>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-#include <QSharedPointer>
+#include <QtWidgets>
+#include <QtCore/QtPlugin>
+#include <QDebug>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
-using namespace Eigen;
+class RawDataViewerControl;
+
+namespace ANSHAREDLIB {
+    class Communicator;
+    class FiffRawModel;
+}
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE MNEANALYZE
+// DEFINE NAMESPACE RAWDATAVIEWEREXTENSION
 //=============================================================================================================
 
-namespace ANSHAREDLIB
+namespace RAWDATAVIEWEREXTENSION
 {
+    class FiffRawView;
+    class FiffRawDelegate;
+
+//=============================================================================================================
+/**
+* RawDataViewer Extension
+*
+* @brief The RawDataViewer class provides a view to display raw fiff data.
+*/
+class RAWDATAVIEWERSHARED_EXPORT RawDataViewer : public ANSHAREDLIB::IExtension
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "ansharedlib/1.0" FILE "rawdataviewer.json") //New Qt5 Plugin system replaces Q_EXPORT_PLUGIN2 macro
+    // Use the Q_INTERFACES() macro to tell Qt's meta-object system about the interfaces
+    Q_INTERFACES(ANSHAREDLIB::IExtension)
+
+public:
     //=========================================================================================================
     /**
-    * The following directory paths are only imaginary.
-    * They should be used for models that are not stored to the file system yet.
-    *
-    * Convention: Imaginary paths start with '*', end with '/' and all characters are upper case.
+    * Constructs a RawDataViewer.
     */
-    #define ECD_SET_MODEL_DEFAULT_DIR_PATH  QStringLiteral("*ECDSETMODEL/")
+    RawDataViewer();
 
     //=========================================================================================================
     /**
-    * The MODEL_TYPE enum lists all available model types.
-    * Naming convention: NAMESPACE_CLASSNAME_MODEL
+    * Destroys the RawDataViewer.
     */
-    enum MODEL_TYPE
-    {
-        ANSHAREDLIB_SURFACE_MODEL,
-        ANSHAREDLIB_QENTITYLIST_MODEL,
-        ANSHAREDLIB_ECDSET_MODEL,
-        ANSHAREDLIB_FIFFRAW_MODEL
-    };
+    virtual ~RawDataViewer();
 
-    //=========================================================================================================
-    /**
-    * Public enum for all available Event types.
-    */
-    enum EVENT_TYPE
-    {
-        PING,                       // dummy event for testing and debuggin purposes
-        EXTENSION_INIT_FINISHED,    // send when all extensions finished initializing
-        STATUS_BAR_MSG              // sending a message to the status bar (part of gui)
+    // IExtension functions
+    virtual QSharedPointer<IExtension> clone() const override;
+    virtual void init() override;
+    virtual void unload() override;
+    virtual QString getName() const override;
+    virtual QMenu* getMenu() override;
+    virtual QDockWidget* getControl() override;
+    virtual QWidget* getView() override;
+    virtual void handleEvent(QSharedPointer<ANSHAREDLIB::Event> e) override;
+    virtual QVector<ANSHAREDLIB::EVENT_TYPE> getEventSubscriptions() const override;
 
-    };
-} //NAMESPACE
+private:
 
-#endif // TYPES_H
+    void createDisplay();
+
+    // Control
+    QDockWidget*                m_pControlDock; /**< Control Widget */
+    RawDataViewerControl*       m_pRawDataViewerControl;
+    ANSHAREDLIB::Communicator*  m_pCommu;
+
+    // Model
+    int m_iSamplesPerBlock;
+    int m_iVisibleBlocks;
+    int m_iBufferBlocks;
+    QSharedPointer<ANSHAREDLIB::FiffRawModel>       m_pRawModel;
+    QSharedPointer<FiffRawDelegate>                 m_pRawDelegate;
+
+
+    FiffRawView*                                    m_pFiffRawView; /**< View for Fiff data */
+    QMdiSubWindow*                                  m_pSubWindow; /**< Window that wraps the display */
+    bool                                            m_bDisplayCreated; /**< Flag for remembering whether or not the display was already created */
+};
+
+//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
+
+} // NAMESPACE
+
+#endif // RAWDATAVIEWER_H
