@@ -77,7 +77,8 @@ namespace MNEANALYZE
 
 //=============================================================================================================
 /**
-* @brief The MdiView class inherits from QMdiArea and allows printing of subwindows.
+* @brief    The MdiView class inherits from QMdiArea and extends its interface by
+*           adding printing functionality for subwindows
 */
 class MdiView : public QMdiArea
 {
