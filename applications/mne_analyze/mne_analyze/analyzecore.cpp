@@ -157,7 +157,10 @@ void AnalyzeCore::initExtensionManager()
 void AnalyzeCore::initMainWindow()
 {
     m_pMainWindow = new MainWindow(m_pExtensionManager);
-    QObject::connect(m_pMainWindow, &MainWindow::mainWindowClosed, this, &AnalyzeCore::onMainWindowClosed);
+    QObject::connect(m_pMainWindow,
+                     &MainWindow::mainWindowClosed,
+                     this,
+                     &AnalyzeCore::onMainWindowClosed);
 }
 
 
@@ -165,6 +168,7 @@ void AnalyzeCore::initMainWindow()
 
 void AnalyzeCore::registerMetaTypes()
 {
+    // add your meta types here:
     qRegisterMetaType<QSharedPointer<Event>>("QSharedPointer<Event>");
     qRegisterMetaType<QSharedPointer<Qt3DCore::QEntity> >("QSharedPointer<QEntity>");
 }
@@ -174,7 +178,8 @@ void AnalyzeCore::registerMetaTypes()
 
 void AnalyzeCore::onMainWindowClosed()
 {
-    EventManager::getEventManager().shutdown();
-    // shutdown every extension, empty analzye data etc.
+    // run shutdown operations in reverse order to contructor
     m_pExtensionManager->shutdown();
+    EventManager::getEventManager().shutdown();
+    // @TODO include the rest of MNEA (AnalyzeData, settings, etc.)
 }

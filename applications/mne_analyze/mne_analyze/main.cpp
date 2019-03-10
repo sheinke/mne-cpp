@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName(CInfo::AppNameShort());
 
     //show splash screen for 1 second
-    QPixmap pixmap(":/resources/images/splashscreen_mne_analyze.png");
+    QPixmap pixmap(":/images/splashscreen_mne_analyze.png");
     QSplashScreen splash(pixmap);
     splash.show();
     QThread::sleep(1);
