@@ -72,10 +72,10 @@
 
 namespace DISPLIB {
     class ChannelSelectionView;
-    class FilterView;
     class ChannelInfoModel;
     class ChannelDataView;
     class QuickControlView;
+    class ChannelDataViewNew;
 }
 
 namespace FIFFLIB {
@@ -146,12 +146,6 @@ public:
 private:
     //=========================================================================================================
     /**
-    * Shows the filter widget
-    */
-    void showFilterWidget(bool state = true);
-
-    //=========================================================================================================
-    /**
     * Shows sensor selection widget
     */
     void showSensorSelectionWidget();
@@ -182,8 +176,8 @@ private:
     QSharedPointer<DISPLIB::QuickControlView>               m_pQuickControlView;            /**< quick control widget. */
     QSharedPointer<DISPLIB::ChannelInfoModel>               m_pChannelInfoModel;            /**< channel info model. */
     QSharedPointer<DISPLIB::ChannelSelectionView>           m_pChannelSelectionView;        /**< ChannelSelectionView. */
-    QSharedPointer<DISPLIB::FilterView>                     m_pFilterWindow;                /**< Filter window. */
     QPointer<DISPLIB::ChannelDataView>                      m_pChannelDataView;             /**< the QTableView being part of the model/view framework of Qt. */
+
 
     QSharedPointer<FIFFLIB::FiffInfo>                       m_pFiffInfo;                    /**< FiffInfo, which is used insteadd of ListChInfo*/
 

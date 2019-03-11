@@ -44,6 +44,8 @@
 
 #include "../disp_global.h"
 
+#include <fiff/fiff_ch_info.h>
+
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -51,6 +53,7 @@
 //=============================================================================================================
 
 #include <QWidget>
+#include <QMap>
 
 
 //*************************************************************************************************************
@@ -65,10 +68,6 @@
 //=============================================================================================================
 
 class QCheckBox;
-
-namespace FIFFLIB {
-    class FiffInfo;
-}
 
 
 //*************************************************************************************************************
@@ -92,22 +91,6 @@ namespace DISPLIB
 //=============================================================================================================
 
 
-//*************************************************************************************************************
-//=============================================================================================================
-// STRUCTS
-//=============================================================================================================
-
-struct Modality {
-    QString m_sName;
-    bool m_bActive;
-    float m_fNorm;
-
-    Modality(QString name, bool active, double norm)
-    : m_sName(name), m_bActive(active), m_fNorm(norm)
-    {}
-};
-
-
 //=============================================================================================================
 /**
 * DECLARE CLASS ModalitySelectionView
@@ -128,51 +111,75 @@ public:
     *
     * @param [in] parent        parent of widget
     */
-    ModalitySelectionView(QWidget *parent = 0,
+    ModalitySelectionView(const QList<FIFFLIB::FiffChInfo> &lChannelList,
+                          const QString& sSettingsPath = "",
+                          QWidget *parent = 0,
                           Qt::WindowFlags f = Qt::Widget);
 
     //=========================================================================================================
     /**
-    * Init the view.
-    *
-    * @param [in] pFiffInfo    The fiff info.
+    * Destroys the ModalitySelectionView.
     */
-    void init(const QSharedPointer<FIFFLIB::FiffInfo> pFiffInfo);
+    ~ModalitySelectionView();
 
     //=========================================================================================================
     /**
-    * Init the view.
+    * Set the modality checkboxes.
     *
-    * @param [in] modalityList    The modality info.
+    * @param [in] modalityMap    The modality map.
     */
-    void init(const QList<DISPLIB::Modality>& modalityList);
+    void setModalityMap(const QMap<QString, bool>& modalityMap);
 
     //=========================================================================================================
     /**
-    * Set the activation of the already created modality check boxes.
+    * Get the activation of the already created modality check boxes.
     *
-    * @param [in] modalityList    The modality info.
+    * @return The current modality map.
     */
-    void setModalities(const QList<Modality> &lModalities);
+    QMap<QString, bool> getModalityMap();
 
 protected:
+    //=========================================================================================================
+    /**
+    * Redraw the GUI.
+    */
+    void redrawGUI();
+
+    //=========================================================================================================
+    /**
+    * Saves all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to store the settings to.
+    */
+    void saveSettings(const QString& settingsPath);
+
+    //=========================================================================================================
+    /**
+    * Loads and inits all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to load the settings from.
+    */
+    void loadSettings(const QString& settingsPath);
+
     //=========================================================================================================
     /**
     * Slot called when modality check boxes were changed
     */
     void onUpdateModalityCheckbox(qint32 state);
 
-    QList<Modality>                     m_qListModalities;              /**< List of different modalities. */
+    QMap<QString, bool>                 m_modalityMap;                  /**< Map of different modalities. */
     QList<QCheckBox*>                   m_qListModalityCheckBox;        /**< List of modality checkboxes. */
 
-    QSharedPointer<FIFFLIB::FiffInfo>   m_pFiffInfo;                    /**< Connected fiff info. */
+    QStringList                         m_lChannelTypeList;             /**< Channel type list. */
+
+    QString                             m_sSettingsPath;                /**< The settings path to store the GUI settings to. */
 
 signals:
     //=========================================================================================================
     /**
     * Emit this signal whenever the user changed the modality.
     */
-    void modalitiesChanged(const QList<Modality>& modalityList);
+    void modalitiesChanged(const QMap<QString, bool>& modalityMap);
 
 };
 

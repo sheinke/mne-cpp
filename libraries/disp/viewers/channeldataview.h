@@ -44,15 +44,17 @@
 
 #include "../disp_global.h"
 
+#include <fiff/fiff_proj.h>
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-#include <QWidget>
 #include <QPointer>
 #include <QMap>
+#include <QWidget>
 
 
 //*************************************************************************************************************
@@ -117,8 +119,15 @@ public:
     *
     * @param [in] parent    The parent of widget.
     */
-    ChannelDataView(QWidget* parent = 0,
+    ChannelDataView(const QString& sSettingsPath = "",
+                    QWidget* parent = 0,
                     Qt::WindowFlags f = Qt::Widget);
+
+    //=========================================================================================================
+    /**
+    * Destroys the ChannelDataView.
+    */
+    ~ChannelDataView();
 
     //=========================================================================================================
     /**
@@ -269,8 +278,10 @@ public:
     //=========================================================================================================
     /**
     * Update the SSP projection
+    *
+    * @param [in] projs    The new projectors.
     */
-    void updateProjection();
+    void updateProjection(const QList<FIFFLIB::FiffProj>& projs);
 
     //=========================================================================================================
     /**
@@ -304,9 +315,9 @@ public:
     /**
     * Filter parameters changed
     *
-    * @param[in] filterData    list of the currently active filter
+    * @param[in] filterData   the currently active filter
     */
-    void filterChanged(QList<UTILSLIB::FilterData> filterData);
+    void setFilter(const UTILSLIB::FilterData &filterData);
 
     //=========================================================================================================
     /**
@@ -314,7 +325,7 @@ public:
     *
     * @param[in] state    filter on/off flag
     */
-    void filterActivated(bool state);
+    void setFilterActive(bool state);
 
     //=========================================================================================================
     /**
@@ -363,6 +374,22 @@ public:
 protected:
     //=========================================================================================================
     /**
+    * Saves all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to store the settings to.
+    */
+    void saveSettings(const QString& settingsPath);
+
+    //=========================================================================================================
+    /**
+    * Loads and inits all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to load the settings from.
+    */
+    void loadSettings(const QString& settingsPath);
+
+    //=========================================================================================================
+    /**
     * Show channel context menu
     *
     * @param [in] pos   Position to popup the conext menu.
@@ -400,7 +427,6 @@ protected:
     * Gets called when the bad channels are about to be marked as bad or good
     */
     void markChBad();
-
     QPointer<QTableView>                        m_pTableView;                   /**< The QTableView being part of the model/view framework of Qt */
     QPointer<DISPLIB::ChannelDataDelegate>      m_pDelegate;                    /**< The channel data delegate */
     QPointer<DISPLIB::ChannelDataModel>         m_pModel;                       /**< The channel data model */
@@ -418,6 +444,8 @@ protected:
     QStringList                                 m_slSelectedChannels;           /**< the currently selected channels from the selection manager window. */
     QColor                                      m_backgroundColor;              /**< Current background color. */
     int                                         m_iDistanceTimeSpacer;          /**< Current distance between time spacer. */
+
+    QString                                     m_sSettingsPath;                /**< The settings path to store the GUI settings to. */
 
 signals:    
     //=========================================================================================================

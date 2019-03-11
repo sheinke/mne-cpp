@@ -115,8 +115,9 @@ public:
     *
     * @param [in] parent        parent of widget
     */
-    TriggerDetectionView(QWidget *parent = 0,
-                Qt::WindowFlags f = Qt::Widget);
+    TriggerDetectionView(const QString& sSettingsPath = "",
+                         QWidget *parent = 0,
+                         Qt::WindowFlags f = Qt::Widget);
 
     //=========================================================================================================
     /**
@@ -142,9 +143,25 @@ public:
 protected:
     //=========================================================================================================
     /**
-    * Slot called when trigger detection check box was toggled
+    * Saves all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to store the settings to.
     */
-    void onRealTimeTriggerActiveChanged(int state);
+    void saveSettings(const QString& settingsPath);
+
+    //=========================================================================================================
+    /**
+    * Loads and inits all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to load the settings from.
+    */
+    void loadSettings(const QString& settingsPath);
+
+    //=========================================================================================================
+    /**
+    * Slot called when trigger info changed
+    */
+    void onTriggerInfoChanged();
 
     //=========================================================================================================
     /**
@@ -154,21 +171,9 @@ protected:
 
     //=========================================================================================================
     /**
-    * Slot called when trigger detection threshold was changed
-    */
-    void onRealTimeTriggerThresholdChanged(double value);
-
-    //=========================================================================================================
-    /**
     * Slot called when trigger type changed
     */
     void onRealTimeTriggerColorTypeChanged(const QString& value);
-
-    //=========================================================================================================
-    /**
-    * Slot called when trigger channel selection changed
-    */
-    void onRealTimeTriggerCurrentChChanged(const QString &value);
 
     //=========================================================================================================
     /**
@@ -181,6 +186,8 @@ protected:
     QSharedPointer<FIFFLIB::FiffInfo>                   m_pFiffInfo;                    /**< Connected fiff info. */
 
     QMap<double, QColor>                                m_qMapTriggerColor;             /**< Trigger colors per detected type. */
+
+    QString                                             m_sSettingsPath;                /**< The settings path to store the GUI settings to. */
 
 signals:
     //=========================================================================================================

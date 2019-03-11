@@ -2,13 +2,14 @@
 /**
 * @file     coherence.cpp
 * @author   Daniel Strohmeier <daniel.strohmeier@tu-ilmenau.de>;
+*           Lorenz Esch <lorenz.esch@mgh.harvard.edu>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Daniel Strohmeier and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Daniel Strohmeier, Lorenz Esch and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -46,6 +47,7 @@
 #include "network/networknode.h"
 #include "network/networkedge.h"
 #include "network/network.h"
+#include "../connectivitysettings.h"
 
 
 //*************************************************************************************************************
@@ -92,62 +94,52 @@ Coherence::Coherence()
 
 //*******************************************************************************************************
 
-Network Coherence::coherence(const QList<MatrixXd> &matDataList,
-                             const MatrixX3f& matVert,
-                             int iNfft,
-                             const QString &sWindowType)
+Network Coherence::calculate(ConnectivitySettings& connectivitySettings)
 {
-    Network finalNetwork("Coherence");
+//    QElapsedTimer timer;
+//    qint64 iTime = 0;
+//    timer.start();
 
-    if(matDataList.empty()) {
-        qDebug() << "Coherence::coherence - Input data is empty";
+    Network finalNetwork("COH");
+    if(connectivitySettings.isEmpty()) {
+        qDebug() << "Coherence::calculate - Input data is empty";
         return finalNetwork;
     }
 
+    finalNetwork.setSamplingFrequency(connectivitySettings.getSamplingFrequency());
+    finalNetwork.setNumberSamples(connectivitySettings.getTrialData().first().matData.cols());
+
+//    iTime = timer.elapsed();
+//    qDebug() << "Coherence::coherence timer - Empty network creation:" << iTime;
+//    timer.restart();
+
     //Create nodes
-    int rows = matDataList.first().rows();
+    int rows = connectivitySettings.at(0).matData.rows();
     RowVectorXf rowVert = RowVectorXf::Zero(3);
 
     for(int i = 0; i < rows; ++i) {
-        if(matVert.rows() != 0 && i < matVert.rows()) {
-            rowVert(0) = matVert.row(i)(0);
-            rowVert(1) = matVert.row(i)(1);
-            rowVert(2) = matVert.row(i)(2);
+        rowVert = RowVectorXf::Zero(3);
+
+        if(connectivitySettings.getNodePositions().rows() != 0 && i < connectivitySettings.getNodePositions().rows()) {
+            rowVert(0) = connectivitySettings.getNodePositions().row(i)(0);
+            rowVert(1) = connectivitySettings.getNodePositions().row(i)(1);
+            rowVert(2) = connectivitySettings.getNodePositions().row(i)(2);
         }
 
         finalNetwork.append(NetworkNode::SPtr(new NetworkNode(i, rowVert)));
     }
 
+//    iTime = timer.elapsed();
+//    qDebug() << "Coherence::coherence timer - Create nodes:" << iTime;
+//    timer.restart();
+
     //Calculate all-to-all coherence matrix over epochs
-    QVector<MatrixXd> vecCoh = Coherence::computeCoherence(matDataList, iNfft, sWindowType);
+    Coherency::calculateReal(finalNetwork,
+                             connectivitySettings);
 
-    //Add edges to network
-    for(int i = 0; i < vecCoh.length(); ++i) {
-        for(int j = i; j < matDataList.at(0).rows(); ++j) {
-            MatrixXd matWeight = vecCoh.at(i).row(j).transpose();
-
-            QSharedPointer<NetworkEdge> pEdge = QSharedPointer<NetworkEdge>(new NetworkEdge(i, j, matWeight));
-
-            finalNetwork.getNodeAt(i)->append(pEdge);
-            finalNetwork.getNodeAt(j)->append(pEdge);
-            finalNetwork.append(pEdge);
-        }
-    }
+//    iTime = timer.elapsed();
+//    qDebug() << "Coherence::coherence timer - Actual computation:" << iTime;
+//    timer.restart();
 
     return finalNetwork;
-}
-
-
-//*************************************************************************************************************
-
-QVector<MatrixXd> Coherence::computeCoherence(const QList<MatrixXd> &matDataList,
-                                              int iNfft,
-                                              const QString &sWindowType)
-{
-    QVector<MatrixXcd> vecCoherency = Coherency::computeCoherency(matDataList, iNfft, sWindowType);
-    QVector<MatrixXd> vecCoherence;
-    for(int i = 0; i < vecCoherency.length(); ++i) {
-        vecCoherence.append(vecCoherency.at(i).cwiseAbs());
-    }
-    return vecCoherence;
 }

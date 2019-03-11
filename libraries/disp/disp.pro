@@ -39,12 +39,15 @@ TEMPLATE = lib
 
 QT  += core widgets svg concurrent
 
-# Deep Model Viewer
 qtHaveModule(printsupport): QT += printsupport
 qtHaveModule(opengl): QT += opengl
 qtHaveModule(charts): QT += charts
 
 DEFINES += DISP_LIBRARY
+
+contains(MNECPP_CONFIG, dispOpenGL) {
+    DEFINES += USE_OPENGL
+}
 
 TARGET = Disp
 TARGET = $$join(TARGET,,MNE$${MNE_LIB_VERSION},)
@@ -99,7 +102,7 @@ SOURCES += \
     plots/graph.cpp \
     plots/tfplot.cpp \
     plots/helpers/colormap.cpp \
-    viewers/filterview.cpp \
+    viewers/filterdesignview.cpp \
     viewers/averagelayoutview.cpp \
     viewers/spectrumview.cpp \
     viewers/modalityselectionview.cpp \
@@ -117,12 +120,15 @@ SOURCES += \
     viewers/triggerdetectionview.cpp \
     viewers/quickcontrolview.cpp \
     viewers/connectivitysettingsview.cpp \
+    viewers/minimumnormsettingsview.cpp \
+    viewers/averagingsettingsview.cpp \
+    viewers/projectsettingsview.cpp \
+    viewers/control3dview.cpp \
+    viewers/artifactsettingsview.cpp \
     viewers/helpers/evokedsetmodel.cpp \
     viewers/helpers/layoutscene.cpp \
     viewers/helpers/averagescene.cpp \
     viewers/helpers/averagesceneitem.cpp \
-    viewers/helpers/filterdatadelegate.cpp \
-    viewers/helpers/filterdatamodel.cpp \
     viewers/helpers/filterplotscene.cpp \
     viewers/helpers/selectionscene.cpp \
     viewers/helpers/selectionsceneitem.cpp \
@@ -141,7 +147,7 @@ HEADERS += \
     plots/graph.h \
     plots/tfplot.h \
     plots/helpers/colormap.h \
-    viewers/filterview.h \
+    viewers/filterdesignview.h \
     viewers/averagelayoutview.h \
     viewers/spectrumview.h \
     viewers/modalityselectionview.h \
@@ -159,12 +165,15 @@ HEADERS += \
     viewers/triggerdetectionview.h \
     viewers/quickcontrolview.h \
     viewers/connectivitysettingsview.h \
+    viewers/minimumnormsettingsview.h \
+    viewers/averagingsettingsview.h \
+    viewers/projectsettingsview.h \
+    viewers/control3dview.h \
+    viewers/artifactsettingsview.h \
     viewers/helpers/evokedsetmodel.h \
     viewers/helpers/layoutscene.h \
     viewers/helpers/averagescene.h \
     viewers/helpers/averagesceneitem.h \
-    viewers/helpers/filterdatadelegate.h \
-    viewers/helpers/filterdatamodel.h \
     viewers/helpers/filterplotscene.h \
     viewers/helpers/selectionscene.h \
     viewers/helpers/selectionsceneitem.h \
@@ -211,13 +220,17 @@ qtHaveModule(charts) {
 }
 
 FORMS += \
-    viewers/formfiles/filterview.ui \
+    viewers/formfiles/filterdesignview.ui \
     viewers/formfiles/channelselectionview.ui \
     viewers/formfiles/spharasettingsview.ui \
     viewers/formfiles/channeldatasettingsview.ui \
     viewers/formfiles/triggerdetectionview.ui \
     viewers/formfiles/quickcontrolview.ui \
     viewers/formfiles/connectivitysettingsview.ui \
+    viewers/formfiles/minimumnormsettingsview.ui \
+    viewers/formfiles/averagingsettingsview.ui \
+    viewers/formfiles/projectsettingsview.ui \
+    viewers/formfiles/control3dview.ui \
 
 RESOURCE_FILES +=\
     $${ROOT_DIR}/resources/general/default_filters/BP_1Hz_40Hz_Fs1kHz.txt \
@@ -262,4 +275,24 @@ win32 {
     EXTRA_ARGS =
     DEPLOY_CMD = $$winDeployLibArgs($${TARGET},$${TARGET_EXT},$${MNE_BINARY_DIR},$${MNE_LIBRARY_DIR},$${EXTRA_ARGS})
     QMAKE_POST_LINK += $${DEPLOY_CMD}
+}
+
+# Activate FFTW backend in Eigen
+contains(MNECPP_CONFIG, useFFTW) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
+
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
+    }
+
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
 }

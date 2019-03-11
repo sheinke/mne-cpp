@@ -73,7 +73,7 @@ using namespace UTILSLIB;
 using namespace SCSHAREDLIB;
 using namespace IOBUFFER;
 using namespace SCMEASLIB;
-using namespace REALTIMELIB;
+using namespace COMMUNICATIONLIB;
 using namespace DISP3DLIB;
 
 
@@ -220,6 +220,10 @@ bool FiffSimulator::stop()
         m_pRawMatrixBuffer_In->clear();
 
         m_pRTMSA_FiffSimulator->data()->clear();
+    }
+
+    if(m_pHPIWidget) {
+        m_pHPIWidget->hide();
     }
 
     return true;

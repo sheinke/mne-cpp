@@ -46,7 +46,7 @@
 #include <utils/generics/circularmatrixbuffer.h>
 #include <scMeas/realtimemultisamplearray.h>
 #include <scMeas/realtimecov.h>
-#include <realtime/rtProcessing/rtcov.h>
+#include <rtprocessing/rtcov.h>
 
 #include <fiff/fiff_info.h>
 #include <fiff/fiff_cov.h>
@@ -78,7 +78,7 @@ using namespace COVARIANCEPLUGIN;
 using namespace SCSHAREDLIB;
 using namespace SCMEASLIB;
 using namespace IOBUFFER;
-using namespace REALTIMELIB;
+using namespace RTPROCESSINGLIB;
 using namespace FIFFLIB;
 
 
@@ -122,15 +122,10 @@ QSharedPointer<IPlugin> Covariance::clone() const
 
 
 //*************************************************************************************************************
-//=============================================================================================================
-// Creating required display instances and set configurations
-//=============================================================================================================
 
 void Covariance::init()
 {
-    //
     // Load Settings
-    //
     QSettings settings;
     m_iEstimationSamples = settings.value(QString("Plugin/%1/estimationSamples").arg(this->getName()), 5000).toInt();
 
@@ -149,9 +144,7 @@ void Covariance::init()
 
 void Covariance::unload()
 {
-    //
     // Store Settings
-    //
     QSettings settings;
     settings.setValue(QString("Plugin/%1/estimationSamples").arg(this->getName()), m_iEstimationSamples);
 }
@@ -162,8 +155,9 @@ void Covariance::unload()
 bool Covariance::start()
 {
     //Check if the thread is already or still running. This can happen if the start button is pressed immediately after the stop button was pressed. In this case the stopping process is not finished yet but the start process is initiated.
-    if(this->isRunning())
+    if(this->isRunning()) {
         QThread::wait();
+    }
 
     m_bIsRunning = true;
 
@@ -225,12 +219,12 @@ void Covariance::update(SCMEASLIB::Measurement::SPtr pMeasurement)
 {
     QSharedPointer<RealTimeMultiSampleArray> pRTMSA = pMeasurement.dynamicCast<RealTimeMultiSampleArray>();
 
-    if(pRTMSA)
-    {
+    if(pRTMSA) {
         //Fiff information
-        if(!m_pFiffInfo)
-        {
+        if(!m_pFiffInfo) {
             m_pFiffInfo = pRTMSA->info();
+
+            m_pCovarianceOutput->data()->setFiffInfo(m_pFiffInfo);
 
             //Set m_iEstimationSamples so that we alwyas wait for 5 secs
             m_iEstimationSamples = m_pFiffInfo->sfreq * 5;
@@ -240,12 +234,10 @@ void Covariance::update(SCMEASLIB::Measurement::SPtr pMeasurement)
         }
 
 
-        if(m_bProcessData)
-        {
+        if(m_bProcessData) {
             MatrixXd t_mat;
 
-            for(qint32 i = 0; i < pRTMSA->getMultiArraySize(); ++i)
-            {
+            for(qint32 i = 0; i < pRTMSA->getMultiArraySize(); ++i) {
                 t_mat = pRTMSA->getMultiSampleArray()[i];
                 m_pRtCov->append(t_mat);
             }
@@ -279,27 +271,23 @@ void Covariance::changeSamples(qint32 samples)
 void Covariance::run()
 {
     // Read Fiff Info
-    while(!m_pFiffInfo)
+    while(!m_pFiffInfo) {
         msleep(10);// Wait for fiff Info
+    }
 
-//    m_pActionShowAdjustment->setVisible(true);
+    m_pCovarianceOutput->data()->setFiffInfo(m_pFiffInfo);
 
     // Start processing data
     m_bProcessData = true;
 
-    while (m_bIsRunning)
-    {
-        if(m_bProcessData)
-        {
+    while (m_bIsRunning) {
+        if(m_bProcessData) {
             //Add to covariance estimation
             QMutexLocker locker(&mutex);
-            if(!m_qVecCovData.isEmpty())
-            {
+            if(!m_qVecCovData.isEmpty()) {
                 m_pCovarianceOutput->data()->setValue(m_qVecCovData.takeFirst());
             }
         }
     }
-
-//    m_pActionShowAdjustment->setVisible(false);
 }
 

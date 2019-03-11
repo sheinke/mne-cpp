@@ -2,13 +2,14 @@
 /**
 * @file     spectral.h
 * @author   Daniel Strohmeier <daniel.strohmeier@tu-ilmenau.de>;
+*           Lorenz Esch <lorenz.esch@mgh.harvard.edu>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     March, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Daniel Strohmeier and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Daniel Strohmeier, Lorenz Esch and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -62,6 +63,7 @@
 
 #include <QString>
 #include <QPair>
+#include <QSharedPointer>
 
 
 //*************************************************************************************************************
@@ -105,8 +107,8 @@ public:
     * @return tapered spectra of the input data
     */
     static Eigen::MatrixXcd computeTaperedSpectraRow(const Eigen::RowVectorXd &vecData,
-                                                  const Eigen::MatrixXd &matTaper,
-                                                  int iNfft);
+                                                     const Eigen::MatrixXd &matTaper,
+                                                     int iNfft);
 
     //=========================================================================================================
     /**
@@ -178,7 +180,7 @@ public:
                                                      const Eigen::VectorXd &vecTapWeightsSeed,
                                                      const Eigen::VectorXd &vecTapWeightsTarget,
                                                      int iNfft,
-                                                     double dSampFreq=1.0);
+                                                     double dSampFreq = 1.0);
 
     //=========================================================================================================
     /**
@@ -215,6 +217,13 @@ private:
     static Eigen::MatrixXd hanningWindow(int iSignalLength);
 
 };
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// INLINE DEFINITIONS
+//=============================================================================================================
+
 
 }//namespace
 

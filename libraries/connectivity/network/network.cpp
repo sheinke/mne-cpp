@@ -90,8 +90,13 @@ Network::Network(const QString& sConnectivityMethod,
 , m_minMaxFullWeights(QPair<double,double>(std::numeric_limits<double>::max(),0.0))
 , m_minMaxThresholdedWeights(QPair<double,double>(std::numeric_limits<double>::max(),0.0))
 , m_dThreshold(dThreshold)
+, m_fSFreq(0.0f)
+, m_iNumberSamples(0)
 {
     qRegisterMetaType<CONNECTIVITYLIB::Network>("CONNECTIVITYLIB::Network");
+    qRegisterMetaType<CONNECTIVITYLIB::Network::SPtr>("CONNECTIVITYLIB::Network::SPtr");
+    qRegisterMetaType<QList<CONNECTIVITYLIB::Network> >("QList<CONNECTIVITYLIB::Network>");
+    qRegisterMetaType<QList<CONNECTIVITYLIB::Network::SPtr> >("QList<CONNECTIVITYLIB::Network::SPtr>");
 }
 
 
@@ -373,22 +378,56 @@ double Network::getThreshold()
 
 //*************************************************************************************************************
 
-void Network::setFrequencyBins(int iLowerBin, int iUpperBin)
+void Network::setFrequencyRange(float fLowerFreq, float fUpperFreq)
 {
-    m_minMaxFrequencyBins.first = iLowerBin;
-    m_minMaxFrequencyBins.second = iUpperBin;
+    if(fLowerFreq > fUpperFreq || fUpperFreq < fLowerFreq) {
+        qDebug() << "Network::setFrequencyRange - Upper and lower frequency are out of range from each other. Weights will not be recalculated. Returning.";
+        return;
+    }
+
+    if(m_fSFreq <= 0.0f) {
+        qDebug() << "Network::setFrequencyRange - Sampling frequency has not been set. Returning.";
+        return;
+    }
+
+    if(fUpperFreq > m_fSFreq/2.0f) {
+        qDebug() << "Network::setFrequencyRange - Upper frequency is bigger than nyquist frequency. You might check the set sampling frequency. Returning.";
+        return;
+    }
+
+    if(m_iNumberSamples <= 0) {
+        qDebug() << "Network::setFrequencyRange - Number of samples has not been set. Returning.";
+        return;
+    }
+
+    double dScaleFactor = m_iNumberSamples/m_fSFreq;
+
+    m_minMaxFrequency.first = fLowerFreq;
+    m_minMaxFrequency.second = fUpperFreq;
+
+    int iLowerBin = fLowerFreq * dScaleFactor;
+    int iUpperBin = fUpperFreq * dScaleFactor;
+
+    // Update the min max values
+    m_minMaxFullWeights = QPair<double,double>(std::numeric_limits<double>::max(),0.0);
 
     for(int i = 0; i < m_lFullEdges.size(); ++i) {
         m_lFullEdges.at(i)->setFrequencyBins(QPair<int,int>(iLowerBin,iUpperBin));
+
+        if(fabs(m_lFullEdges.at(i)->getWeight()) < m_minMaxFullWeights.first) {
+            m_minMaxFullWeights.first = fabs(m_lFullEdges.at(i)->getWeight());
+        } else if(fabs(m_lFullEdges.at(i)->getWeight()) > m_minMaxFullWeights.second) {
+            m_minMaxFullWeights.second = fabs(m_lFullEdges.at(i)->getWeight());
+        }
     }
 }
 
 
 //*************************************************************************************************************
 
-const QPair<int,int>& Network::getFrequencyBins()
+const QPair<float,float>& Network::getFrequencyRange() const
 {
-    return m_minMaxFrequencyBins;
+    return m_minMaxFrequency;
 }
 
 
@@ -432,3 +471,72 @@ bool Network::isEmpty() const
     return false;
 }
 
+
+//*************************************************************************************************************
+
+void Network::normalize()
+{
+    // Normalize full network
+    if(m_minMaxFullWeights.second == 0.0) {
+        qDebug() << "Network::normalize() - Max weight is 0. Returning.";
+        return;
+    }
+
+    for(int i = 0; i < m_lFullEdges.size(); ++i) {
+        m_lFullEdges.at(i)->setWeight(m_lFullEdges.at(i)->getWeight()/m_minMaxFullWeights.second);
+    }
+
+    m_minMaxFullWeights.first = m_minMaxFullWeights.first/m_minMaxFullWeights.second;
+    m_minMaxFullWeights.second = 1.0;
+
+    m_minMaxThresholdedWeights.first = m_minMaxThresholdedWeights.first/m_minMaxThresholdedWeights.second;
+    m_minMaxThresholdedWeights.second = 1.0;
+}
+
+
+//*************************************************************************************************************
+
+VisualizationInfo Network::getVisualizationInfo() const
+{
+    return m_visualizationInfo;
+}
+
+
+//*************************************************************************************************************
+
+void Network::setVisualizationInfo(const VisualizationInfo& visualizationInfo)
+{
+    m_visualizationInfo = visualizationInfo;
+}
+
+
+//*************************************************************************************************************
+
+float Network::getSamplingFrequency() const
+{
+    return m_fSFreq;
+}
+
+
+//*************************************************************************************************************
+
+void Network::setSamplingFrequency(float fSFreq)
+{
+    m_fSFreq = fSFreq;
+}
+
+
+//*************************************************************************************************************
+
+int Network::getNumberSamples() const
+{
+    return m_iNumberSamples;
+}
+
+
+//*************************************************************************************************************
+
+void Network::setNumberSamples(int iNumberSamples)
+{
+    m_iNumberSamples = iNumberSamples;
+}

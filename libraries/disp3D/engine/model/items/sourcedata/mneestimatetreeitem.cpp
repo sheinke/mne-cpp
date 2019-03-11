@@ -168,7 +168,7 @@ void MneEstimateTreeItem::initItem()
     data.setValue(17);
     pItemStreamingInterval->setData(data, MetaTreeItemRoles::StreamingTimeInterval);
 
-    MetaTreeItem *pItemLoopedStreaming = new MetaTreeItem(MetaTreeItemTypes::LoopedStreaming, "Looping on/off");
+    MetaTreeItem *pItemLoopedStreaming = new MetaTreeItem(MetaTreeItemTypes::LoopedStreaming, "Loop last data");
     connect(pItemLoopedStreaming, &MetaTreeItem::checkStateChanged,
             this, &MneEstimateTreeItem::onCheckStateLoopedStateChanged);
     pItemLoopedStreaming->setCheckable(true);
@@ -345,11 +345,11 @@ void MneEstimateTreeItem::initData(const MNEForwardSolution& tForwardSolution,
             //Create color from curvature information with default gyri and sulcus colors
             MatrixX3f matVertColor = AbstractMeshTreeItem::createVertColor(tSurfSet[0].rr().rows());
 
-            m_pInterpolationItemLeftCPU->getCustomMesh()->setMeshData(tSurfSet[0].rr(),
-                                                                      tSurfSet[0].nn(),
-                                                                      tSurfSet[0].tris(),
-                                                                      matVertColor,
-                                                                      Qt3DRender::QGeometryRenderer::Triangles);
+            m_pInterpolationItemLeftCPU->setVertices(tSurfSet[0].rr(),
+                                                     tSurfSet[0].nn(),
+                                                     tSurfSet[0].tris(),
+                                                     matVertColor,
+                                                     Qt3DRender::QGeometryRenderer::Triangles);
 
             m_pInterpolationItemLeftCPU->setPosition(QVector3D(-tSurfSet[0].offset()(0),
                                                                -tSurfSet[0].offset()(1),
@@ -372,11 +372,11 @@ void MneEstimateTreeItem::initData(const MNEForwardSolution& tForwardSolution,
             //Create color from curvature information with default gyri and sulcus colors
             MatrixX3f matVertColor = AbstractMeshTreeItem::createVertColor(tSurfSet[1].rr().rows());
 
-            m_pInterpolationItemRightCPU->getCustomMesh()->setMeshData(tSurfSet[1].rr(),
-                                                                    tSurfSet[1].nn(),
-                                                                    tSurfSet[1].tris(),
-                                                                    matVertColor,
-                                                                    Qt3DRender::QGeometryRenderer::Triangles);
+            m_pInterpolationItemRightCPU->setVertices(tSurfSet[1].rr(),
+                                                      tSurfSet[1].nn(),
+                                                      tSurfSet[1].tris(),
+                                                      matVertColor,
+                                                      Qt3DRender::QGeometryRenderer::Triangles);
 
             m_pInterpolationItemRightCPU->setPosition(QVector3D(-tSurfSet[1].offset()(0),
                                                                -tSurfSet[1].offset()(1),
@@ -417,7 +417,7 @@ void MneEstimateTreeItem::initData(const MNEForwardSolution& tForwardSolution,
 void MneEstimateTreeItem::addData(const MNESourceEstimate& tSourceEstimate)
 {
     if(!m_bIsDataInit) {
-        qDebug() << "MneEstimateTreeItem::addData - Rt source loc item has not been initialized yet!";
+        qDebug() << "MneEstimateTreeItem::addData - Item has not been initialized yet!";
         return;
     }
 
@@ -426,7 +426,8 @@ void MneEstimateTreeItem::addData(const MNESourceEstimate& tSourceEstimate)
     data.setValue(tSourceEstimate.data);
     this->setData(data, Data3DTreeModelItemRoles::Data);
 
-    if(m_pRtSourceDataController) {
+    // Only draw activation if item is checked
+    if(m_pRtSourceDataController && this->checkState() == Qt::Checked) {
         m_pRtSourceDataController->addData(tSourceEstimate.data);
     }
 }
@@ -594,6 +595,25 @@ void MneEstimateTreeItem::setSFreq(const double dSFreq)
 {
     if(m_pRtSourceDataController) {
         m_pRtSourceDataController->setSFreq(dSFreq);
+    }
+}
+
+
+//*************************************************************************************************************
+
+void MneEstimateTreeItem::setAlpha(float fAlpha)
+{
+    if(m_pInterpolationItemLeftCPU) {
+        m_pInterpolationItemLeftCPU->setAlpha(fAlpha);
+    }
+    if(m_pInterpolationItemLeftGPU) {
+        m_pInterpolationItemLeftGPU->setAlpha(fAlpha);
+    }
+    if(m_pInterpolationItemRightCPU) {
+        m_pInterpolationItemRightCPU->setAlpha(fAlpha);
+    }
+    if(m_pInterpolationItemRightGPU) {
+        m_pInterpolationItemRightGPU->setAlpha(fAlpha);
     }
 }
 
