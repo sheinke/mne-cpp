@@ -132,9 +132,9 @@ void NetworkTreeItem::initItem()
     list << new QStandardItem(pItemNetworkMatrix->toolTip());
     this->appendRow(list);
 
-    //Set material
-    NetworkMaterial* pNetworkMaterial = new NetworkMaterial();
-    this->setMaterial(pNetworkMaterial);
+//    //Set material
+//    NetworkMaterial* pNetworkMaterial = new NetworkMaterial();
+//    this->setMaterial(pNetworkMaterial);
 }
 
 
@@ -156,7 +156,9 @@ void NetworkTreeItem::addData(const Network& tNetworkData)
     this->setData(data, Data3DTreeModelItemRoles::Data);
 
     //Plot network
-    plotNetwork(tNetwork);
+    if(this->checkState() == Qt::Checked) {
+        plotNetwork(tNetwork);
+    }
 }
 
 
@@ -181,8 +183,43 @@ void NetworkTreeItem::setThresholds(const QVector3D& vecThresholds)
 void NetworkTreeItem::onNetworkThresholdChanged(const QVariant& vecThresholds)
 {
     if(vecThresholds.canConvert<QVector3D>()) {
-        this->data(Data3DTreeModelItemRoles::NetworkData).value<Network>().setThreshold(vecThresholds.value<QVector3D>().x());
         Network tNetwork = this->data(Data3DTreeModelItemRoles::NetworkData).value<Network>();
+        tNetwork.setThreshold(vecThresholds.value<QVector3D>().x());
+
+        QVariant data;
+        data.setValue(tNetwork);
+
+        this->setData(data, Data3DTreeModelItemRoles::NetworkData);
+
+        plotNetwork(tNetwork);
+    }
+}
+
+
+//*************************************************************************************************************
+
+void NetworkTreeItem::onColorChanged(const QVariant& color)
+{
+    if(color.canConvert<QColor>()) {
+        QColor networkColor = color.value<QColor>();
+
+        Network tNetwork = this->data(Data3DTreeModelItemRoles::NetworkData).value<Network>();
+        VisualizationInfo info = tNetwork.getVisualizationInfo();
+        info.sMethod = "Color";
+        info.colEdges = Vector4i(networkColor.red(),
+                                 networkColor.green(),
+                                 networkColor.blue(),
+                                 networkColor.alpha());
+        info.colNodes = Vector4i(networkColor.red(),
+                                 networkColor.green(),
+                                 networkColor.blue(),
+                                 networkColor.alpha());
+        tNetwork.setVisualizationInfo(info);
+
+        QVariant data;
+        data.setValue(tNetwork);
+
+        this->setData(data, Data3DTreeModelItemRoles::NetworkData);
 
         plotNetwork(tNetwork);
     }
@@ -211,12 +248,14 @@ void NetworkTreeItem::plotNodes(const Network& tNetworkData)
     QList<NetworkNode::SPtr> lNetworkNodes = tNetworkData.getNodes();
     qint16 iMaxDegree = tNetworkData.getMinMaxThresholdedDegrees().second;
 
+    VisualizationInfo visualizationInfo = tNetworkData.getVisualizationInfo();
+
     if(!m_pNodesEntity) {
         m_pNodesEntity = new QEntity(this);
     }
 
     //create geometry
-    if(!m_pEdges) {
+    if(!m_pNodes) {
         if(!m_pNodesGeometry) {
             m_pNodesGeometry = QSharedPointer<Qt3DExtras::QSphereGeometry>::create();
             m_pNodesGeometry->setRadius(1.0f);
@@ -228,8 +267,8 @@ void NetworkTreeItem::plotNodes(const Network& tNetworkData)
 
         //Add material
         GeometryMultiplierMaterial* pMaterial = new GeometryMultiplierMaterial(false);
-        pMaterial->setAmbient(ColorMap::valueToHot(0.0));
-        pMaterial->setAlpha(1.0f);
+        pMaterial->setAmbient(ColorMap::valueToJet(0.0));
+        pMaterial->setAlpha(1.0);
         m_pNodesEntity->addComponent(pMaterial);
     }
 
@@ -254,10 +293,18 @@ void NetworkTreeItem::plotNodes(const Network& tNetworkData)
 
             vTransforms.push_back(tempTransform);
 
-            if(iMaxDegree != 0.0f) {
-                vColorsNodes.push_back(QColor(ColorMap::valueToHot((float)iDegree/(float)iMaxDegree)));
+            if(visualizationInfo.sMethod == "Map") {
+                // Normalize colors
+                if(iMaxDegree != 0.0f) {
+                    vColorsNodes.push_back(QColor(ColorMap::valueToColor((float)iDegree/(float)iMaxDegree, visualizationInfo.sMethod)));
+                } else {
+                    vColorsNodes.push_back(QColor(ColorMap::valueToColor(0.0f, visualizationInfo.sMethod)));
+                }
             } else {
-                vColorsNodes.push_back(QColor(ColorMap::valueToHot(0.0f)));
+                vColorsNodes.push_back(QColor(visualizationInfo.colEdges[0],
+                                              visualizationInfo.colEdges[1],
+                                              visualizationInfo.colEdges[2],
+                                              visualizationInfo.colEdges[3]));
             }
         }
     }
@@ -281,6 +328,8 @@ void NetworkTreeItem::plotEdges(const Network &tNetworkData)
     QList<NetworkEdge::SPtr> lNetworkEdges = tNetworkData.getThresholdedEdges();
     QList<NetworkNode::SPtr> lNetworkNodes = tNetworkData.getNodes();
 
+    VisualizationInfo visualizationInfo = tNetworkData.getVisualizationInfo();
+
     if(!m_pEdgeEntity) {
         m_pEdgeEntity = new QEntity(this);
     }
@@ -299,7 +348,7 @@ void NetworkTreeItem::plotEdges(const Network &tNetworkData)
 
         //Add material
         GeometryMultiplierMaterial* pMaterial = new GeometryMultiplierMaterial(false);
-        pMaterial->setAmbient(ColorMap::valueToHot(0.0));
+        pMaterial->setAmbient(ColorMap::valueToJet(0.0));
         pMaterial->setAlpha(1.0f);
         m_pEdgeEntity->addComponent(pMaterial);
     }
@@ -331,20 +380,31 @@ void NetworkTreeItem::plotEdges(const Network &tNetworkData)
 
             if(startPos != endPos) {
                 dWeight = pNetworkEdge->getWeight();
-                diff = endPos - startPos;
-                edgePos = endPos - diff/2;
+                if(dWeight != 0.0) {
+                    diff = endPos - startPos;
+                    edgePos = endPos - diff/2;
 
-                QMatrix4x4 tempTransform;
-                tempTransform.translate(edgePos);
-                tempTransform.rotate(QQuaternion::rotationTo(QVector3D(0,1,0), diff.normalized()).normalized());
-                tempTransform.scale(1.0,diff.length(),1.0);
+                    QMatrix4x4 tempTransform;
+                    tempTransform.translate(edgePos);
+                    tempTransform.rotate(QQuaternion::rotationTo(QVector3D(0,1,0), diff.normalized()).normalized());
+                    tempTransform.scale(1.0,diff.length(),1.0);
 
-                vTransformsEdges.push_back(tempTransform);
+                    vTransformsEdges.push_back(tempTransform);
 
-                if(dMaxWeight != 0.0f) {
-                    vColorsEdges.push_back(QColor(ColorMap::valueToHot(dWeight/dMaxWeight)));
-                } else {
-                    vColorsEdges.push_back(QColor(ColorMap::valueToHot(0.0f)));
+                    // Normalize colors
+                    if(visualizationInfo.sMethod == "Map") {
+                        // Normalize colors
+                        if(dMaxWeight != 0.0f) {
+                            vColorsEdges.push_back(QColor(ColorMap::valueToColor(dWeight/dMaxWeight, visualizationInfo.sMethod)));
+                        } else {
+                            vColorsEdges.push_back(QColor(ColorMap::valueToColor(0.0f, visualizationInfo.sMethod)));
+                        }
+                    } else {
+                        vColorsEdges.push_back(QColor(visualizationInfo.colNodes[0],
+                                                      visualizationInfo.colNodes[1],
+                                                      visualizationInfo.colNodes[2],
+                                                      visualizationInfo.colNodes[3]));
+                    }
                 }
             }
         }

@@ -120,12 +120,19 @@ void FiffRawData::clear()
 
 //*************************************************************************************************************
 
-bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t from, fiff_int_t to, const RowVectorXi& sel, bool do_debug)
+bool FiffRawData::read_raw_segment(MatrixXd& data,
+                                   MatrixXd& times,
+                                   fiff_int_t from,
+                                   fiff_int_t to,
+                                   const RowVectorXi& sel,
+                                   bool do_debug) const
 {
     bool projAvailable = true;
 
-    if (this->proj.size() == 0)
+    if (this->proj.size() == 0) {
+        qDebug() << "FiffRawData::read_raw_segment - No projectors setup. Consider calling MNE::setup_compensators.";
         projAvailable = false;
+    }
 
     if(from == -1)
         from = this->first_samp;
@@ -446,12 +453,20 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t f
 
 //*************************************************************************************************************
 
-bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, SparseMatrix<double>& multSegment, fiff_int_t from, fiff_int_t to, const RowVectorXi& sel, bool do_debug)
+bool FiffRawData::read_raw_segment(MatrixXd& data,
+                                   MatrixXd& times,
+                                   SparseMatrix<double>& multSegment,
+                                   fiff_int_t from,
+                                   fiff_int_t to,
+                                   const RowVectorXi& sel,
+                                   bool do_debug) const
 {
     bool projAvailable = true;
 
-    if (this->proj.size() == 0)
+    if (this->proj.size() == 0) {
+        qDebug() << "FiffRawData::read_raw_segment - No projectors setup. Consider calling MNE::setup_compensators.";
         projAvailable = false;
+    }
 
     if(from == -1)
         from = this->first_samp;
@@ -776,7 +791,11 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, SparseMatrix
 
 //*************************************************************************************************************
 
-bool FiffRawData::read_raw_segment_times(MatrixXd& data, MatrixXd& times, float from, float to, const RowVectorXi& sel)
+bool FiffRawData::read_raw_segment_times(MatrixXd& data,
+                                         MatrixXd& times,
+                                         float from,
+                                         float to,
+                                         const RowVectorXi& sel) const
 {
     //
     //   Convert to samples

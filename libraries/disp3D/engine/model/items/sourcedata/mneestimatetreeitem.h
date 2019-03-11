@@ -1,4 +1,4 @@
-//=============================================================================================================
+ //=============================================================================================================
 /**
 * @file     mneestimatetreeitem.h
 * @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
@@ -123,7 +123,7 @@ public:
     * @param[in] bUseGPU    Whether to use the GPU to visualize the data.
     */
     explicit MneEstimateTreeItem(int iType = Data3DTreeModelItemTypes::MNEEstimateItem,
-                                 const QString& text = "MNE data",
+                                 const QString& text = "MNE",
                                  bool bUseGPU = false);
 
     //=========================================================================================================
@@ -242,6 +242,14 @@ public:
     * @param[in] dSFreq                 The new sampling frequency.
     */
     void setSFreq(const double dSFreq);
+
+    //=========================================================================================================
+    /**
+    * Set the alpha value.
+    *
+    * @param[in] fAlpha    The new alpha value.
+    */
+    void setAlpha(float fAlpha);
 
 protected:
     //=========================================================================================================

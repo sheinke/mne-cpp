@@ -65,15 +65,6 @@
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
-class QPushButton;
-class QCheckBox;
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// FORWARD DECLARATIONS
-//=============================================================================================================
-
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -94,13 +85,13 @@ namespace DISPLIB
 /**
 * DECLARE CLASS AverageSelectionView
 *
-* @brief The AverageSelectionView class provides a view to select different averages
+* @brief The AverageSelectionView class provides a view to activate and choose colors for different averages
 */
 class DISPSHARED_EXPORT AverageSelectionView : public QWidget
 {
     Q_OBJECT
 
-public:    
+public:
     typedef QSharedPointer<AverageSelectionView> SPtr;              /**< Shared pointer type for AverageSelectionView. */
     typedef QSharedPointer<const AverageSelectionView> ConstSPtr;   /**< Const shared pointer type for AverageSelectionView. */
 
@@ -110,60 +101,100 @@ public:
     *
     * @param [in] parent        parent of widget
     */
-    AverageSelectionView(QWidget *parent = 0,
-                Qt::WindowFlags f = Qt::Widget);
+    AverageSelectionView(const QString &sSettingsPath="",
+                         QWidget *parent = 0,
+                         Qt::WindowFlags f = Qt::Widget);
 
     //=========================================================================================================
     /**
-    * Init the view
+    * Destroys the AverageSelectionView.
     */
-    void init();
+    ~AverageSelectionView();
 
     //=========================================================================================================
     /**
-    * Set the old average map which holds the inforamtion about the calcuated averages.
+    * Get the current average colors
     *
-    * @param [in] qMapAverageInfoOld     the old average info map.
+    * @return Pointer to the current average colors.
     */
-    void setAverageInformationMapOld(const QMap<double, QPair<QColor, QPair<QString,bool> > >& qMapAverageInfoOld);
+    QSharedPointer<QMap<QString, QColor> > getAverageColor() const;
 
     //=========================================================================================================
     /**
-    * Set the average map which holds the inforamtion about the currently calcuated averages.
+    * Get the current average activations
     *
-    * @param [in] qMapAverageColor     the average map.
+    * @return Pointer to the current average activations.
     */
-    void setAverageInformationMap(const QMap<double, QPair<QColor, QPair<QString,bool> > >& qMapAverageColor);
+    QSharedPointer<QMap<QString, bool> > getAverageActivation() const;
 
     //=========================================================================================================
     /**
-    * Create list of channels which are to be filtered based on channel names
+    * Set the average colors
     *
-    * @return the average information map
+    * @param [in] qMapAverageColor      Pointer to the new average colors
     */
-    QMap<double, QPair<QColor, QPair<QString,bool> > > getAverageInformationMap();
+    void setAverageColor(const QSharedPointer<QMap<QString, QColor> > qMapAverageColor);
+
+    //=========================================================================================================
+    /**
+    * Set the average activations
+    *
+    * @param [in] qMapAverageActivation      Pointer to the new average activations
+    */
+    void setAverageActivation(const QSharedPointer<QMap<QString, bool> > qMapAverageActivation);
 
 protected:
     //=========================================================================================================
     /**
-    * Call this slot whenever the averages changed.
+    * Saves all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to store the settings to.
     */
-    void onAveragesChanged();
+    void saveSettings(const QString& settingsPath);
 
-    QMap<double, QPair<QColor, QPair<QString,bool> > >  m_qMapAverageInfo;              /**< Average colors and names. */
-    QMap<double, QPair<QColor, QPair<QString,bool> > >  m_qMapAverageInfoOld;           /**< Old average colors and names. */
-    QMap<QCheckBox*, double>                            m_qMapChkBoxAverageType;        /**< Check box to average type map. */
-    QMap<QPushButton*, double>                          m_qMapButtonAverageType;        /**< Push button to average type map. */
-
-signals:
     //=========================================================================================================
     /**
-    * Emit this signal whenever the user wants to make a screenshot.
+    * Loads and inits all important settings of this view via QSettings.
     *
-    * @param[out] map     The current average map.
+    * @param[in] settingsPath        the path to load the settings from.
     */
-    void averageInformationChanged(const QMap<double, QPair<QColor, QPair<QString,bool> > >& map);
+    void loadSettings(const QString& settingsPath);
 
+    //=========================================================================================================
+    /**
+    * Redraw the GUI.
+    */
+    void redrawGUI();
+
+    //=========================================================================================================
+    /**
+    * Call this slot whenever the average selection or color changed.
+    */
+    void onAverageSelectionColorChanged();
+
+    int m_iMaxNumAverages;
+
+    QSharedPointer<QMap<QString, QColor> >      m_qMapAverageColor;             /**< Average colors. */
+    QSharedPointer<QMap<QString, bool> >        m_qMapAverageActivation;        /**< Average activation status. */
+
+    QString                                     m_sSettingsPath;                /**< The settings path to store the GUI settings to. */
+
+signals:    
+    //=========================================================================================================
+    /**
+    * Emmited when new average color is available
+    *
+    * @param [in] qMapAverageColor     the average color map
+    */
+    void newAverageColorMap(const QSharedPointer<QMap<QString, QColor> > qMapAverageColor);
+
+    //=========================================================================================================
+    /**
+    * Emmited when new average activation is available
+    *
+    * @param [in] qMapAverageActivation     the average activation map
+    */
+    void newAverageActivationMap(const QSharedPointer<QMap<QString, bool> > qMapAverageActivation);
 };
 
 } // NAMESPACE

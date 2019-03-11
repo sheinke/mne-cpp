@@ -57,6 +57,8 @@
 #include <QTableView>
 #include <QMenu>
 #include <QSvgGenerator>
+#include <QGLWidget>
+#include <QSettings>
 
 
 //*************************************************************************************************************
@@ -74,27 +76,47 @@ using namespace FIFFLIB;
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-ChannelDataView::ChannelDataView(QWidget *parent, Qt::WindowFlags f)
+ChannelDataView::ChannelDataView(const QString& sSettingsPath,
+                                 QWidget *parent,
+                                 Qt::WindowFlags f)
 : QWidget(parent, f)
 , m_iT(10)
 , m_fSamplingRate(1024)
 , m_fDefaultSectionSize(80.0f)
 , m_fZoomFactor(1.0f)
 , m_bHideBadChannels(false)
+, m_sSettingsPath(sSettingsPath)
 {
     m_pTableView = new QTableView;
 
-    //Install event filter for tracking mouse movements
+#if defined(USE_OPENGL)
+    // Use QGLWidget for rendering the table view.
+    // Unfortunatley, QOpenGLWidget is not able to change the background color, which is a must for this ChanalDataViewer.
+    QGLFormat currentFormat = QGLFormat(QGL::SampleBuffers);
+    currentFormat.setSamples(10);
+    QGLWidget* pGLWidget = new QGLWidget(currentFormat);
+    m_pTableView->setViewport(pGLWidget);
+#endif
+
+    // Install event filter for tracking mouse movements
     m_pTableView->viewport()->installEventFilter(this);
     m_pTableView->setMouseTracking(true);
 
-    //set vertical layout
+    // Set layout
     QVBoxLayout *neLayout = new QVBoxLayout(this);
-
     neLayout->addWidget(m_pTableView);
-
-    //set layouts
+    neLayout->setContentsMargins(0,0,0,0);
     this->setLayout(neLayout);
+
+    loadSettings(m_sSettingsPath);
+}
+
+
+//*************************************************************************************************************
+
+ChannelDataView::~ChannelDataView()
+{
+    saveSettings(m_sSettingsPath);
 }
 
 
@@ -112,7 +134,7 @@ void ChannelDataView::init(QSharedPointer<FIFFLIB::FiffInfo> &info)
     connect(m_pModel.data(), &ChannelDataModel::triggerDetected,
             this, &ChannelDataView::triggerDetected);
 
-    //-------- Init bad channel list --------
+    //Init bad channel list
     m_qListBadChannels.clear();
     for(int i = 0; i<m_pModel->rowCount(); i++) {
         if(m_pModel->data(m_pModel->index(i,2)).toBool()) {
@@ -150,8 +172,8 @@ void ChannelDataView::init(QSharedPointer<FIFFLIB::FiffInfo> &info)
     m_pTableView->resizeColumnsToContents();
     m_pTableView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-//        connect(m_pTableView->verticalScrollBar(), &QScrollBar::valueChanged,
-//                this, &RealTimeMultiSampleArrayWidget::visibleRowsChanged);
+//    connect(m_pTableView->verticalScrollBar(), &QScrollBar::valueChanged,
+//            this, &ChannelDataView::visibleRowsChanged);
 }
 
 
@@ -190,7 +212,11 @@ bool ChannelDataView::eventFilter(QObject *object, QEvent *event)
 void ChannelDataView::setBackgroundColor(const QColor& backgroundColor)
 {
     m_backgroundColor = backgroundColor;
-    m_pTableView->setStyleSheet(QString("background-color: rgb(%1, %2, %3);").arg(backgroundColor.red()).arg(backgroundColor.green()).arg(backgroundColor.blue()));
+
+    QPalette pal;
+    pal.setColor(QPalette::Window, m_backgroundColor);
+    m_pTableView->viewport()->setPalette(pal);
+    m_pTableView->viewport()->setBackgroundRole(QPalette::Window);
 }
 
 
@@ -247,10 +273,11 @@ void ChannelDataView::hideBadChannels()
 
     //Hide non selected channels/rows in the data views
     for(int i = 0; i<m_qListBadChannels.size(); i++) {
-        if(m_bHideBadChannels)
+        if(m_bHideBadChannels) {
             m_pTableView->hideRow(m_qListBadChannels.at(i));
-        else
+        } else {
             m_pTableView->showRow(m_qListBadChannels.at(i));
+        }
     }
 
     //Update the visible channel list which are to be filtered
@@ -277,10 +304,11 @@ void ChannelDataView::showSelectedChannelsOnly(const QStringList &selectedChanne
         QString channel = m_pModel->data(m_pModel->index(i, 0), Qt::DisplayRole).toString();
 
         //if channel is a bad channel and bad channels are to be hidden -> do not show
-        if(!selectedChannels.contains(channel) || (m_qListBadChannels.contains(i) && m_bHideBadChannels))
+        if(!selectedChannels.contains(channel) || (m_qListBadChannels.contains(i) && m_bHideBadChannels)) {
             m_pTableView->hideRow(i);
-        else
+        } else {
             m_pTableView->showRow(i);
+        }
     }
 
     //Update the visible channel list which are to be filtered
@@ -346,9 +374,9 @@ void ChannelDataView::takeScreenshot(const QString& fileName)
 
 //*************************************************************************************************************
 
-void ChannelDataView::updateProjection()
+void ChannelDataView::updateProjection(const QList<FIFFLIB::FiffProj>& projs)
 {
-    m_pModel->updateProjection();
+    m_pModel->updateProjection(projs);
 }
 
 
@@ -378,17 +406,17 @@ void ChannelDataView::updateSpharaOptions(const QString& sSytemType, int nBaseFc
 
 //*************************************************************************************************************
 
-void ChannelDataView::filterChanged(QList<FilterData> filterData)
+void ChannelDataView::setFilter(const FilterData& filterData)
 {
-    m_pModel->filterChanged(filterData);
+    m_pModel->setFilter(QList<FilterData>() << filterData);
 }
 
 
 //*************************************************************************************************************
 
-void ChannelDataView::filterActivated(bool state)
+void ChannelDataView::setFilterActive(bool state)
 {
-    m_pModel->filterActivated(state);
+    m_pModel->setFilterActive(state);
 }
 
 
@@ -433,6 +461,30 @@ int ChannelDataView::getDistanceTimeSpacer()
 void ChannelDataView::resetTriggerCounter()
 {
     m_pModel->resetTriggerCounter();
+}
+
+
+//*************************************************************************************************************
+
+void ChannelDataView::saveSettings(const QString& settingsPath)
+{
+    if(settingsPath.isEmpty()) {
+        return;
+    }
+
+    QSettings settings;
+}
+
+
+//*************************************************************************************************************
+
+void ChannelDataView::loadSettings(const QString& settingsPath)
+{
+    if(settingsPath.isEmpty()) {
+        return;
+    }
+
+    QSettings settings;
 }
 
 
@@ -494,10 +546,11 @@ void ChannelDataView::applySelection()
     //Hide non selected channels/rows in the data views
     for(int i = 0; i<m_pModel->rowCount(); i++) {
         //if channel is a bad channel and bad channels are to be hidden -> do not show
-        if(m_qListCurrentSelection.contains(i))
+        if(m_qListCurrentSelection.contains(i)) {
             m_pTableView->showRow(i);
-        else
+        } else {
             m_pTableView->hideRow(i);
+        }
     }
 
     //Update the visible channel list which are to be filtered
@@ -511,8 +564,9 @@ void ChannelDataView::applySelection()
 
 void ChannelDataView::hideSelection()
 {
-    for(int i=0; i<m_qListCurrentSelection.size(); i++)
+    for(int i=0; i<m_qListCurrentSelection.size(); i++) {
         m_pTableView->hideRow(m_qListCurrentSelection.at(i));
+    }
 
     //Update the visible channel list which are to be filtered
     //visibleRowsChanged(0);
@@ -529,8 +583,7 @@ void ChannelDataView::resetSelection()
             if(!m_bHideBadChannels) {
                 m_pTableView->showRow(i);
             }
-        }
-        else {
+        } else {
             m_pTableView->showRow(i);
         }
     }
@@ -586,7 +639,16 @@ void ChannelDataView::markChBad()
         }
     }
 
-    m_pModel->updateProjection();
+    m_pModel->updateProjection(m_pFiffInfo->projs);
+
+    //Hide non selected channels/rows in the data views
+    for(int i = 0; i<m_qListBadChannels.size(); i++) {
+        if(m_bHideBadChannels) {
+            m_pTableView->hideRow(m_qListBadChannels.at(i));
+        } else {
+            m_pTableView->showRow(m_qListBadChannels.at(i));
+        }
+    }
 
     emit channelMarkingChanged();
 }

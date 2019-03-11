@@ -101,18 +101,17 @@ public:
     /**
     * Constructs a Connectivity object.
     */
-    explicit Connectivity(const ConnectivitySettings& connectivitySettings);
+    explicit Connectivity();
 
     //=========================================================================================================
     /**
     * Computes the network based on the current settings.
     *
-    * @return Returns the network.
+    * @return Returns the list with calculated networks for each provided method.
     */
-    Network calculateConnectivity() const;
+    static QList<Network> calculate(ConnectivitySettings& connectivitySettings);
 
 protected:
-    QSharedPointer<ConnectivitySettings>    m_pConnectivitySettings;           /**< The current connectivity settings. */
 };
 
 

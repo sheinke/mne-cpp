@@ -79,6 +79,7 @@ ChannelInfoModel::ChannelInfoModel(FiffInfo::SPtr& pFiffInfo, QObject *parent)
 : QAbstractTableModel(parent)
 , m_pFiffInfo(pFiffInfo)
 {
+    setFiffInfo(m_pFiffInfo);
 }
 
 
@@ -552,7 +553,7 @@ bool ChannelInfoModel::setData(const QModelIndex &index, const QVariant &value, 
 
 //*************************************************************************************************************
 
-void ChannelInfoModel::fiffInfoChanged(FiffInfo::SPtr& pFiffInfo)
+void ChannelInfoModel::setFiffInfo(FiffInfo::SPtr& pFiffInfo)
 {
     beginResetModel();
 
@@ -637,7 +638,6 @@ QStringList ChannelInfoModel::getBadChannelList()
 
 void ChannelInfoModel::mapLayoutToChannels()
 {
-    //TODO: Move this to layout loader in MNE-CPP Utils?
     //Map channels to layout
     QList<FiffChInfo> channelList = m_pFiffInfo->chs;
     for(int i = 0; i<channelList.size(); i++) {

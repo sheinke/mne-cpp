@@ -72,15 +72,11 @@
 
 namespace DISP3DLIB {
     class NetworkTreeItem;
-    class NetworkView;
+    class AbstractView;
 }
 
 namespace SCMEASLIB {
     class RealTimeConnectivityEstimate;
-}
-
-namespace DISPLIB {
-    class QuickControlView;
 }
 
 
@@ -158,14 +154,16 @@ protected:
     void showQuickControlView();
 
     QSharedPointer<SCMEASLIB::RealTimeConnectivityEstimate>     m_pRTCE;                /**< The real-time source estimate measurement. */
-    QSharedPointer<DISPLIB::QuickControlView>                   m_pQuickControlView;    /**< quick control widget. */
+    QPointer<DISPLIB::QuickControlView>                         m_pQuickControlView;    /**< Quick control widget. */
 
     bool                                                        m_bInitialized;         /**< Whether init was processed successfully. */
+
+    int                                                         m_iNumberBadChannels;   /**< The last received number of bad channels. */
 
     FSLIB::AnnotationSet                                        m_annotationSet;        /**< The current annotation set. */
     FSLIB::SurfaceSet                                           m_surfSet;              /**< The current surface set. */
 
-    QSharedPointer<DISP3DLIB::NetworkView>                      m_pNetworkView;         /**< The 3D network view. */
+    QPointer<DISP3DLIB::AbstractView>                           m_pAbstractView;         /**< The 3D view to visualize the network data. */
 
     DISP3DLIB::NetworkTreeItem*                                 m_pRtItem;              /**< The Disp3D real time item. */
 

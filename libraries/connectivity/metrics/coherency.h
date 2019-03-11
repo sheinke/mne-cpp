@@ -2,13 +2,14 @@
 /**
 * @file     coherency.h
 * @author   Daniel Strohmeier <daniel.strohmeier@tu-ilmenau.de>;
+*           Lorenz Esch <lorenz.esch@mgh.harvard.edu>;
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
 * @date     April, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Daniel Strohmeier and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Daniel Strohmeier, Lorenz Esch and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -48,6 +49,7 @@
 #include "../connectivity_global.h"
 
 #include "abstractmetric.h"
+#include "../connectivitysettings.h"
 
 
 //*************************************************************************************************************
@@ -56,6 +58,7 @@
 //=============================================================================================================
 
 #include <QSharedPointer>
+#include <QMutex>
 
 
 //*************************************************************************************************************
@@ -109,39 +112,59 @@ public:
 
     //=========================================================================================================
     /**
-    * Calculates the coherency of the rows of the data matrix.
+    * Calculates the real part of coherency of the rows of the data matrix.
     *
-    * @param[in] matDataList    The input data.
-    * @param[in] iNfft          FFT length
-    * @param[in] sWindowType    The type of the window function used to compute tapered spectra.
-    *
-    * @return                   The connectivity information in form of a QVector of matrices.
+    * @param[out]   finalNetwork          The resulting network.
+    * @param[in]    connectivitySettings  The input data and parameters.
     */
-    static QVector<Eigen::MatrixXcd> computeCoherency(const QList<Eigen::MatrixXd> &matDataList,
-                                                      int iNfft=-1,
-                                                      const QString &sWindowType="hanning");
+    static void calculateReal(Network& finalNetwork,
+                              ConnectivitySettings &connectivitySettings);
+
+    //=========================================================================================================
+    /**
+    * Calculates the imaginary part of coherency of the rows of the data matrix.
+    *
+    * @param[out]   finalNetwork          The resulting network.
+    * @param[in]    connectivitySettings  The input data and parameters.
+    */
+    static void calculateImag(Network& finalNetwork,
+                              ConnectivitySettings &connectivitySettings);
 
 private:
     //=========================================================================================================
     /**
     * Computes the coherency values. This function gets called in parallel.
     *
-    * @param[in] data    The input data.
-    *
-    * @return            The coherency result in form of AbstractMetricResultData.
+    * @param[in]    inputData           The input data.
+    * @param[out]   matPsdSum           The sum of all PSD matrices for each trial.
+    * @param[out]   vecPairCsdSum       The sum of all CSD matrices for each trial.
+    * @param[in]    mutex               The mutex used to safely access matPsdSum and vecPairCsdSum.
+    * @param[in]    iNRows              The number of rows.
+    * @param[in]    iNFreqs             The number of frequenciy bins.
+    * @param[in]    iNfft               The FFT length.
+    * @param[in]    tapers              The taper information.
     */
-    static AbstractMetricResultData compute(const AbstractMetricInputData& data);
+    static void compute(ConnectivitySettings::IntermediateTrialData& inputData,
+                        Eigen::MatrixXd& matPsdSum,
+                        QVector<QPair<int,Eigen::MatrixXcd> >& vecPairCsdSum,
+                        QMutex& mutex,
+                        int iNRows,
+                        int iNFreqs,
+                        int iNfft,
+                        const QPair<Eigen::MatrixXd, Eigen::VectorXd>& tapers);
 
     //=========================================================================================================
     /**
-    * Reduces the coherency computation results to a final result. This function gets called in parallel.
-    *
-    * @param[out] finalData    The final data data.
-    * @param[in]  resultData   The resulting data from the computation step.
+    * Computes the PSD and CSD. This function gets called in parallel.
     */
-    static void reduce(AbstractMetricResultData &finalData,
-                const AbstractMetricResultData& resultData);
-
+    static void computePSDCSDReal(QMutex& mutex,
+                                  Network& finalNetwork,
+                                  const QPair<int,Eigen::MatrixXcd>& pairInput,
+                                  const Eigen::MatrixXd& matPsdSum);
+    static void computePSDCSDImag(QMutex& mutex,
+                                  Network& finalNetwork,
+                                  const QPair<int,Eigen::MatrixXcd>& pairInput,
+                                  const Eigen::MatrixXd& matPsdSum);
 };
 
 
