@@ -172,6 +172,10 @@ void TriggerDetectionView::setNumberDetectedTriggersAndTypes(int numberDetection
 
 void TriggerDetectionView::saveSettings(const QString& settingsPath)
 {
+    if(settingsPath.isEmpty()) {
+        return;
+    }
+
     QSettings settings;
 
     settings.setValue(settingsPath + QString("/triggerDetectionActivated"), ui->m_checkBox_activateTriggerDetection->isChecked());
@@ -193,6 +197,10 @@ void TriggerDetectionView::saveSettings(const QString& settingsPath)
 
 void TriggerDetectionView::loadSettings(const QString& settingsPath)
 {
+    if(settingsPath.isEmpty()) {
+        return;
+    }
+
     QSettings settings;
 
     ui->m_checkBox_activateTriggerDetection->setChecked(settings.value(settingsPath + QString("/triggerDetectionActivated"), false).toBool());
@@ -216,25 +224,12 @@ void TriggerDetectionView::loadSettings(const QString& settingsPath)
 
 void TriggerDetectionView::onTriggerInfoChanged()
 {
-    emit triggerInfoChanged(m_qMapTriggerColor, ui->m_checkBox_activateTriggerDetection->isChecked(), ui->m_comboBox_triggerChannels->currentText(), ui->m_doubleSpinBox_detectionThresholdFirst->value()*pow(10, ui->m_spinBox_detectionThresholdSecond->value()));
-}
+    emit triggerInfoChanged(m_qMapTriggerColor,
+                            ui->m_checkBox_activateTriggerDetection->isChecked(),
+                            ui->m_comboBox_triggerChannels->currentText(),
+                            ui->m_doubleSpinBox_detectionThresholdFirst->value()*pow(10, ui->m_spinBox_detectionThresholdSecond->value()));
 
-
-//*************************************************************************************************************
-
-void TriggerDetectionView::onRealTimeTriggerActiveChanged(int state)
-{
-    Q_UNUSED(state);
-
-    emit triggerInfoChanged(m_qMapTriggerColor, ui->m_checkBox_activateTriggerDetection->isChecked(), ui->m_comboBox_triggerChannels->currentText(), ui->m_doubleSpinBox_detectionThresholdFirst->value()*pow(10, ui->m_spinBox_detectionThresholdSecond->value()));
-}
-
-
-//*************************************************************************************************************
-
-void TriggerDetectionView::onRealTimeTriggerCurrentChChanged(const QString &value)
-{
-    emit triggerInfoChanged(m_qMapTriggerColor, ui->m_checkBox_activateTriggerDetection->isChecked(), ui->m_comboBox_triggerChannels->currentText(), ui->m_doubleSpinBox_detectionThresholdFirst->value()*pow(10, ui->m_spinBox_detectionThresholdSecond->value()));
+    saveSettings(m_sSettingsPath);
 }
 
 
@@ -255,16 +250,6 @@ void TriggerDetectionView::onRealTimeTriggerColorChanged(bool state)
     m_qMapTriggerColor[ui->m_comboBox_triggerColorType->currentText().toDouble()] = color;
 
     onTriggerInfoChanged();
-}
-
-
-//*************************************************************************************************************
-
-void TriggerDetectionView::onRealTimeTriggerThresholdChanged(double value)
-{
-    Q_UNUSED(value);
-
-    emit triggerInfoChanged(m_qMapTriggerColor, ui->m_checkBox_activateTriggerDetection->isChecked(), ui->m_comboBox_triggerChannels->currentText(), ui->m_doubleSpinBox_detectionThresholdFirst->value()*pow(10, ui->m_spinBox_detectionThresholdSecond->value()));
 }
 
 

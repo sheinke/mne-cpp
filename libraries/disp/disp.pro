@@ -45,6 +45,10 @@ qtHaveModule(charts): QT += charts
 
 DEFINES += DISP_LIBRARY
 
+contains(MNECPP_CONFIG, dispOpenGL) {
+    DEFINES += USE_OPENGL
+}
+
 TARGET = Disp
 TARGET = $$join(TARGET,,MNE$${MNE_LIB_VERSION},)
 CONFIG(debug, debug|release) {
@@ -98,7 +102,7 @@ SOURCES += \
     plots/graph.cpp \
     plots/tfplot.cpp \
     plots/helpers/colormap.cpp \
-    viewers/filterview.cpp \
+    viewers/filterdesignview.cpp \
     viewers/averagelayoutview.cpp \
     viewers/spectrumview.cpp \
     viewers/modalityselectionview.cpp \
@@ -119,12 +123,12 @@ SOURCES += \
     viewers/minimumnormsettingsview.cpp \
     viewers/averagingsettingsview.cpp \
     viewers/projectsettingsview.cpp \
+    viewers/control3dview.cpp \
+    viewers/artifactsettingsview.cpp \
     viewers/helpers/evokedsetmodel.cpp \
     viewers/helpers/layoutscene.cpp \
     viewers/helpers/averagescene.cpp \
     viewers/helpers/averagesceneitem.cpp \
-    viewers/helpers/filterdatadelegate.cpp \
-    viewers/helpers/filterdatamodel.cpp \
     viewers/helpers/filterplotscene.cpp \
     viewers/helpers/selectionscene.cpp \
     viewers/helpers/selectionsceneitem.cpp \
@@ -143,7 +147,7 @@ HEADERS += \
     plots/graph.h \
     plots/tfplot.h \
     plots/helpers/colormap.h \
-    viewers/filterview.h \
+    viewers/filterdesignview.h \
     viewers/averagelayoutview.h \
     viewers/spectrumview.h \
     viewers/modalityselectionview.h \
@@ -164,12 +168,12 @@ HEADERS += \
     viewers/minimumnormsettingsview.h \
     viewers/averagingsettingsview.h \
     viewers/projectsettingsview.h \
+    viewers/control3dview.h \
+    viewers/artifactsettingsview.h \
     viewers/helpers/evokedsetmodel.h \
     viewers/helpers/layoutscene.h \
     viewers/helpers/averagescene.h \
     viewers/helpers/averagesceneitem.h \
-    viewers/helpers/filterdatadelegate.h \
-    viewers/helpers/filterdatamodel.h \
     viewers/helpers/filterplotscene.h \
     viewers/helpers/selectionscene.h \
     viewers/helpers/selectionsceneitem.h \
@@ -216,7 +220,7 @@ qtHaveModule(charts) {
 }
 
 FORMS += \
-    viewers/formfiles/filterview.ui \
+    viewers/formfiles/filterdesignview.ui \
     viewers/formfiles/channelselectionview.ui \
     viewers/formfiles/spharasettingsview.ui \
     viewers/formfiles/channeldatasettingsview.ui \
@@ -226,6 +230,7 @@ FORMS += \
     viewers/formfiles/minimumnormsettingsview.ui \
     viewers/formfiles/averagingsettingsview.ui \
     viewers/formfiles/projectsettingsview.ui \
+    viewers/formfiles/control3dview.ui \
 
 RESOURCE_FILES +=\
     $${ROOT_DIR}/resources/general/default_filters/BP_1Hz_40Hz_Fs1kHz.txt \

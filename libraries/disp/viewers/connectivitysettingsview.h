@@ -110,7 +110,8 @@ public:
     *
     * @param [in] parent        parent of widget.
     */
-    ConnectivitySettingsView(QWidget *parent = 0,
+    ConnectivitySettingsView(const QString& sSettingsPath = "",
+                             QWidget *parent = 0,
                              Qt::WindowFlags f = Qt::Widget);
 
     //=========================================================================================================
@@ -135,7 +136,71 @@ public:
     */
     void setNumberTrials(int iNumberTrials);
 
+    //=========================================================================================================
+    /**
+    * Get the current connectivity metric.
+    *
+    * @return   The current connectivity metric.
+    */
+    QString getConnectivityMetric();
+
+    //=========================================================================================================
+    /**
+    * Get the current window type.
+    *
+    * @return   The current window type.
+    */
+    QString getWindowType();
+
+    //=========================================================================================================
+    /**
+    * Get the current number of trials.
+    *
+    * @return   The current number of trials.
+    */
+    int getNumberTrials();
+
+    //=========================================================================================================
+    /**
+    * Get the current trigger type.
+    *
+    * @return   The current trigger type.
+    */
+    QString getTriggerType();
+
+    //=========================================================================================================
+    /**
+    * Get the current lower frequency range.
+    *
+    * @return   The current lower frequency range.
+    */
+    double getLowerFreq();
+
+    //=========================================================================================================
+    /**
+    * Get the current upper frequency range.
+    *
+    * @return   The current upper frequency range.
+    */
+    double getUpperFreq();
+
 protected:
+    //=========================================================================================================
+    /**
+    * Saves all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to store the settings to.
+    */
+    void saveSettings(const QString& settingsPath);
+
+    //=========================================================================================================
+    /**
+    * Loads and inits all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to load the settings from.
+    */
+    void loadSettings(const QString& settingsPath);
+
     //=========================================================================================================
     /**
     * Slot called when the metric changed.
@@ -174,6 +239,8 @@ protected:
 
     Ui::ConnectivitySettingsViewWidget* ui;
 
+    QString           m_sSettingsPath;                /**< The settings path to store the GUI settings to. */
+
 signals:
     //=========================================================================================================
     /**
@@ -211,10 +278,10 @@ signals:
     /**
     * Emit signal whenever the frequency band changed.
     *
-    * @param [in] iFreqLow        The new lower frequency band.
-    * @param [in] iFreqHigh       The new higher frequency band.
+    * @param [in] fFreqLow        The new lower frequency band.
+    * @param [in] fFreqHigh       The new higher frequency band.
     */
-    void freqBandChanged(int iFreqLow, int iFreqHigh);
+    void freqBandChanged(float fFreqLow, float fFreqHigh);
 
 };
 

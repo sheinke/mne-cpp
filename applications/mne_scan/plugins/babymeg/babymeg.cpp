@@ -309,6 +309,10 @@ bool BabyMEG::stop()
     //Clear Buffers
     m_pRawMatrixBuffer->clear();
 
+    if(m_pHPIWidget) {
+        m_pHPIWidget->hide();
+    }
+
     return true;
 }
 
@@ -695,7 +699,7 @@ void BabyMEG::setFileName(const QString& sFileName)
 
 void BabyMEG::showProjectDialog()
 {
-    if(!m_pProjectSettingsView) {
+    if(m_pProjectSettingsView) {
         m_pProjectSettingsView->show();
     }
 }
@@ -744,9 +748,12 @@ void BabyMEG::splitRecordingFile()
     //start next file
     m_qFileOut.setFileName(nextFileName);
     RowVectorXd cals;
+    MatrixXi sel;
     m_pOutfid = FiffStream::start_writing_raw(m_qFileOut,
                                               *m_pFiffInfo,
-                                              cals);
+                                              cals,
+                                              sel,
+                                              false);
     fiff_int_t first = 0;
     m_pOutfid->write_int(FIFF_FIRST_SAMPLE, &first);
 }

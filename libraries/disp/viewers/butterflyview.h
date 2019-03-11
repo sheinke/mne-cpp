@@ -89,7 +89,11 @@ class ChannelInfoModel;
 *
 * @brief The ButterflyView class provides a butterfly view.
 */
-class DISPSHARED_EXPORT ButterflyView : public QOpenGLWidget
+#if defined(USE_OPENGL)
+    class DISPSHARED_EXPORT ButterflyView : public QOpenGLWidget
+#else
+    class DISPSHARED_EXPORT ButterflyView : public QWidget
+#endif
 {
     Q_OBJECT
 
@@ -110,7 +114,7 @@ public:
     *
     * @param [in] model     The new evoked set model.
     */
-    void setModel(QSharedPointer<EvokedSetModel> model);
+    void setEvokedSetModel(QSharedPointer<EvokedSetModel> model);
 
     //=========================================================================================================
     /**
@@ -218,7 +222,7 @@ public:
     *
     * @param [in] pChannelInfoModel     The new channel info model.
     */
-    void setModel(QSharedPointer<ChannelInfoModel> &pChannelInfoModel);
+    void setChannelInfoModel(QSharedPointer<ChannelInfoModel> &pChannelInfoModel);
 
     //=========================================================================================================
     /**
@@ -236,7 +240,11 @@ protected:
     *
     * @param [in] event pointer to PaintEvent -> not used.
     */
+#if defined(USE_OPENGL)
     virtual void paintGL();
+#else
+    virtual void paintEvent(QPaintEvent *event);
+#endif
 
     //=========================================================================================================
     /**

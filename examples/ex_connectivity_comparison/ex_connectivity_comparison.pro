@@ -1,14 +1,14 @@
 #--------------------------------------------------------------------------------------------------------------
 #
-# @file     noisereduction.pro
-# @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
+# @file     ex_connnectivity_comparison.pro
+# @author   Lorenz Esch <lorenzesch@hotmail.com>;
 #           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 # @version  1.0
-# @date     February, 2016
+# @date     July, 2016
 #
 # @section  LICENSE
 #
-# Copyright (C) 2012, Lorenz Esch and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2016, Lorenz Esch and Matti Hamalainen. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -18,7 +18,7 @@
 #       the following disclaimer in the documentation and/or other materials provided with the distribution.
 #     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
 #       to endorse or promote products derived from this software without specific prior written permission.
-#
+# 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
 # PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
@@ -29,24 +29,29 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# @brief    This project file generates the makefile for the noisereduction plug-in.
+# @brief    Builds an example to compare connectivity methods
 #
 #--------------------------------------------------------------------------------------------------------------
 
-include(../../../../mne-cpp.pri)
+include(../../mne-cpp.pri)
 
-TEMPLATE = lib
+TEMPLATE = app
 
-CONFIG += plugin
+VERSION = $${MNE_CPP_VERSION}
 
-DEFINES += NOISEREDUCTION_LIBRARY
+QT += widgets 3dextras
 
-QT += core widgets svg
+CONFIG   += console
+CONFIG   -= app_bundle
 
-TARGET = noisereduction
+TARGET = ex_connectivity_comparison
+
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
+
+#QMAKE_CXXFLAGS+=-Zi
+#QMAKE_LFLAGS+=/DEBUG
 
 LIBS += -L$${MNE_LIBRARY_DIR}
 CONFIG(debug, debug|release) {
@@ -59,9 +64,7 @@ CONFIG(debug, debug|release) {
             -lMNE$${MNE_LIB_VERSION}Connectivityd \
             -lMNE$${MNE_LIB_VERSION}RtProcessingd \
             -lMNE$${MNE_LIB_VERSION}Dispd \
-            -lscMeasd \
-            -lscDispd \
-            -lscSharedd
+            -lMNE$${MNE_LIB_VERSION}Disp3Dd
 }
 else {
     LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
@@ -73,56 +76,28 @@ else {
             -lMNE$${MNE_LIB_VERSION}Connectivity \
             -lMNE$${MNE_LIB_VERSION}RtProcessing \
             -lMNE$${MNE_LIB_VERSION}Disp \
-            -lscMeas \
-            -lscDisp \
-            -lscShared \
+            -lMNE$${MNE_LIB_VERSION}Disp3D
 }
 
-DESTDIR = $${MNE_BINARY_DIR}/mne_scan_plugins
+DESTDIR =  $${MNE_BINARY_DIR}
 
 SOURCES += \
-        noisereduction.cpp \
-        FormFiles/noisereductionsetupwidget.cpp \
-        FormFiles/noisereductionaboutwidget.cpp \
+        main.cpp \
 
 HEADERS += \
-        noisereduction.h\
-        noisereduction_global.h \
-        FormFiles/noisereductionsetupwidget.h \
-        FormFiles/noisereductionaboutwidget.h \
-
-FORMS += \
-        FormFiles/noisereductionsetup.ui \
-        FormFiles/noisereductionabout.ui \
-
-RESOURCE_FILES +=\
-    $${ROOT_DIR}/resources/mne_scan/plugins/noisereduction/SPHARA/BabyMEG_SPHARA_InvEuclidean_Inner.txt \
-    $${ROOT_DIR}/resources/mne_scan/plugins/noisereduction/SPHARA/BabyMEG_SPHARA_InvEuclidean_Outer.txt \
-    $${ROOT_DIR}/resources/mne_scan/plugins/noisereduction/SPHARA/Current_SPHARA_EEG.txt \
-    $${ROOT_DIR}/resources/mne_scan/plugins/noisereduction/SPHARA/Duke64Dry.txt \
-    $${ROOT_DIR}/resources/mne_scan/plugins/noisereduction/SPHARA/Vectorview_SPHARA_InvEuclidean_Grad.txt \
-    $${ROOT_DIR}/resources/mne_scan/plugins/noisereduction/SPHARA/Vectorview_SPHARA_InvEuclidean_Mag.txt \
-
-# Copy resource files from repository to bin resource folder
-COPY_CMD = $$copyResources($${RESOURCE_FILES})
-QMAKE_POST_LINK += $${COPY_CMD}
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
-INCLUDEPATH += $${MNE_SCAN_INCLUDE_DIR}
 
-OTHER_FILES += noisereduction.json
-
-# Put generated form headers into the origin --> cause other src is pointing at them
-UI_DIR = $$PWD
-
-unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
-
-# suppress visibility warnings
-unix: QMAKE_CXXFLAGS += -Wno-attributes
-
-RESOURCES += \
-    noisereduction.qrc
+win32 {
+    EXTRA_ARGS =
+    DEPLOY_CMD = $$winDeployAppArgs($${TARGET},$${TARGET_EXT},$${MNE_BINARY_DIR},$${LIBS},$${EXTRA_ARGS})
+    QMAKE_POST_LINK += $${DEPLOY_CMD}
+}
+unix:!macx {
+    # === Unix ===
+    QMAKE_RPATHDIR += $ORIGIN/../lib
+}
 
 # Activate FFTW backend in Eigen
 contains(MNECPP_CONFIG, useFFTW) {
@@ -143,3 +118,4 @@ contains(MNECPP_CONFIG, useFFTW) {
                 -lfftw3_threads \
     }
 }
+

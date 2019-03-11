@@ -132,9 +132,9 @@ void NetworkTreeItem::initItem()
     list << new QStandardItem(pItemNetworkMatrix->toolTip());
     this->appendRow(list);
 
-    //Set material
-    NetworkMaterial* pNetworkMaterial = new NetworkMaterial();
-    this->setMaterial(pNetworkMaterial);
+//    //Set material
+//    NetworkMaterial* pNetworkMaterial = new NetworkMaterial();
+//    this->setMaterial(pNetworkMaterial);
 }
 
 
@@ -198,6 +198,36 @@ void NetworkTreeItem::onNetworkThresholdChanged(const QVariant& vecThresholds)
 
 //*************************************************************************************************************
 
+void NetworkTreeItem::onColorChanged(const QVariant& color)
+{
+    if(color.canConvert<QColor>()) {
+        QColor networkColor = color.value<QColor>();
+
+        Network tNetwork = this->data(Data3DTreeModelItemRoles::NetworkData).value<Network>();
+        VisualizationInfo info = tNetwork.getVisualizationInfo();
+        info.sMethod = "Color";
+        info.colEdges = Vector4i(networkColor.red(),
+                                 networkColor.green(),
+                                 networkColor.blue(),
+                                 networkColor.alpha());
+        info.colNodes = Vector4i(networkColor.red(),
+                                 networkColor.green(),
+                                 networkColor.blue(),
+                                 networkColor.alpha());
+        tNetwork.setVisualizationInfo(info);
+
+        QVariant data;
+        data.setValue(tNetwork);
+
+        this->setData(data, Data3DTreeModelItemRoles::NetworkData);
+
+        plotNetwork(tNetwork);
+    }
+}
+
+
+//*************************************************************************************************************
+
 void NetworkTreeItem::plotNetwork(const Network& tNetworkData)
 {
     //Draw network nodes and edges
@@ -218,6 +248,8 @@ void NetworkTreeItem::plotNodes(const Network& tNetworkData)
     QList<NetworkNode::SPtr> lNetworkNodes = tNetworkData.getNodes();
     qint16 iMaxDegree = tNetworkData.getMinMaxThresholdedDegrees().second;
 
+    VisualizationInfo visualizationInfo = tNetworkData.getVisualizationInfo();
+
     if(!m_pNodesEntity) {
         m_pNodesEntity = new QEntity(this);
     }
@@ -236,7 +268,7 @@ void NetworkTreeItem::plotNodes(const Network& tNetworkData)
         //Add material
         GeometryMultiplierMaterial* pMaterial = new GeometryMultiplierMaterial(false);
         pMaterial->setAmbient(ColorMap::valueToJet(0.0));
-        pMaterial->setAlpha(1.0f);
+        pMaterial->setAlpha(1.0);
         m_pNodesEntity->addComponent(pMaterial);
     }
 
@@ -261,11 +293,18 @@ void NetworkTreeItem::plotNodes(const Network& tNetworkData)
 
             vTransforms.push_back(tempTransform);
 
-            // Normalize colors
-            if(iMaxDegree != 0.0f) {
-                vColorsNodes.push_back(QColor(ColorMap::valueToJet((float)iDegree/(float)iMaxDegree)));
+            if(visualizationInfo.sMethod == "Map") {
+                // Normalize colors
+                if(iMaxDegree != 0.0f) {
+                    vColorsNodes.push_back(QColor(ColorMap::valueToColor((float)iDegree/(float)iMaxDegree, visualizationInfo.sMethod)));
+                } else {
+                    vColorsNodes.push_back(QColor(ColorMap::valueToColor(0.0f, visualizationInfo.sMethod)));
+                }
             } else {
-                vColorsNodes.push_back(QColor(ColorMap::valueToJet(0.0f)));
+                vColorsNodes.push_back(QColor(visualizationInfo.colEdges[0],
+                                              visualizationInfo.colEdges[1],
+                                              visualizationInfo.colEdges[2],
+                                              visualizationInfo.colEdges[3]));
             }
         }
     }
@@ -288,6 +327,8 @@ void NetworkTreeItem::plotEdges(const Network &tNetworkData)
 
     QList<NetworkEdge::SPtr> lNetworkEdges = tNetworkData.getThresholdedEdges();
     QList<NetworkNode::SPtr> lNetworkNodes = tNetworkData.getNodes();
+
+    VisualizationInfo visualizationInfo = tNetworkData.getVisualizationInfo();
 
     if(!m_pEdgeEntity) {
         m_pEdgeEntity = new QEntity(this);
@@ -351,10 +392,18 @@ void NetworkTreeItem::plotEdges(const Network &tNetworkData)
                     vTransformsEdges.push_back(tempTransform);
 
                     // Normalize colors
-                    if(dMaxWeight != 0.0f) {
-                        vColorsEdges.push_back(QColor(ColorMap::valueToJet(dWeight/dMaxWeight)));
+                    if(visualizationInfo.sMethod == "Map") {
+                        // Normalize colors
+                        if(dMaxWeight != 0.0f) {
+                            vColorsEdges.push_back(QColor(ColorMap::valueToColor(dWeight/dMaxWeight, visualizationInfo.sMethod)));
+                        } else {
+                            vColorsEdges.push_back(QColor(ColorMap::valueToColor(0.0f, visualizationInfo.sMethod)));
+                        }
                     } else {
-                        vColorsEdges.push_back(QColor(ColorMap::valueToJet(0.0f)));
+                        vColorsEdges.push_back(QColor(visualizationInfo.colNodes[0],
+                                                      visualizationInfo.colNodes[1],
+                                                      visualizationInfo.colNodes[2],
+                                                      visualizationInfo.colNodes[3]));
                     }
                 }
             }

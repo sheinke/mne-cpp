@@ -1,16 +1,14 @@
 //=============================================================================================================
 /**
-* @file     data3Dtreedelegate.h
-* @author   Lorenz Esch <lorenz.esch@tu-ilmenau.de>;
-*           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-*           Jens Haueisen <jens.haueisen@tu-ilmenau.de>
+* @file     artifactsettingsview.h
+* @author   Lorenz Esch <lorenzesch@hotmail.com>;
+*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     December, 2015
+* @date     January, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2015, Lorenz Esch, Christoph Dinh, Matti Hamalainen and Jens Haueisen. All rights reserved.
+* Copyright (C) 2018, Lorenz Esch and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,35 +29,32 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief Data3DTreeDelegate class declaration.
+* @brief    Declaration of the ArtifactSettingsView class.
 *
 */
 
-#ifndef DISP3DLIB_DATA3DTREEDELEGATE_H
-#define DISP3DLIB_DATA3DTREEDELEGATE_H
+#ifndef ARTIFACTSETTINGSVIEW_H
+#define ARTIFACTSETTINGSVIEW_H
+
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "../../disp3D_global.h"
-#include "items/common/abstracttreeitem.h"
+#include "../disp_global.h"
+
+#include <fiff/fiff_ch_info.h>
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// QT INCLUDES
+// Qt INCLUDES
 //=============================================================================================================
 
-#include <QItemDelegate>
-#include <QColorDialog>
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// Eigen INCLUDES
-//=============================================================================================================
+#include <QPointer>
+#include <QWidget>
+#include <QMap>
 
 
 //*************************************************************************************************************
@@ -67,50 +62,112 @@
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
+class QCheckBox;
+class QDoubleSpinBox;
+class QSpinBox;
+class QGridLayout;
+
+namespace Ui {
+    class AverageSettingsViewWidget;
+}
+
+namespace FIFFLIB {
+    class FiffEvokedSet;
+    class FiffChInfo;
+}
+
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE DISP3DLIB
+// DEFINE NAMESPACE DISPLIB
 //=============================================================================================================
 
-namespace DISP3DLIB
+namespace DISPLIB
 {
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DISP3DLIB FORWARD DECLARATIONS
+// DISPLIB FORWARD DECLARATIONS
 //=============================================================================================================
 
 
-//=============================================================================================================
 /**
-* DECLARE CLASS Data3DTreeDelegate
+* DECLARE CLASS ArtifactSettingsView
 *
-* @brief Provides a delegate to render user specific input methods in the tree model.
+* @brief The ArtifactSettingsView class provides an artifact rejection settings view.
 */
-class DISP3DSHARED_EXPORT Data3DTreeDelegate : public QItemDelegate
+class DISPSHARED_EXPORT ArtifactSettingsView : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit Data3DTreeDelegate(QObject *parent = 0);
+    typedef QSharedPointer<ArtifactSettingsView> SPtr;         /**< Shared pointer type for AveragingAdjustmentWidget. */
+    typedef QSharedPointer<ArtifactSettingsView> ConstSPtr;    /**< Const shared pointer type for AveragingAdjustmentWidget. */
+
+    explicit ArtifactSettingsView(const QString& sSettingsPath = "",
+                                 const QList<FIFFLIB::FiffChInfo>& fiffChInfoList = QList<FIFFLIB::FiffChInfo>(),
+                                 QWidget *parent = Q_NULLPTR);
 
     //=========================================================================================================
     /**
-    * QItemDelegate functions
+    * Destroys the ArtifactSettingsView.
     */
-    QWidget *createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
-    void setEditorData(QWidget* editor, const QModelIndex& index) const;
-    void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
-    void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+    ~ArtifactSettingsView();
+
+    void setChInfo(const QList<FIFFLIB::FiffChInfo>& fiffChInfoList);
+
+    QMap<QString,double> getThresholdMap();
+
+    void setThresholdMap(const QMap<QString,double>& mapThresholds);
+
+    bool getDoArtifactThresholdRejection();
 
 protected:
-    void onEditorEdited();
+    //=========================================================================================================
+    /**
+    * Redraw the GUI.
+    */
+    void redrawGUI();
 
-protected:
+    //=========================================================================================================
+    /**
+    * Saves all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to store the settings to.
+    */
+    void saveSettings(const QString& settingsPath);
+
+    //=========================================================================================================
+    /**
+    * Loads and inits all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to load the settings from.
+    */
+    void loadSettings(const QString& settingsPath);
+
+    void onChangeArtifactThreshold();
+
+    QString                         m_sSettingsPath;            /**< The settings path to store the GUI settings to. */
+
+    QMap<QString,QDoubleSpinBox*>   m_mapChThresholdsDoubleSpinBoxes;
+    QMap<QString,QSpinBox*>         m_mapChThresholdsSpinBoxes;
+
+    QMap<QString,double>            m_mapThresholdsFirst;
+    QMap<QString,int>               m_mapThresholdsSecond;
+    QMap<QString,double>            m_mapThresholds;
+
+    QList<FIFFLIB::FiffChInfo>      m_fiffChInfoList;
+
+    bool                            m_bDoArtifactThresholdReduction;
+
+    QPointer<QCheckBox>             m_pArtifactRejectionCheckBox;
+
+signals:
+    void changeArtifactThreshold(const QMap<QString,double>& mapThresholds);
+
 };
 
-} //NAMESPACE DISP3DLIB
+} // NAMESPACE
 
-#endif // DISP3DLIB_DATA3DTREEDELEGATE_H
+#endif // ARTIFACTSETTINGSVIEW_H

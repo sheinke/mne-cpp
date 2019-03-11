@@ -82,13 +82,18 @@ void RtConnectivityWorker::doWork(const ConnectivitySettings &connectivitySettin
         return;
     }
 
+    if(connectivitySettings.getConnectivityMethods().isEmpty()) {
+        qDebug()<<"RtConnectivityWorker::doWork() - Network methods are empty";
+        return;
+    }
+
     ConnectivitySettings connectivitySettingsTemp = connectivitySettings;
 
     QElapsedTimer time;
     qint64 iTime = 0;
     time.start();
 
-    Network finalNetwork = Connectivity::calculate(connectivitySettingsTemp);
+    QList<Network> finalNetworks = Connectivity::calculate(connectivitySettingsTemp);
 
     iTime = time.elapsed();
 
@@ -102,7 +107,7 @@ void RtConnectivityWorker::doWork(const ConnectivitySettings &connectivitySettin
     qDebug()<<"----------------------------------------";
     qDebug()<<"----------------------------------------";
 
-    emit resultReady(finalNetwork, connectivitySettingsTemp);
+    emit resultReady(finalNetworks, connectivitySettingsTemp);
 }
 
 

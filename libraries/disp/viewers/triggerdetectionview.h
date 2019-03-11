@@ -140,21 +140,28 @@ public:
     */
     void setNumberDetectedTriggersAndTypes(int totalNumberDetections, const QMap<int,QList<QPair<int,double> > >& mapDetectedTriggers);
 
+protected:
+    //=========================================================================================================
+    /**
+    * Saves all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to store the settings to.
+    */
     void saveSettings(const QString& settingsPath);
+
+    //=========================================================================================================
+    /**
+    * Loads and inits all important settings of this view via QSettings.
+    *
+    * @param[in] settingsPath        the path to load the settings from.
+    */
     void loadSettings(const QString& settingsPath);
 
-protected:
     //=========================================================================================================
     /**
     * Slot called when trigger info changed
     */
     void onTriggerInfoChanged();
-
-    //=========================================================================================================
-    /**
-    * Slot called when trigger detection check box was toggled
-    */
-    void onRealTimeTriggerActiveChanged(int state);
 
     //=========================================================================================================
     /**
@@ -164,21 +171,9 @@ protected:
 
     //=========================================================================================================
     /**
-    * Slot called when trigger detection threshold was changed
-    */
-    void onRealTimeTriggerThresholdChanged(double value);
-
-    //=========================================================================================================
-    /**
     * Slot called when trigger type changed
     */
     void onRealTimeTriggerColorTypeChanged(const QString& value);
-
-    //=========================================================================================================
-    /**
-    * Slot called when trigger channel selection changed
-    */
-    void onRealTimeTriggerCurrentChChanged(const QString &value);
 
     //=========================================================================================================
     /**
