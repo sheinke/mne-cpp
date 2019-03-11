@@ -1,16 +1,15 @@
 //=============================================================================================================
 /**
-* @file     types.h
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-*
+* @file     fiffrawdelegate.cpp
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>
+*           Lars Debor <lars.debor@tu-ilmenau.de>
+*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     March, 2018
+* @date     January, 2019
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2014, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -31,26 +30,30 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief    Contains general application specific types
+* @brief    Definition of the FiffRawDelegate Class.
 *
 */
-#ifndef ANSHARED_TYPES_H
-#define ANSHARED_TYPES_H
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include <Eigen/Core>
+#include "fiffrawdelegate.h"
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-#include <QSharedPointer>
+#include <QDebug>
+
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Eigen INCLUDES
+//=============================================================================================================
 
 
 //*************************************************************************************************************
@@ -58,49 +61,32 @@
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace Eigen;
+using namespace RAWDATAVIEWEREXTENSION;
 
 
 //*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE MNEANALYZE
+// DEFINE MEMBER METHODS
 //=============================================================================================================
 
-namespace ANSHAREDLIB
+FiffRawDelegate::FiffRawDelegate(QObject *parent)
+    : QAbstractItemDelegate(parent)
 {
-    //=========================================================================================================
-    /**
-    * The following directory paths are only imaginary.
-    * They should be used for models that are not stored to the file system yet.
-    *
-    * Convention: Imaginary paths start with '*', end with '/' and all characters are upper case.
-    */
-    #define ECD_SET_MODEL_DEFAULT_DIR_PATH  QStringLiteral("*ECDSETMODEL/")
 
-    //=========================================================================================================
-    /**
-    * The MODEL_TYPE enum lists all available model types.
-    * Naming convention: NAMESPACE_CLASSNAME_MODEL
-    */
-    enum MODEL_TYPE
-    {
-        ANSHAREDLIB_SURFACE_MODEL,
-        ANSHAREDLIB_QENTITYLIST_MODEL,
-        ANSHAREDLIB_ECDSET_MODEL,
-        ANSHAREDLIB_FIFFRAW_MODEL
-    };
+}
 
-    //=========================================================================================================
-    /**
-    * Public enum for all available Event types.
-    */
-    enum EVENT_TYPE
-    {
-        PING,                       // dummy event for testing and debuggin purposes
-        EXTENSION_INIT_FINISHED,    // send when all extensions finished initializing
-        STATUS_BAR_MSG              // sending a message to the status bar (part of gui)
 
-    };
-} //NAMESPACE
+//*************************************************************************************************************
 
-#endif // TYPES_H
+void FiffRawDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    // @TODO implement this
+}
+
+
+//*************************************************************************************************************
+
+QSize FiffRawDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    // @TODO implement this
+}

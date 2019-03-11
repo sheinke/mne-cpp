@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
-* @file     channelviewer.h
-* @author   Lars Debor <lars.debor@tu-ilmeau.de>;
-*           Simon Heinke <simon.heinke@tu-ilmenau.de>;
+* @file     fiffrawview.h
+* @author   Simon Heinke <simon.heinke@tu-ilmenau.de>
+*           Lars Debor <lars.debor@tu-ilmenau.de>
 *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
 * @version  1.0
-* @date     October, 2018
+* @date     July, 2018
 *
 * @section  LICENSE
 *
-* Copyright (C) 2018, Lars Debor, Simon Heinke and Matti Hamalainen. All rights reserved.
+* Copyright (C) 2018, Simon Heinke, Lars Debor and Matti Hamalainen. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 * the following conditions are met:
@@ -30,12 +30,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 *
-* @brief     ChannelViewer class declaration.
+* @brief    Declaration of the FiffRawView Class.
 *
 */
 
-#ifndef RAWDATAVIEWEREXTENSION_CHANNELVIEWER_H
-#define RAWDATAVIEWEREXTENSION_CHANNELVIEWER_H
+#ifndef FIFFRAWVIEW_H
+#define FIFFRAWVIEW_H
 
 
 //*************************************************************************************************************
@@ -46,15 +46,13 @@
 #include "rawdataviewer_global.h"
 
 
-
 //*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
 #include <QSharedPointer>
-#include <QAbstractScrollArea>
-#include <QMap>
+#include <QWidget>
 
 
 //*************************************************************************************************************
@@ -68,22 +66,11 @@
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
-namespace QtCharts {
-    class QChart;
-    class QChartView;
-    class QLineSeries;
-    class QValueAxis;
-    class QCategoryAxis;
-}
-
-class QScrollBar;
-
-class QPointF;
-class QTimer;
-
 namespace ANSHAREDLIB {
     class FiffRawModel;
 }
+
+class QTableView;
 
 
 //*************************************************************************************************************
@@ -93,81 +80,46 @@ namespace ANSHAREDLIB {
 
 namespace RAWDATAVIEWEREXTENSION {
 
-
 //*************************************************************************************************************
 //=============================================================================================================
 // RAWDATAVIEWEREXTENSION FORWARD DECLARATIONS
 //=============================================================================================================
 
+class FiffRawDelegate;
+
 
 //=============================================================================================================
 /**
-* Description of what this class is intended to do (in detail).
-*
-* @brief Brief description of this class.
+* TableView for Fiff data.
 */
-class RAWDATAVIEWERSHARED_EXPORT ChannelViewer : public QAbstractScrollArea
+class RAWDATAVIEWERSHARED_EXPORT FiffRawView : public QWidget
 {
     Q_OBJECT
 
 public:
-    typedef QSharedPointer<ChannelViewer> SPtr;            /**< Shared pointer type for ChannelViewer. */
-    typedef QSharedPointer<const ChannelViewer> ConstSPtr; /**< Const shared pointer type for ChannelViewer. */
+    typedef QSharedPointer<FiffRawView> SPtr;            /**< Shared pointer type for FiffRawView. */
+    typedef QSharedPointer<const FiffRawView> ConstSPtr; /**< Const shared pointer type for FiffRawView. */
 
     //=========================================================================================================
     /**
-    * Constructs a ChannelViewer object.
+    * Constructs a FiffRawView which is a child of parent.
+    *
+    * @param [in] parent    The parent of widget.
     */
-    ChannelViewer(QWidget *parent = nullptr);
+    FiffRawView(QWidget *parent = nullptr);
 
     //=========================================================================================================
     /**
     * Destructor.
     */
-    virtual ~ChannelViewer();
+    virtual ~FiffRawView();
 
-    //=========================================================================================================
-    /**
-    * Have to override this in order to fix the resizing bug.
-    *
-    * @return A very large dimension, since this denotes the maximum size for visible part of this channelviewer
-    */
-    QSize sizeHint() const override;
+    void setModel(const QSharedPointer<ANSHAREDLIB::FiffRawModel> pModel);
 
-protected:
-    virtual void resizeEvent(QResizeEvent *event) override;
+    void setDelegate(const QSharedPointer<RAWDATAVIEWEREXTENSION::FiffRawDelegate>& pDelegate);
 
 private:
-
-    void generateSeries();
-
-    void generateYAxisChannelNames();
-
-    double getChannelMaxValue(const QModelIndex &modelIndex);
-
-    void onVerticalScrolling(int value);
-
-    void onHorizontalScrolling(int value);
-
-    void onNewBlocksLoaded();
-
-    QSharedPointer<ANSHAREDLIB::FiffRawModel> m_pRawModel;
-
-    QtCharts::QChart *m_pChart;
-    QtCharts::QChartView *m_pChartView;
-    QtCharts::QCategoryAxis *m_pYAxis;
-    QtCharts::QValueAxis *m_pXAxis;
-    QVector<QtCharts::QLineSeries*> m_vSeries;
-    int m_numSeries;
-    int m_iCurrentLoadedFirstSample;
-    int m_iCurrentLoadedLastSample;
-    int m_iSamplesPerBlock;
-    int m_iVisibleBlocks;
-    int m_iBufferBlocks;
-    QMap<QString, double> m_scaleMap;        /**< Map with all channel types and their current scaling value.*/
-
-    QScrollBar *m_pHorizontalScrollBar;
-    QScrollBar *m_pVerticalScrollBar;
+    QTableView* m_pTableView;
 };
 
 
@@ -177,6 +129,6 @@ private:
 //=============================================================================================================
 
 
-} // namespace RAWDATAVIEWEREXTENSION
+} // NAMESPACE RAWDATAVIEWEREXTENSION
 
-#endif // RAWDATAVIEWEREXTENSION_CHANNELVIEWER_H
+#endif // FIFFRAWVIEW_H
