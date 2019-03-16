@@ -88,5 +88,6 @@ void FiffRawDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
 
 QSize FiffRawDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    // @TODO implement this
+    // @TODO properly implement this
+    return QSize(300, 300);
 }
