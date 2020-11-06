@@ -1,40 +1,38 @@
 //=============================================================================================================
 /**
-* @file     gpuinterpolationitem.cpp
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     October, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Lars Debor and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    GpuInterpolationItem class definition.
-*
-*/
+ * @file     gpuinterpolationitem.cpp
+ * @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     October, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lars Debor, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    GpuInterpolationItem class definition.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,8 +41,6 @@
 #include "../../materials/gpuinterpolationmaterial.h"
 #include "../../3dhelpers/custommesh.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -56,14 +52,10 @@
 #include <Qt3DRender/QGeometryRenderer>
 #include <Qt3DRender/QBuffer>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -73,14 +65,10 @@ using namespace Qt3DRender;
 using namespace Qt3DCore;
 using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE GLOBAL METHODS
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -96,8 +84,7 @@ GpuInterpolationItem::GpuInterpolationItem(Qt3DCore::QEntity *p3DEntityParent, i
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 GpuInterpolationItem::~GpuInterpolationItem()
 {
@@ -106,8 +93,7 @@ GpuInterpolationItem::~GpuInterpolationItem()
     delete m_pSignalDataBuffer;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void GpuInterpolationItem::initData(const MatrixX3f &matVertices,
                                     const MatrixX3f &matNormals,
@@ -144,7 +130,7 @@ void GpuInterpolationItem::initData(const MatrixX3f &matVertices,
 
     //Set custom mesh data
     //generate mesh base color
-    MatrixX3f matVertColor = createVertColor(matVertices.rows(), QColor(0,0,0));
+    MatrixX4f matVertColor = createVertColor(matVertices.rows(), QColor(0,0,0));
 
     //Set renderable 3D entity mesh and color data
     m_pCustomMesh->setMeshData(matVertices,
@@ -156,8 +142,7 @@ void GpuInterpolationItem::initData(const MatrixX3f &matVertices,
     m_bIsDataInit = true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void GpuInterpolationItem::setInterpolationMatrix(QSharedPointer<Eigen::SparseMatrix<float> > pMatInterpolationMatrix)
 {
@@ -219,8 +204,7 @@ void GpuInterpolationItem::setInterpolationMatrix(QSharedPointer<Eigen::SparseMa
     qDebug("GpuInterpolationItem::setInterpolationMatrix - finished");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void GpuInterpolationItem::addNewRtData(const VectorXf &tSignalVec)
 {
@@ -243,8 +227,7 @@ void GpuInterpolationItem::addNewRtData(const VectorXf &tSignalVec)
     m_pSignalDataBuffer->setData(bufferData);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void GpuInterpolationItem::setThresholds(const QVector3D &tVecThresholds)
 {   
@@ -252,8 +235,7 @@ void GpuInterpolationItem::setThresholds(const QVector3D &tVecThresholds)
     this->setMaterialParameter(QVariant::fromValue(tVecThresholds.z()), QStringLiteral("fThresholdZ"));
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void GpuInterpolationItem::setColormapType(const QString &tColormapType)
 {
@@ -271,8 +253,7 @@ void GpuInterpolationItem::setColormapType(const QString &tColormapType)
     this->setMaterialParameter(QVariant::fromValue(colorMapId), QStringLiteral("ColormapType"));
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QByteArray GpuInterpolationItem::buildInterpolationMatrixBuffer(QSharedPointer<Eigen::SparseMatrix<float> > pMatInterpolationMatrix)
 {
@@ -304,8 +285,7 @@ QByteArray GpuInterpolationItem::buildInterpolationMatrixBuffer(QSharedPointer<E
     return bufferData;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QByteArray GpuInterpolationItem::buildZeroBuffer(const uint tSize)
 {

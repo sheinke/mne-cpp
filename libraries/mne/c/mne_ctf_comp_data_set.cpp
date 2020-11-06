@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_ctf_comp_data_set.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MneCTFCompDataSet Class.
-*
-*/
+ * @file     mne_ctf_comp_data_set.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MneCTFCompDataSet Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -48,18 +47,13 @@
 
 #include <fiff/fiff_types.h>
 
-
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QFile>
-
-
 
 #ifndef TRUE
 #define TRUE 1
@@ -69,8 +63,6 @@
 #define FALSE 0
 #endif
 
-
-
 #ifndef FAIL
 #define FAIL -1
 #endif
@@ -79,21 +71,13 @@
 #define OK 0
 #endif
 
-
 #define MALLOC_32(x,t) (t *)malloc((x)*sizeof(t))
 #define REALLOC_32(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
 
-
 #define FREE_32(x) if ((char *)(x) != NULL) free((char *)(x))
-
 
 #define FREE_CMATRIX_32(m) mne_free_cmatrix_32((m))
 #define ALLOC_CMATRIX_32(x,y) mne_cmatrix_32((x),(y))
-
-
-
-
-
 
 static void matrix_error_32(int kind, int nr, int nc)
 
@@ -129,7 +113,6 @@ float **mne_cmatrix_32(int nr,int nc)
     return m;
 }
 
-
 void mne_free_cmatrix_32 (float **m)
 {
     if (m) {
@@ -138,12 +121,6 @@ void mne_free_cmatrix_32 (float **m)
     }
 }
 
-
-
-
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -152,31 +129,17 @@ using namespace Eigen;
 using namespace FIFFLIB;
 using namespace MNELIB;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //============================= mne_read_forward_solution.c =============================
 
 int mne_read_meg_comp_eeg_ch_info_32(const QString& name,
-                                  fiffChInfo     *megp,	 /* MEG channels */
-                                  int            *nmegp,
-                                  fiffChInfo     *meg_compp,
-                                  int            *nmeg_compp,
-                                  fiffChInfo     *eegp,	 /* EEG channels */
-                                  int            *neegp,
+                                  QList<FIFFLIB::FiffChInfo>& megp,	 /* MEG channels */
+                                  int *nmegp,
+                                  QList<FIFFLIB::FiffChInfo>& meg_compp,
+                                  int *nmeg_compp,
+                                  QList<FIFFLIB::FiffChInfo>& eegp,	 /* EEG channels */
+                                  int *neegp,
                                   FiffCoordTransOld* *meg_head_t,
-                                  fiffId         *idp)	 /* The measurement ID */
+                                  fiffId *idp)	 /* The measurement ID */
 /*
       * Read the channel information and split it into three arrays,
       * one for MEG, one for MEG compensation channels, and one for EEG
@@ -185,20 +148,19 @@ int mne_read_meg_comp_eeg_ch_info_32(const QString& name,
     QFile file(name);
     FiffStream::SPtr stream(new FiffStream(&file));
 
-
-    fiffChInfo chs   = NULL;
+    QList<FIFFLIB::FiffChInfo> chs;
     int        nchan = 0;
-    fiffChInfo meg   = NULL;
+    QList<FIFFLIB::FiffChInfo> meg;
     int        nmeg  = 0;
-    fiffChInfo meg_comp = NULL;
+    QList<FIFFLIB::FiffChInfo> meg_comp;
     int        nmeg_comp = 0;
-    fiffChInfo eeg   = NULL;
+    QList<FIFFLIB::FiffChInfo> eeg;
     int        neeg  = 0;
     fiffId     id    = NULL;
     QList<FiffDirNode::SPtr> nodes;
     FiffDirNode::SPtr info;
     FiffTag::SPtr t_pTag;
-    fiffChInfo   this_ch = NULL;
+    FIFFLIB::FiffChInfo   this_ch;
     FiffCoordTransOld* t = NULL;
     fiff_int_t kind, pos;
     int j,k,to_find;
@@ -225,9 +187,11 @@ int mne_read_meg_comp_eeg_ch_info_32(const QString& name,
             if (!stream->read_tag(t_pTag,pos))
                 goto bad;
             nchan = *t_pTag->toInt();
-            chs = MALLOC_32(nchan,fiffChInfoRec);
-            for (j = 0; j < nchan; j++)
+
+            for (j = 0; j < nchan; j++) {
+                chs.append(FiffChInfo());
                 chs[j].scanNo = -1;
+            }
             to_find = nchan;
             break;
 
@@ -250,15 +214,14 @@ int mne_read_meg_comp_eeg_ch_info_32(const QString& name,
         case FIFF_CH_INFO : /* Information about one channel */
             if(!stream->read_tag(t_pTag, pos))
                 goto bad;
-//            this_ch = t_pTag->toChInfo();
-            this_ch = (fiffChInfo)malloc(sizeof(fiffChInfoRec));
-            *this_ch = *(fiffChInfo)(t_pTag->data());
-            if (this_ch->scanNo <= 0 || this_ch->scanNo > nchan) {
-                printf ("FIFF_CH_INFO : scan # out of range %d (%d)!",this_ch->scanNo,nchan);
+
+            this_ch = t_pTag->toChInfo();
+            if (this_ch.scanNo <= 0 || this_ch.scanNo > nchan) {
+                printf ("FIFF_CH_INFO : scan # out of range %d (%d)!",this_ch.scanNo,nchan);
                 goto bad;
             }
             else
-                chs[this_ch->scanNo-1] = *this_ch;
+                chs[this_ch.scanNo-1] = this_ch;
             to_find--;
             break;
         }
@@ -279,49 +242,36 @@ int mne_read_meg_comp_eeg_ch_info_32(const QString& name,
     /*
    * Sort out the channels
    */
-    for (k = 0; k < nchan; k++)
-        if (chs[k].kind == FIFFV_MEG_CH)
+    for (k = 0; k < nchan; k++) {
+        if (chs[k].kind == FIFFV_MEG_CH) {
+            meg.append(chs[k]);
             nmeg++;
-        else if (chs[k].kind == FIFFV_REF_MEG_CH)
+        } else if (chs[k].kind == FIFFV_REF_MEG_CH) {
+            meg_comp.append(chs[k]);
             nmeg_comp++;
-        else if (chs[k].kind == FIFFV_EEG_CH)
+        } else if (chs[k].kind == FIFFV_EEG_CH) {
+            eeg.append(chs[k]);
             neeg++;
-    if (nmeg > 0)
-        meg = MALLOC_32(nmeg,fiffChInfoRec);
-    if (neeg > 0)
-        eeg = MALLOC_32(neeg,fiffChInfoRec);
-    if (nmeg_comp > 0)
-        meg_comp = MALLOC_32(nmeg_comp,fiffChInfoRec);
-    neeg = nmeg = nmeg_comp = 0;
-
-    for (k = 0; k < nchan; k++)
-        if (chs[k].kind == FIFFV_MEG_CH)
-            meg[nmeg++] = chs[k];
-        else if (chs[k].kind == FIFFV_REF_MEG_CH)
-            meg_comp[nmeg_comp++] = chs[k];
-        else if (chs[k].kind == FIFFV_EEG_CH)
-            eeg[neeg++] = chs[k];
+        }
+    }
 //    fiff_close(in);
     stream->close();
-    FREE_32(chs);
-    if (megp) {
-        *megp  = meg;
+
+    megp  = meg;
+    if(nmegp) {
         *nmegp = nmeg;
     }
-    else
-        FREE_32(meg);
-    if (meg_compp) {
-        *meg_compp = meg_comp;
+
+    meg_compp = meg_comp;
+    if(nmeg_compp) {
         *nmeg_compp = nmeg_comp;
     }
-    else
-        FREE_32(meg_comp);
-    if (eegp) {
-        *eegp  = eeg;
+
+    eegp = eeg;
+    if(neegp) {
         *neegp = neeg;
     }
-    else
-        FREE_32(eeg);
+
     if (idp == NULL) {
         FREE_32(id);
     }
@@ -338,17 +288,12 @@ int mne_read_meg_comp_eeg_ch_info_32(const QString& name,
 bad : {
 //        fiff_close(in);
         stream->close();
-        FREE_32(chs);
-        FREE_32(meg);
-        FREE_32(eeg);
         FREE_32(id);
 //        FREE_32(tag.data);
         FREE_32(t);
         return FIFF_FAIL;
     }
 }
-
-
 
 #define MNE_CTFV_COMP_UNKNOWN -1
 #define MNE_CTFV_COMP_NONE    0
@@ -368,8 +313,6 @@ static struct {
 { MNE_4DV_COMP1,         MNE_4DV_COMP1 },             /* One-to-one mapping for 4D data */
 { MNE_CTFV_COMP_UNKNOWN, MNE_CTFV_COMP_UNKNOWN }};
 
-
-
 int mne_unmap_ctf_comp_kind(int ctf_comp)
 
 {
@@ -381,28 +324,16 @@ int mne_unmap_ctf_comp_kind(int ctf_comp)
     return ctf_comp;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 FiffSparseMatrix* mne_convert_to_sparse(float **dense,        /* The dense matrix to be converted */
                                       int   nrow,           /* Number of rows in the dense matrix */
                                       int   ncol,           /* Number of columns in the dense matrix */
                                       int   stor_type,      /* Either FIFFTS_MC_CCS or FIFFTS_MC_RCS */
                                       float small)          /* How small elements should be ignored? */
 /*
-* Create the compressed row or column storage sparse matrix representation
-* including a vector containing the nonzero matrix element values,
-* the row or column pointer vector and the appropriate index vector(s).
-*/
+ * Create the compressed row or column storage sparse matrix representation
+ * including a vector containing the nonzero matrix element values,
+ * the row or column pointer vector and the appropriate index vector(s).
+ */
 {
     int j,k;
     int nz;
@@ -493,11 +424,6 @@ FiffSparseMatrix* mne_convert_to_sparse(float **dense,        /* The dense matri
     return sparse;
 }
 
-
-
-
-
-
 int  mne_sparse_mat_mult2_32(FiffSparseMatrix* mat,     /* The sparse matrix */
                           float           **mult,  /* Matrix to be multiplied */
                           int             ncol,	   /* How many columns in the above */
@@ -535,11 +461,6 @@ int  mne_sparse_mat_mult2_32(FiffSparseMatrix* mat,     /* The sparse matrix */
     return 0;
 }
 
-
-
-
-
-
 float **mne_mat_mat_mult_32 (float **m1,float **m2,int d1,int d2,int d3)
 /* Matrix multiplication
       * result(d1 x d3) = m1(d1 x d2) * m2(d2 x d3) */
@@ -569,10 +490,6 @@ float **mne_mat_mat_mult_32 (float **m1,float **m2,int d1,int d2,int d3)
     return (result);
 #endif
 }
-
-
-
-
 
 int  mne_sparse_vec_mult2_32(FiffSparseMatrix* mat,     /* The sparse matrix */
                           float           *vector, /* Vector to be multiplied */
@@ -605,8 +522,6 @@ int  mne_sparse_vec_mult2_32(FiffSparseMatrix* mat,     /* The sparse matrix */
     }
 }
 
-
-
 float mne_dot_vectors_32 (float *v1,
                        float *v2,
                        int   nn)
@@ -626,9 +541,6 @@ float mne_dot_vectors_32 (float *v1,
 #endif
 }
 
-
-
-
 void mne_mat_vec_mult2_32 (float **m,float *v,float *result, int d1,int d2)
 /*
       * Matrix multiplication
@@ -643,26 +555,19 @@ void mne_mat_vec_mult2_32 (float **m,float *v,float *result, int d1,int d2)
     return;
 }
 
-
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
 MneCTFCompDataSet::MneCTFCompDataSet()
 :ncomp(0)
-,chs(NULL)
 ,nch(0)
 ,current(NULL)
 ,undo(NULL)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneCTFCompDataSet::MneCTFCompDataSet(const MneCTFCompDataSet &set)
 {
@@ -681,8 +586,7 @@ MneCTFCompDataSet::MneCTFCompDataSet(const MneCTFCompDataSet &set)
         this->current = new MneCTFCompData(*set.current);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneCTFCompDataSet::~MneCTFCompDataSet()
 {
@@ -691,48 +595,52 @@ MneCTFCompDataSet::~MneCTFCompDataSet()
         if(comps[k])
             delete comps[k];
 
-    FREE_32(chs);
     if(current)
         delete current;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneCTFCompDataSet *MneCTFCompDataSet::mne_read_ctf_comp_data(const QString &name)
 /*
-    * Read all CTF compensation data from a given file
-    */
+     * Read all CTF compensation data from a given file
+     */
 {
     QFile file(name);
     FiffStream::SPtr stream(new FiffStream(&file));
 
     MneCTFCompDataSet* set = NULL;
-    MneCTFCompData*   one;
+    MneCTFCompData* one;
     QList<FiffDirNode::SPtr> nodes;
     QList<FiffDirNode::SPtr> comps;
-    int               ncomp;
-    MneNamedMatrix*    mat = NULL;
-    int               kind,k;
+    int ncomp;
+    MneNamedMatrix* mat = NULL;
+    int kind,k;
     FiffTag::SPtr t_pTag;
-    fiffChInfo        chs = NULL;
-    int               nch = 0;
-    int               calibrated;
+    QList<FiffChInfo> chs;
+    int nch = 0;
+    int calibrated;
     /*
         * Read the channel information
         */
     {
-        fiffChInfo        comp_chs = NULL;
-        int               ncompch = 0;
+        QList<FiffChInfo> comp_chs, temp;
+        int ncompch = 0;
 
-        if (mne_read_meg_comp_eeg_ch_info_32(name,&chs,&nch,&comp_chs,&ncompch,NULL,NULL,NULL,NULL) == FAIL)
+        if (mne_read_meg_comp_eeg_ch_info_32(name,
+                                             chs,
+                                             &nch,
+                                             comp_chs,
+                                             &ncompch,
+                                             temp,
+                                             NULL,
+                                             NULL,
+                                             NULL) == FAIL)
             goto bad;
         if (ncompch > 0) {
-            chs = REALLOC_32(chs,nch+ncompch,fiffChInfoRec);
             for (k = 0; k < ncompch; k++)
-                chs[k+nch] = comp_chs[k];
+                chs.append(comp_chs[k]);
             nch = nch + ncompch;
-            FREE_32(comp_chs);
         }
     }
     /*
@@ -754,7 +662,7 @@ MneCTFCompDataSet *MneCTFCompDataSet::mne_read_ctf_comp_data(const QString &name
     /*
         * Set the channel info
         */
-    set->chs = chs; chs = NULL;
+    set->chs = chs;
     set->nch = nch;
     /*
         * Read each data set
@@ -811,19 +719,21 @@ bad : {
     }
 
 good : {
-        FREE_32(chs);
         stream->close();
         return set;
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-int MneCTFCompDataSet::mne_make_ctf_comp(MneCTFCompDataSet* set, fiffChInfo chs, int nch, fiffChInfo compchs, int ncomp)      /* How many of these */
+int MneCTFCompDataSet::mne_make_ctf_comp(MneCTFCompDataSet* set,
+                                         const QList<FiffChInfo>& chs,
+                                         int nch,
+                                         QList<FiffChInfo> compchs,
+                                         int ncomp)      /* How many of these */
 /*
-    * Make compensation data to apply to a set of channels to yield (or uncompensated) compensated data
-    */
+     * Make compensation data to apply to a set of channels to yield (or uncompensated) compensated data
+     */
 {
     int *comps = NULL;
     int need_comp;
@@ -840,7 +750,7 @@ int MneCTFCompDataSet::mne_make_ctf_comp(MneCTFCompDataSet* set, fiffChInfo chs,
 
     QStringList emptyList;
 
-    if (!compchs) {
+    if (compchs.isEmpty()) {
         compchs = chs;
         ncomp   = nch;
     }
@@ -932,8 +842,8 @@ int MneCTFCompDataSet::mne_make_ctf_comp(MneCTFCompDataSet* set, fiffChInfo chs,
         fprintf(stderr,"\tPreselector created.\n");
     }
     /*
-    * Pick the desired channels
-    */
+     * Pick the desired channels
+     */
     for (k = 0; k < nch; k++) {
         if (comps[k] != MNE_CTFV_COMP_NONE)
             names.append(chs[k].ch_name);
@@ -989,13 +899,14 @@ bad : {
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-int MneCTFCompDataSet::mne_set_ctf_comp(fiffChInfo chs, int nch, int comp)
+int MneCTFCompDataSet::mne_set_ctf_comp(QList<FIFFLIB::FiffChInfo>& chs,
+                                        int nch,
+                                        int comp)
 /*
-    * Set the compensation bits to the desired value
-    */
+     * Set the compensation bits to the desired value
+     */
 {
     int k;
     int nset;
@@ -1010,13 +921,12 @@ int MneCTFCompDataSet::mne_set_ctf_comp(fiffChInfo chs, int nch, int comp)
     return nset;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneCTFCompDataSet::mne_apply_ctf_comp(MneCTFCompDataSet *set, int do_it, float *data, int ndata, float *compdata, int ncompdata)
 /*
-    * Apply compensation or revert to uncompensated data
-    */
+     * Apply compensation or revert to uncompensated data
+     */
 {
     MneCTFCompData* this_comp;
     float *presel,*comp;
@@ -1101,13 +1011,12 @@ int MneCTFCompDataSet::mne_apply_ctf_comp(MneCTFCompDataSet *set, int do_it, flo
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneCTFCompDataSet::mne_apply_ctf_comp_t(MneCTFCompDataSet *set, int do_it, float **data, int ndata, int ns)      /* Number of samples */
 /*
-    * Apply compensation or revert to uncompensated data
-    */
+     * Apply compensation or revert to uncompensated data
+     */
 {
     MneCTFCompData* this_comp;
     float **presel,**comp;
@@ -1192,10 +1101,9 @@ int MneCTFCompDataSet::mne_apply_ctf_comp_t(MneCTFCompDataSet *set, int do_it, f
     return OK;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-int MneCTFCompDataSet::mne_get_ctf_comp(fiffChInfo chs, int nch)
+int MneCTFCompDataSet::mne_get_ctf_comp(const QList<FIFFLIB::FiffChInfo> &chs, int nch)
 {
     int res = MNE_CTFV_NOGRAD;
     int first_comp,comp;
@@ -1217,8 +1125,7 @@ int MneCTFCompDataSet::mne_get_ctf_comp(fiffChInfo chs, int nch)
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneCTFCompDataSet::mne_map_ctf_comp_kind(int grad)
 /*
@@ -1233,8 +1140,7 @@ int MneCTFCompDataSet::mne_map_ctf_comp_kind(int grad)
     return grad;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const char *MneCTFCompDataSet::mne_explain_ctf_comp(int kind)
 {
@@ -1255,13 +1161,17 @@ const char *MneCTFCompDataSet::mne_explain_ctf_comp(int kind)
     return explain[k].expl;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-int MneCTFCompDataSet::mne_ctf_set_compensation(MneCTFCompDataSet *set, int compensate_to, fiffChInfo chs, int nchan, fiffChInfo comp_chs, int ncomp_chan)     /* How many */
+int MneCTFCompDataSet::mne_ctf_set_compensation(MneCTFCompDataSet *set,
+                                                int compensate_to,
+                                                QList<FiffChInfo>& chs,
+                                                int nchan,
+                                                QList<FiffChInfo> comp_chs,
+                                                int ncomp_chan)     /* How many */
 /*
-    * Make data which has the third-order gradient compensation applied
-    */
+     * Make data which has the third-order gradient compensation applied
+     */
 {
     int k;
     int have_comp_chs;
@@ -1275,7 +1185,7 @@ int MneCTFCompDataSet::mne_ctf_set_compensation(MneCTFCompDataSet *set, int comp
             return FAIL;
         }
     }
-    if (!comp_chs) {
+    if (comp_chs.isEmpty()) {
         comp_chs = chs;
         ncomp_chan = nchan;
     }

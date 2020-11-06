@@ -1,14 +1,15 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     disp3D.pro
-# @author   Lorenz Esch <Lorenz.Esch@tu-ilmenauu.de>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+#           Juan Garcia-Prieto <juangpc@gmail.com>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>
+# @since    0.1.0
 # @date     November, 2015
 #
 # @section  LICENSE
 #
-# Copyright (C) 2015, Lorenz Esch and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2015, Lars Debor, Juan Garcia-Prieto, Lorenz Esch. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,79 +32,67 @@
 #
 # @brief    This project file builds the new display 3D library which depends on the qt3d module.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../mne-cpp.pri)
 
 TEMPLATE = lib
 
-QT       += widgets 3dcore 3drender 3dinput 3dextras charts concurrent
+CONFIG += skip_target_version_ext
 
-DEFINES += DISP3DNEW_LIBRARY
+QT += widgets 3dcore 3drender 3dinput 3dextras charts concurrent opengl
+
+DEFINES += DISP3D_LIBRARY
+
+DESTDIR = $${MNE_LIBRARY_DIR}
 
 TARGET = Disp3D
-TARGET = $$join(TARGET,,MNE$${MNE_LIB_VERSION},)
+TARGET = $$join(TARGET,,mnecpp,)
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
 
+contains(MNECPP_CONFIG, static) {
+    CONFIG += staticlib
+    DEFINES += STATICBUILD
+} else {
+    CONFIG += shared
+}
+
 LIBS += -L$${MNE_LIBRARY_DIR}
 CONFIG(debug, debug|release) {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utilsd \
-            -lMNE$${MNE_LIB_VERSION}Fsd \
-            -lMNE$${MNE_LIB_VERSION}Fiffd \
-            -lMNE$${MNE_LIB_VERSION}Mned \
-            -lMNE$${MNE_LIB_VERSION}Fwdd \
-            -lMNE$${MNE_LIB_VERSION}Inversed \
-            -lMNE$${MNE_LIB_VERSION}Connectivityd \
-            -lMNE$${MNE_LIB_VERSION}Dispd \
-
-}
-else {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
-            -lMNE$${MNE_LIB_VERSION}Fs \
-            -lMNE$${MNE_LIB_VERSION}Fiff \
-            -lMNE$${MNE_LIB_VERSION}Mne \
-            -lMNE$${MNE_LIB_VERSION}Fwd \
-            -lMNE$${MNE_LIB_VERSION}Inverse \
-            -lMNE$${MNE_LIB_VERSION}Connectivity \
-            -lMNE$${MNE_LIB_VERSION}Disp \
-
-}
-
-DESTDIR = $${MNE_LIBRARY_DIR}
-
-contains(MNECPP_CONFIG, buildStaticLibraries) {
-    CONFIG += staticlib
-    DEFINES += BUILD_STATIC_LIBRARIES
-}
-else {
-    CONFIG += dll
-
-    #
-    # win32: copy dll's to bin dir
-    # unix: add lib folder to LD_LIBRARY_PATH
-    #
-    win32 {
-        FILE = $${DESTDIR}/$${TARGET}.dll
-        BINDIR = $${DESTDIR}/../bin
-        FILE ~= s,/,\\,g
-        BINDIR ~= s,/,\\,g
-        QMAKE_POST_LINK += $${QMAKE_COPY} $$quote($${FILE}) $$quote($${BINDIR}) $$escape_expand(\\n\\t)
-    }
+    LIBS += -lmnecppDispd \
+            -lmnecppRtProcessingd \
+            -lmnecppConnectivityd \
+            -lmnecppInversed \
+            -lmnecppFwdd \
+            -lmnecppMned \
+            -lmnecppFiffd \
+            -lmnecppFsd \
+            -lmnecppUtilsd \
+} else {
+    LIBS += -lmnecppDisp \
+            -lmnecppRtProcessing \
+            -lmnecppConnectivity \
+            -lmnecppInverse \
+            -lmnecppFwd \
+            -lmnecppMne \
+            -lmnecppFiff \
+            -lmnecppFs \
+            -lmnecppUtils \
 }
 
 SOURCES += \
     engine/view/view3D.cpp \
+    engine/delegate/data3Dtreedelegate.cpp \
     engine/model/data3Dtreemodel.cpp \
-    engine/model/data3Dtreedelegate.cpp \
     engine/model/items/subject/subjecttreeitem.cpp \
     engine/model/items/measurement/measurementtreeitem.cpp \
     engine/model/items/freesurfer/fssurfacetreeitem.cpp \
     engine/model/items/freesurfer/fsannotationtreeitem.cpp \
     engine/model/items/hemisphere/hemispheretreeitem.cpp \
     engine/model/items/sourcespace/sourcespacetreeitem.cpp \
-    engine/model/items/sourcedata/mneestimatetreeitem.cpp \
+    engine/model/items/sourcedata/mnedatatreeitem.cpp \
     engine/model/items/sourcedata/ecddatatreeitem.cpp \
     engine/model/items/network/networktreeitem.cpp \
     engine/model/items/bem/bemtreeitem.cpp \
@@ -131,10 +120,10 @@ SOURCES += \
     engine/model/materials/pervertextessphongalphamaterial.cpp \
     engine/model/materials/shownormalsmaterial.cpp \
     engine/model/materials/networkmaterial.cpp \
-    engine/control/control3dwidget.cpp \
-    adapters/ecdview.cpp \
-    adapters/abstractview.cpp \
-    adapters/networkview.cpp \
+    viewers/ecdview.cpp \
+    viewers/abstractview.cpp \
+    viewers/networkview.cpp \
+    viewers/sourceestimateview.cpp \
     engine/model/items/sensordata/sensordatatreeitem.cpp \
     helpers/interpolation/interpolation.cpp \
     helpers/geometryinfo/geometryinfo.cpp \
@@ -142,19 +131,20 @@ SOURCES += \
     engine/model/materials/geometrymultipliermaterial.cpp \
     engine/view/customframegraph.cpp \
     engine/model/materials/gpuinterpolationmaterial.cpp \
-    engine/model/materials/abstractphongalphamaterial.cpp
+    engine/model/materials/abstractphongalphamaterial.cpp \
+    engine/view/orbitalcameracontroller.cpp
 
 HEADERS += \
     engine/view/view3D.h \
+    engine/delegate/data3Dtreedelegate.h \
     engine/model/data3Dtreemodel.h \
-    engine/model/data3Dtreedelegate.h \
     engine/model/items/subject/subjecttreeitem.h \
     engine/model/items/measurement/measurementtreeitem.h \
     engine/model/items/freesurfer/fssurfacetreeitem.h \
     engine/model/items/freesurfer/fsannotationtreeitem.h \
     engine/model/items/hemisphere/hemispheretreeitem.h \
     engine/model/items/sourcespace/sourcespacetreeitem.h \
-    engine/model/items/sourcedata/mneestimatetreeitem.h \
+    engine/model/items/sourcedata/mnedatatreeitem.h \
     engine/model/items/sourcedata/ecddatatreeitem.h \
     engine/model/items/network/networktreeitem.h \
     engine/model/items/bem/bemtreeitem.h \
@@ -184,10 +174,10 @@ HEADERS += \
     engine/model/materials/pervertextessphongalphamaterial.h \
     engine/model/materials/shownormalsmaterial.h \
     engine/model/materials/networkmaterial.h \
-    engine/control/control3dwidget.h \
-    adapters/ecdview.h \
-    adapters/abstractview.h \
-    adapters/networkview.h \
+    viewers/ecdview.h \
+    viewers/abstractview.h \
+    viewers/networkview.h \
+    viewers/sourceestimateview.h \
     disp3D_global.h \
     engine/model/items/sensordata/sensordatatreeitem.h \
     helpers/interpolation/interpolation.h \
@@ -196,10 +186,10 @@ HEADERS += \
     engine/model/materials/geometrymultipliermaterial.h \
     engine/view/customframegraph.h \
     engine/model/materials/gpuinterpolationmaterial.h \
-    engine/model/materials/abstractphongalphamaterial.h
+    engine/model/materials/abstractphongalphamaterial.h \
+    engine/view/orbitalcameracontroller.h
 
 FORMS += \
-    engine/control/control3dwidget.ui \
 
 RESOURCES += $$PWD/disp3d.qrc \
 
@@ -207,26 +197,40 @@ INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
 
 # Install headers to include directory
-header_files.files = ./*.h
-header_files.path = $${MNE_INCLUDE_DIR}/disp3D
+header_files.files = $${HEADERS}
+header_files.path = $${MNE_INSTALL_INCLUDE_DIR}/disp3D
 
 INSTALLS += header_files
 
-unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
+contains(MNECPP_CONFIG, withCodeCov) {
+    QMAKE_CXXFLAGS += --coverage
+    QMAKE_LFLAGS += --coverage
+}
 
-# Deploy Qt Dependencies
-win32 {
-    isEmpty(TARGET_EXT) {
-        TARGET_CUSTOM_EXT = .dll
-    } else {
-        TARGET_CUSTOM_EXT = $${TARGET_EXT}
+win32:!contains(MNECPP_CONFIG, static) {
+    QMAKE_POST_LINK += $$QMAKE_COPY $$shell_path($${MNE_LIBRARY_DIR}/$${TARGET}.dll) $${MNE_BINARY_DIR}
+}
+
+macx {
+    QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
+}
+
+# Activate FFTW backend in Eigen for non-static builds only
+contains(MNECPP_CONFIG, useFFTW):!contains(MNECPP_CONFIG, static) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
+
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
     }
 
-    DEPLOY_COMMAND = windeployqt
-
-    DEPLOY_TARGET = $$shell_quote($$shell_path($${MNE_BINARY_DIR}/$${TARGET}$${TARGET_CUSTOM_EXT}))
-
-    #  # Uncomment the following line to help debug the deploy command when running qmake
-    #  warning($${DEPLOY_COMMAND} $${DEPLOY_TARGET})
-    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
 }

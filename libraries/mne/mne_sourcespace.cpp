@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_sourcespace.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-* 
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    MNESourceSpace class implementation.
-*
-*/
+ * @file     mne_sourcespace.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    MNESourceSpace class implementation.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,24 +43,14 @@
 #include <utils/mnemath.h>
 #include <fs/label.h>
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
-
 #include <iostream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QFile>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -68,9 +58,9 @@
 using namespace UTILSLIB;
 using namespace FSLIB;
 using namespace MNELIB;
+using namespace Eigen;
+using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -79,33 +69,27 @@ MNESourceSpace::MNESourceSpace()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceSpace::MNESourceSpace(const MNESourceSpace &p_MNESourceSpace)
 : m_qListHemispheres(p_MNESourceSpace.m_qListHemispheres)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceSpace::~MNESourceSpace()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNESourceSpace::clear()
 {
     m_qListHemispheres.clear();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QList<VectorXi> MNESourceSpace::get_vertno() const
 {
@@ -115,8 +99,7 @@ QList<VectorXi> MNESourceSpace::get_vertno() const
     return p_vertices;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QList<VectorXi> MNESourceSpace::label_src_vertno_sel(const Label &p_label, VectorXi &src_sel) const
 {
@@ -174,8 +157,7 @@ QList<VectorXi> MNESourceSpace::label_src_vertno_sel(const Label &p_label, Vecto
     return vertno;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceSpace MNESourceSpace::pick_regions(const QList<Label> &p_qListLabels) const
 {
@@ -266,15 +248,15 @@ MNESourceSpace MNESourceSpace::pick_regions(const QList<Label> &p_qListLabels) c
     return selectedSrc;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool MNESourceSpace::readFromStream(FiffStream::SPtr& p_pStream, bool add_geom, MNESourceSpace& p_SourceSpace)
+bool MNESourceSpace::readFromStream(FiffStream::SPtr& p_pStream,
+                                    bool add_geom,
+                                    MNESourceSpace& p_SourceSpace)
 {
 //    if (p_pSourceSpace != NULL)
 //        delete p_pSourceSpace;
     p_SourceSpace = MNESourceSpace();
-
 
     //
     //   Open the file, create directory
@@ -328,8 +310,7 @@ bool MNESourceSpace::readFromStream(FiffStream::SPtr& p_pStream, bool add_geom, 
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 qint32 MNESourceSpace::find_source_space_hemi(MNEHemisphere& p_Hemisphere)
 {
@@ -344,8 +325,7 @@ qint32 MNESourceSpace::find_source_space_hemi(MNEHemisphere& p_Hemisphere)
     return hemi;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNESourceSpace::transform_source_space_to(fiff_int_t dest, FiffCoordTrans& trans)
 {
@@ -360,8 +340,7 @@ bool MNESourceSpace::transform_source_space_to(fiff_int_t dest, FiffCoordTrans& 
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNESourceSpace::read_source_space(FiffStream::SPtr& p_pStream, const FiffDirNode::SPtr& p_Tree, MNEHemisphere& p_Hemisphere)
 {
@@ -387,7 +366,6 @@ bool MNESourceSpace::read_source_space(FiffStream::SPtr& p_pStream, const FiffDi
 //        qDebug() << "Number of vertice; type:" << t_pTag->getType() << "value:" << *t_pTag->toInt();
     p_Hemisphere.np = *t_pTag->toInt();
 
-
     //=====================================================================
     if(!p_Tree->find_tag(p_pStream, FIFF_BEM_SURF_NTRI, t_pTag))
     {
@@ -401,7 +379,6 @@ bool MNESourceSpace::read_source_space(FiffStream::SPtr& p_pStream, const FiffDi
         p_Hemisphere.ntri = *t_pTag->toInt();
     }
 //        qDebug() << "Number of Tris; type:" << t_pTag->getType() << "value:" << *t_pTag->toInt();
-
 
     //=====================================================================
     if(!p_Tree->find_tag(p_pStream, FIFF_MNE_COORD_FRAME, t_pTag))
@@ -436,7 +413,6 @@ bool MNESourceSpace::read_source_space(FiffStream::SPtr& p_pStream, const FiffDi
     }
 //        qDebug() << "Source Space Points; type:" << t_pTag->getType();
 
-
     //=====================================================================
     if(!p_Tree->find_tag(p_pStream, FIFF_MNE_SOURCE_SPACE_NORMALS, t_pTag))
     {
@@ -455,7 +431,6 @@ bool MNESourceSpace::read_source_space(FiffStream::SPtr& p_pStream, const FiffDi
         return false;
     }
 //        qDebug() << "Source Space Normals; type:" << t_pTag->getType();
-
 
     //=====================================================================
     if (p_Hemisphere.ntri > 0)
@@ -492,7 +467,6 @@ bool MNESourceSpace::read_source_space(FiffStream::SPtr& p_pStream, const FiffDi
         p_Hemisphere.tris = p_defaultMatrix;
     }
 //        qDebug() << "Triangles; type:" << t_pTag->getType() << "rows:" << p_Hemisphere.tris.rows() << "cols:" << p_Hemisphere.tris.cols();
-
 
     //
     //   Which vertices are active
@@ -598,8 +572,7 @@ bool MNESourceSpace::read_source_space(FiffStream::SPtr& p_pStream, const FiffDi
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNESourceSpace::patch_info(MNEHemisphere &p_Hemisphere)//VectorXi& nearest, QList<VectorXi>& pinfo)
 {
@@ -672,8 +645,7 @@ bool MNESourceSpace::patch_info(MNEHemisphere &p_Hemisphere)//VectorXi& nearest,
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNESourceSpace::complete_source_space_info(MNEHemisphere& p_Hemisphere)
 {
@@ -719,10 +691,8 @@ bool MNESourceSpace::complete_source_space_info(MNEHemisphere& p_Hemisphere)
         p_Hemisphere.tri_area(i) = size/2.0f;
         p_Hemisphere.tri_nn.row(i) /= size;
 
-
     }
     printf("[done]\n");
-
 
 //        qDebug() << "p_Hemisphere.tri_cent:" << p_Hemisphere.tri_cent(0,0) << p_Hemisphere.tri_cent(0,1) << p_Hemisphere.tri_cent(0,2);
 //        qDebug() << "p_Hemisphere.tri_cent:" << p_Hemisphere.tri_cent(2,0) << p_Hemisphere.tri_cent(2,1) << p_Hemisphere.tri_cent(2,2);
@@ -739,7 +709,6 @@ bool MNESourceSpace::complete_source_space_info(MNEHemisphere& p_Hemisphere)
         p_Hemisphere.use_tri_cent = MatrixX3d::Zero(p_Hemisphere.nuse_tri,3);
         p_Hemisphere.use_tri_nn = MatrixX3d::Zero(p_Hemisphere.nuse_tri,3);
         p_Hemisphere.use_tri_area = VectorXd::Zero(p_Hemisphere.nuse_tri);
-
 
         for (qint32 i = 0; i < p_Hemisphere.nuse_tri; ++i)
         {
@@ -787,8 +756,7 @@ bool MNESourceSpace::complete_source_space_info(MNEHemisphere& p_Hemisphere)
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNESourceSpace::writeToStream(FiffStream* p_pStream)
 {
@@ -803,8 +771,7 @@ void MNESourceSpace::writeToStream(FiffStream* p_pStream)
     printf("\t%d source spaces written\n", m_qListHemispheres.size());
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEHemisphere& MNESourceSpace::operator[] (qint32 idx)
 {
@@ -817,8 +784,7 @@ MNEHemisphere& MNESourceSpace::operator[] (qint32 idx)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const MNEHemisphere& MNESourceSpace::operator[] (qint32 idx) const
 {
@@ -831,8 +797,7 @@ const MNEHemisphere& MNESourceSpace::operator[] (qint32 idx) const
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEHemisphere& MNESourceSpace::operator[] (QString idt)
 {
@@ -847,8 +812,7 @@ MNEHemisphere& MNESourceSpace::operator[] (QString idt)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const MNEHemisphere& MNESourceSpace::operator[] (QString idt) const
 {

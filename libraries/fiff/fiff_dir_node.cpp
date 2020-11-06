@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fiff_dir_node.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-* 
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FiffDirNode Class.
-*
-*/
+ * @file     fiff_dir_node.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FiffDirNode Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -45,16 +45,12 @@
 //#include "fiff_proj.h"
 //#include "fiff_info.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -66,8 +62,7 @@ FiffDirNode::FiffDirNode()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDirNode::FiffDirNode(const FiffDirNode* p_FiffDirTree)
 : type(p_FiffDirTree->type)
@@ -78,11 +73,9 @@ FiffDirNode::FiffDirNode(const FiffDirNode* p_FiffDirTree)
 , parent(p_FiffDirTree->parent)
 , children(p_FiffDirTree->children)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDirNode::~FiffDirNode()
 {
@@ -92,8 +85,7 @@ FiffDirNode::~FiffDirNode()
     //            delete *i;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffDirNode::copy_tree(FiffStream::SPtr& p_pStreamIn, const FiffId& in_id, const QList<FiffDirNode::SPtr>& p_Nodes, FiffStream::SPtr& p_pStreamOut)
 {
@@ -179,8 +171,7 @@ bool FiffDirNode::copy_tree(FiffStream::SPtr& p_pStreamIn, const FiffId& in_id, 
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QList<FiffDirNode::SPtr> FiffDirNode::dir_tree_find(fiff_int_t p_kind) const
 {
@@ -195,8 +186,7 @@ QList<FiffDirNode::SPtr> FiffDirNode::dir_tree_find(fiff_int_t p_kind) const
     return nodes;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffDirNode::find_tag(FiffStream* p_pStream, fiff_int_t findkind, FiffTag::SPtr& p_pTag) const
 {
@@ -214,8 +204,7 @@ bool FiffDirNode::find_tag(FiffStream* p_pStream, fiff_int_t findkind, FiffTag::
     return false;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffDirNode::has_tag(fiff_int_t findkind)
 {
@@ -225,8 +214,7 @@ bool FiffDirNode::has_tag(fiff_int_t findkind)
     return false;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffDirNode::has_kind(fiff_int_t p_kind) const
 {
@@ -241,8 +229,7 @@ bool FiffDirNode::has_kind(fiff_int_t p_kind) const
     return false;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffDirNode::print(int indent) const
 {
@@ -284,8 +271,7 @@ void FiffDirNode::print(int indent) const
     printf ("}\n");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffDirNode::explain_block(int kind)
 {
@@ -298,8 +284,7 @@ void FiffDirNode::explain_block(int kind)
     printf ("Cannot explain: %d",kind);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffDirNode::explain(int kind)
 {
@@ -313,8 +298,7 @@ void FiffDirNode::explain(int kind)
     printf ("Cannot explain: %d",kind);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const char *FiffDirNode::get_tag_explanation(int kind)
 {
@@ -326,16 +310,14 @@ const char *FiffDirNode::get_tag_explanation(int kind)
     return "unknown";
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_int_t FiffDirNode::nent() const
 {
     return dir.size();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_int_t FiffDirNode::nchild() const
 {

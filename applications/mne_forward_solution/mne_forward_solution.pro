@@ -1,14 +1,16 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     mne_forward_solution.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @author   Robert Dicamillo <rd521@nmr.mgh.harvard.edu>;
+#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>;
+#           Simon Heinke <Simon.Heinke@tu-ilmenau.de>
+# @since    0.1.0
 # @date     February, 2017
 #
 # @section  LICENSE
 #
-# Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2017, Robert Dicamillo, Christoph Dinh, Lorenz Esch, Simon Heinke. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,18 +33,26 @@
 #
 # @brief    Implements mne_forward_solution application of MNE-C
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../mne-cpp.pri)
 
 TEMPLATE = app
 
-VERSION = $${MNE_CPP_VERSION}
+QT += widgets network concurrent
 
-QT += widgets
+CONFIG += console
 
-CONFIG   += console
-CONFIG   -= app_bundle
+DESTDIR =  $${MNE_BINARY_DIR}
+
+!contains(MNECPP_CONFIG, withAppBundles) {
+    CONFIG -= app_bundle
+}
+
+contains(MNECPP_CONFIG, static) {
+    CONFIG += static
+    DEFINES += STATICBUILD
+}
 
 TARGET = mne_forward_solution
 
@@ -52,33 +62,53 @@ CONFIG(debug, debug|release) {
 
 LIBS += -L$${MNE_LIBRARY_DIR}
 CONFIG(debug, debug|release) {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utilsd \
-            -lMNE$${MNE_LIB_VERSION}Fsd \
-            -lMNE$${MNE_LIB_VERSION}Fiffd \
-            -lMNE$${MNE_LIB_VERSION}Mned \
-            -lMNE$${MNE_LIB_VERSION}Fwdd \
-            -lMNE$${MNE_LIB_VERSION}Inversed \
-            -lMNE$${MNE_LIB_VERSION}Fwdd
+    LIBS += -lmnecppInversed \
+            -lmnecppFwdd \
+            -lmnecppMned \
+            -lmnecppFiffd \
+            -lmnecppFsd \
+            -lmnecppUtilsd \
+} else {
+    LIBS += -lmnecppInverse \
+            -lmnecppFwd \
+            -lmnecppMne \
+            -lmnecppFiff \
+            -lmnecppFs \
+            -lmnecppUtils \
 }
-else {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
-            -lMNE$${MNE_LIB_VERSION}Fs \
-            -lMNE$${MNE_LIB_VERSION}Fiff \
-            -lMNE$${MNE_LIB_VERSION}Mne \
-            -lMNE$${MNE_LIB_VERSION}Fwd \
-            -lMNE$${MNE_LIB_VERSION}Inverse \
-            -lMNE$${MNE_LIB_VERSION}Fwd
-}
-
-DESTDIR =  $${MNE_BINARY_DIR}
 
 SOURCES += \
     main.cpp
 
 HEADERS += \
 
-
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
 
-unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
+unix:!macx {
+    QMAKE_RPATHDIR += $ORIGIN/../lib
+}
+
+macx {
+    QMAKE_LFLAGS += -Wl,-rpath,@executable_path/../lib
+}
+
+# Activate FFTW backend in Eigen for non-static builds only
+contains(MNECPP_CONFIG, useFFTW):!contains(MNECPP_CONFIG, static) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
+
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
+    }
+
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
+}

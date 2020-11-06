@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_proj_op.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MNEProjOp Class.
-*
-*/
+ * @file     mne_proj_op.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MNEProjOp Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -49,8 +48,6 @@
 
 #include <Eigen/Core>
 
-
-
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -58,9 +55,6 @@
 #ifndef FALSE
 #define FALSE 0
 #endif
-
-
-
 
 #ifndef FAIL
 #define FAIL -1
@@ -70,14 +64,9 @@
 #define OK 0
 #endif
 
-
-
-
 #define MALLOC_23(x,t) (t *)malloc((x)*sizeof(t))
 
 #define REALLOC_23(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
-
-
 
 #define FREE_23(x) if ((char *)(x) != NULL) free((char *)(x))
 
@@ -91,11 +80,7 @@ void mne_free_cmatrix_23 (float **m)
     }
 }
 
-
-
 #define ALLOC_CMATRIX_23(x,y) mne_cmatrix_23((x),(y))
-
-
 
 static void matrix_error_23(int kind, int nr, int nc)
 
@@ -114,7 +99,6 @@ static void matrix_error_23(int kind, int nr, int nc)
     exit(1);
 }
 
-
 float **mne_cmatrix_23(int nr,int nc)
 
 {
@@ -131,12 +115,6 @@ float **mne_cmatrix_23(int nr,int nc)
         m[i] = whole + i*nc;
     return m;
 }
-
-
-
-
-
-
 
 float mne_dot_vectors_23 (float *v1,
                        float *v2,
@@ -157,11 +135,7 @@ float mne_dot_vectors_23 (float *v1,
 #endif
 }
 
-
-
 //============================= mne_named_matrix.c =============================
-
-
 
 void mne_string_to_name_list_23(const QString& s, QStringList& listp,int &nlistp)
 /*
@@ -171,14 +145,13 @@ void mne_string_to_name_list_23(const QString& s, QStringList& listp,int &nlistp
     QStringList list;
 
     if (!s.isEmpty() && s.size() > 0) {
-        list = s.split(":");
+        list = FIFFLIB::FiffStream::split_name_list(s);
+        //list = s.split(":");
     }
     listp  = list;
     nlistp = list.size();
     return;
 }
-
-
 
 void fromFloatEigenMatrix_23(const Eigen::MatrixXf& from_mat, float **& to_mat, const int m, const int n)
 {
@@ -192,11 +165,10 @@ void fromFloatEigenMatrix_23(const Eigen::MatrixXf& from_mat, float **& to_mat)
     fromFloatEigenMatrix_23(from_mat, to_mat, from_mat.rows(), from_mat.cols());
 }
 
-
 QString mne_name_list_to_string_23(const QStringList& list)
 /*
-* Convert a string array to a colon-separated string
-*/
+ * Convert a string array to a colon-separated string
+ */
 {
     int nlist = list.size();
     QString res;
@@ -211,26 +183,21 @@ QString mne_name_list_to_string_23(const QStringList& list)
     return res;
 }
 
-
-QString mne_channel_names_to_string_23(FIFFLIB::fiffChInfo chs, int nch)
+QString mne_channel_names_to_string_23(const QList<FIFFLIB::FiffChInfo>& chs, int nch)
 /*
-* Make a colon-separated string out of channel names
-*/
+ * Make a colon-separated string out of channel names
+ */
 {
     QStringList names;
     QString res;
     if (nch <= 0)
         return res;
     for (int k = 0; k < nch; k++)
-        names.append(chs[k].ch_name);
+        names.append(chs.at(k).ch_name);
     res = mne_name_list_to_string_23(names);
     return res;
 }
 
-
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -239,8 +206,6 @@ using namespace Eigen;
 using namespace FIFFLIB;
 using namespace MNELIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -252,11 +217,9 @@ MneProjOp::MneProjOp()
 , nvec (0)
 , proj_data (NULL)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneProjOp::~MneProjOp()
 {
@@ -266,11 +229,9 @@ MneProjOp::~MneProjOp()
             delete items[k];
 
     // mne_free_proj_op_proj
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MneProjOp::mne_free_proj_op_proj(MneProjOp *op)
 {
@@ -287,13 +248,12 @@ void MneProjOp::mne_free_proj_op_proj(MneProjOp *op)
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneProjOp *MneProjOp::mne_proj_op_combine(MneProjOp *to, MneProjOp *from)
 /*
-    * Copy items from 'from' operator to 'to' operator
-    */
+     * Copy items from 'from' operator to 'to' operator
+     */
 {
     int k;
     MneProjItem* it;
@@ -310,13 +270,12 @@ MneProjOp *MneProjOp::mne_proj_op_combine(MneProjOp *to, MneProjOp *from)
     return to;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MneProjOp::mne_proj_op_add_item_act(MneProjOp *op, MneNamedMatrix *vecs, int kind, const QString& desc, int is_active)
 /*
-* Add a new item to an existing projection operator
-*/
+ * Add a new item to an existing projection operator
+ */
 {
     MneProjItem* new_item;
     int         k;
@@ -361,21 +320,19 @@ void MneProjOp::mne_proj_op_add_item_act(MneProjOp *op, MneNamedMatrix *vecs, in
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MneProjOp::mne_proj_op_add_item(MneProjOp *op, MneNamedMatrix *vecs, int kind, const QString& desc)
 {
     mne_proj_op_add_item_act(op, vecs, kind, desc, TRUE);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneProjOp *MneProjOp::mne_dup_proj_op(MneProjOp *op)
 /*
-* Provide a duplicate (item data only)
-*/
+ * Provide a duplicate (item data only)
+ */
 {
     MneProjOp* dup = new MneProjOp();
     MneProjItem* it;
@@ -392,13 +349,12 @@ MneProjOp *MneProjOp::mne_dup_proj_op(MneProjOp *op)
     return dup;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MneProjOp *MneProjOp::mne_proj_op_average_eeg_ref(FIFFLIB::fiffChInfo chs, int nch)
+MneProjOp *MneProjOp::mne_proj_op_average_eeg_ref(const QList<FiffChInfo>& chs, int nch)
 /*
-    * Make the projection operator for average electrode reference
-    */
+     * Make the projection operator for average electrode reference
+     */
 {
     int eegcount = 0;
     int k;
@@ -408,7 +364,7 @@ MneProjOp *MneProjOp::mne_proj_op_average_eeg_ref(FIFFLIB::fiffChInfo chs, int n
     MneProjOp*      op;
 
     for (k = 0; k < nch; k++)
-        if (chs[k].kind == FIFFV_EEG_CH)
+        if (chs.at(k).kind == FIFFV_EEG_CH)
             eegcount++;
     if (eegcount == 0) {
         qCritical("No EEG channels specified for average reference.");
@@ -418,8 +374,8 @@ MneProjOp *MneProjOp::mne_proj_op_average_eeg_ref(FIFFLIB::fiffChInfo chs, int n
     vec_data = ALLOC_CMATRIX_23(1,eegcount);
 
     for (k = 0; k < nch; k++)
-        if (chs[k].kind == FIFFV_EEG_CH)
-            names.append(chs[k].ch_name);
+        if (chs.at(k).kind == FIFFV_EEG_CH)
+            names.append(chs.at(k).ch_name);
 
     for (k = 0; k < eegcount; k++)
         vec_data[0][k] = 1.0/sqrt((double)eegcount);
@@ -433,8 +389,7 @@ MneProjOp *MneProjOp::mne_proj_op_average_eeg_ref(FIFFLIB::fiffChInfo chs, int n
     return op;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneProjOp::mne_proj_op_affect(MneProjOp *op, const QStringList& list, int nlist)
 {
@@ -451,16 +406,14 @@ int MneProjOp::mne_proj_op_affect(MneProjOp *op, const QStringList& list, int nl
     return naff;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-int MneProjOp::mne_proj_op_affect_chs(MneProjOp *op, fiffChInfo chs, int nch)
+int MneProjOp::mne_proj_op_affect_chs(MneProjOp *op, const QList<FiffChInfo>& chs, int nch)
 {
     QString ch_string;
     int  res;
     QStringList list;
     int  nlist;
-
 
     if (nch == 0)
         return FALSE;
@@ -471,14 +424,13 @@ int MneProjOp::mne_proj_op_affect_chs(MneProjOp *op, fiffChInfo chs, int nch)
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneProjOp::mne_proj_op_proj_vector(MneProjOp *op, float *vec, int nvec, int do_complement)
 /*
-    * Apply projection operator to a vector (floats)
-    * Assume that all dimension checking etc. has been done before
-    */
+     * Apply projection operator to a vector (floats)
+     * Assume that all dimension checking etc. has been done before
+     */
 {
     static float *res = NULL;
     int    res_size   = 0;
@@ -519,13 +471,12 @@ int MneProjOp::mne_proj_op_proj_vector(MneProjOp *op, float *vec, int nvec, int 
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneProjOp *MneProjOp::mne_read_proj_op_from_node(FiffStream::SPtr &stream, const FiffDirNode::SPtr &start)
 /*
-    * Load all the linear projection data
-    */
+     * Load all the linear projection data
+     */
 {
     MneProjOp*   op     = NULL;
     QList<FiffDirNode::SPtr> proj;
@@ -675,8 +626,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneProjOp *MneProjOp::mne_read_proj_op(const QString &name)
 {
@@ -696,13 +646,12 @@ MneProjOp *MneProjOp::mne_read_proj_op(const QString &name)
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MneProjOp::mne_proj_op_report_data(FILE *out, const char *tag, MneProjOp *op, int list_data, char **exclude, int nexclude)
 /*
-    * Output info about the projection operator
-    */
+     * Output info about the projection operator
+     */
 {
     int j,k,p,q;
     MneProjItem* it;
@@ -755,8 +704,7 @@ void MneProjOp::mne_proj_op_report_data(FILE *out, const char *tag, MneProjOp *o
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MneProjOp::mne_proj_op_report(FILE *out, const char *tag, MneProjOp *op)
 {

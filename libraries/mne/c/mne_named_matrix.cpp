@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_named_matrix.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the  MNE Named Matrix (MneNamedMatrix) Class.
-*
-*/
+ * @file     mne_named_matrix.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the  MNE Named Matrix (MneNamedMatrix) Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -44,8 +43,6 @@
 #include <fiff/fiff_stream.h>
 #include <fiff/fiff_tag.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -53,7 +50,6 @@
 using namespace Eigen;
 using namespace MNELIB;
 using namespace FIFFLIB;
-
 
 #define MALLOC_14(x,t) (t *)malloc((x)*sizeof(t))
 #define REALLOC_14(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
@@ -76,8 +72,6 @@ static void matrix_error_14(int kind, int nr, int nc)
     exit(1);
 }
 
-
-
 float **mne_cmatrix_14(int nr,int nc)
 
 {
@@ -95,12 +89,9 @@ float **mne_cmatrix_14(int nr,int nc)
     return m;
 }
 
-
-
 #define FREE_14(x) if ((char *)(x) != NULL) free((char *)(x))
 
 #define FREE_CMATRIX_14(m) mne_free_cmatrix_14((m))
-
 
 void mne_free_cmatrix_14 (float **m)
 {
@@ -109,8 +100,6 @@ void mne_free_cmatrix_14 (float **m)
         FREE_14(m);
     }
 }
-
-
 
 void fromFloatEigenMatrix_14(const Eigen::MatrixXf& from_mat, float **& to_mat, const int m, const int n)
 {
@@ -124,9 +113,6 @@ void fromFloatEigenMatrix_14(const Eigen::MatrixXf& from_mat, float **& to_mat)
     fromFloatEigenMatrix_14(from_mat, to_mat, from_mat.rows(), from_mat.cols());
 }
 
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -138,11 +124,9 @@ MneNamedMatrix::MneNamedMatrix()
 , collist(NULL)
 , data(NULL)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneNamedMatrix::MneNamedMatrix(const MneNamedMatrix &p_MneNamedMatrix)
 {
@@ -160,18 +144,20 @@ MneNamedMatrix::MneNamedMatrix(const MneNamedMatrix &p_MneNamedMatrix)
     this->data = res->data;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneNamedMatrix::~MneNamedMatrix()
 {
     FREE_CMATRIX_14(data);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MneNamedMatrix *MneNamedMatrix::build_named_matrix(int nrow, int ncol, const QStringList& rowlist, const QStringList& collist, float **data)
+MneNamedMatrix *MneNamedMatrix::build_named_matrix(int nrow,
+                                                   int ncol,
+                                                   const QStringList& rowlist,
+                                                   const QStringList& collist,
+                                                   float **data)
 {
     MneNamedMatrix* mat = new MneNamedMatrix;
     mat->nrow    = nrow;
@@ -182,8 +168,7 @@ MneNamedMatrix *MneNamedMatrix::build_named_matrix(int nrow, int ncol, const QSt
     return mat;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneNamedMatrix *MneNamedMatrix::pick_from_named_matrix(const QStringList& pickrowlist, int picknrow, const QStringList& pickcollist, int pickncol) const
 {
@@ -211,8 +196,8 @@ MneNamedMatrix *MneNamedMatrix::pick_from_named_matrix(const QStringList& pickro
     pick_row = MALLOC_14(picknrow,int);
     pick_col = MALLOC_14(pickncol,int);
     /*
-    * Decide what to pick
-    */
+     * Decide what to pick
+     */
     if (!pickrowlist.isEmpty()) {
         for (j = 0; j < picknrow; j++) {
             one = pickrowlist[j];
@@ -258,8 +243,8 @@ MneNamedMatrix *MneNamedMatrix::pick_from_named_matrix(const QStringList& pickro
         my_pickcollist = this->collist;
     }
     /*
-    * Do the picking of the data accordingly
-    */
+     * Do the picking of the data accordingly
+     */
     pickdata = ALLOC_CMATRIX_14(picknrow,pickncol);
 
     data = this->data;
@@ -280,8 +265,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneNamedMatrix *MneNamedMatrix::read_named_matrix(FiffStream::SPtr &stream, const FiffDirNode::SPtr &node, int kind)
 {
@@ -299,9 +283,9 @@ MneNamedMatrix *MneNamedMatrix::read_named_matrix(FiffStream::SPtr &stream, cons
     FiffDirNode::SPtr tmp_node = node;
 
     /*
-    * If the node is a named-matrix mode, use it.
-    * Otherwise, look in first-generation children
-    */
+     * If the node is a named-matrix mode, use it.
+     * Otherwise, look in first-generation children
+     */
     if (tmp_node->type == FIFFB_MNE_NAMED_MATRIX) {
         if(!tmp_node->find_tag(stream, kind, t_pTag))
             goto bad;

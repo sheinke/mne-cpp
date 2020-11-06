@@ -1,39 +1,37 @@
 //=============================================================================================================
 /**
-* @file     pluginitem.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     August, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief     PluginItem class implementation
-*
-*/
+ * @file     pluginitem.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     August, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief     PluginItem class implementation
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -46,21 +44,17 @@
 #include <QMenu>
 #include <QPainter>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace MNESCAN;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-PluginItem::PluginItem(SCSHAREDLIB::IPlugin::SPtr pPlugin, QMenu *contextMenu, QGraphicsItem *parent)
+PluginItem::PluginItem(SCSHAREDLIB::AbstractPlugin::SPtr pPlugin, QMenu *contextMenu, QGraphicsItem *parent)
 : QGraphicsPolygonItem(parent)
 , m_pPlugin(pPlugin)
 , m_iWidth(60)
@@ -78,17 +72,13 @@ PluginItem::PluginItem(SCSHAREDLIB::IPlugin::SPtr pPlugin, QMenu *contextMenu, Q
 //            m_qColorContour = QColor(79, 136, 187);
 //            m_qLinearGradientFace.setColorAt(0, QColor(234, 239, 247));
 //            break;
-        case SCSHAREDLIB::IPlugin::_IAlgorithm:
+        case SCSHAREDLIB::AbstractPlugin::_IAlgorithm:
             m_qColorContour = QColor(98, 152, 61);
             m_qLinearGradientFace.setColorAt(0, QColor(235, 241, 233));
             break;
-        case SCSHAREDLIB::IPlugin::_ISensor:
+        case SCSHAREDLIB::AbstractPlugin::_ISensor:
             m_qColorContour = QColor(79, 136, 187);
             m_qLinearGradientFace.setColorAt(0, QColor(234, 239, 247));
-            break;
-        case SCSHAREDLIB::IPlugin::_IIO:
-            m_qColorContour = QColor(224, 169, 0);
-            m_qLinearGradientFace.setColorAt(0, QColor(255, 244, 231));
             break;
         default:
             m_qColorContour = QColor(125, 125, 125);
@@ -103,21 +93,18 @@ PluginItem::PluginItem(SCSHAREDLIB::IPlugin::SPtr pPlugin, QMenu *contextMenu, Q
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 PluginItem::~PluginItem()
 {
     m_pPlugin->unload();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginItem::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
 {
     QGraphicsPolygonItem::paint(painter, option, widget);
-
 
     painter->setPen(QPen(m_qColorContour, 1));
 
@@ -139,11 +126,9 @@ void PluginItem::paint(QPainter * painter, const QStyleOptionGraphicsItem * opti
     painter->drawText(-m_iWidth/2+4,-m_iHeight/2+14,m_pPlugin->getName().mid(0,8));
 
     painter->drawText(-m_iWidth/2+4,-m_iHeight/2+28,m_pPlugin->getName().mid(8,8));
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginItem::removeArrow(Arrow *arrow)
 {
@@ -153,8 +138,7 @@ void PluginItem::removeArrow(Arrow *arrow)
         arrows.removeAt(index);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginItem::removeArrows()
 {
@@ -166,16 +150,14 @@ void PluginItem::removeArrows()
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginItem::addArrow(Arrow *arrow)
 {
     arrows.append(arrow);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QPixmap PluginItem::image() const
 {
@@ -192,8 +174,7 @@ QPixmap PluginItem::image() const
     return pixmap;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
@@ -202,8 +183,7 @@ void PluginItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     m_contextMenu->exec(event->screenPos());
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QVariant PluginItem::itemChange(GraphicsItemChange change, const QVariant &value)
 {

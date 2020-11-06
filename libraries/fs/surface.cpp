@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     surface.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-* @version  1.0
-* @date     March, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the Surface class.
-*
-*/
+ * @file     surface.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     March, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the Surface class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,27 +43,22 @@
 
 #include <iostream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QFile>
 #include <QDataStream>
 #include <QTextStream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace UTILSLIB;
 using namespace FSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -77,8 +72,7 @@ Surface::Surface()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Surface::Surface(const QString& p_sFile)
 : m_sFilePath("")
@@ -90,8 +84,7 @@ Surface::Surface(const QString& p_sFile)
     Surface::read(p_sFile, *this);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Surface::Surface(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
 : m_sFilePath("")
@@ -103,8 +96,7 @@ Surface::Surface(const QString &subject_id, qint32 hemi, const QString &surf, co
     Surface::read(subject_id, hemi, surf, subjects_dir, *this);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Surface::Surface(const QString &path, qint32 hemi, const QString &surf)
 : m_sFilePath("")
@@ -116,15 +108,13 @@ Surface::Surface(const QString &path, qint32 hemi, const QString &surf)
     Surface::read(path, hemi, surf, *this);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Surface::~Surface()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Surface::clear()
 {
@@ -138,8 +128,7 @@ void Surface::clear()
     m_vecCurv.resize(0);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MatrixX3f Surface::compute_normals(const MatrixX3f& rr, const MatrixX3i& tris)
 {
@@ -190,8 +179,7 @@ MatrixX3f Surface::compute_normals(const MatrixX3f& rr, const MatrixX3i& tris)
     return nn;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Surface::read(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir, Surface &p_Surface, bool p_bLoadCurvature)
 {
@@ -203,8 +191,7 @@ bool Surface::read(const QString &subject_id, qint32 hemi, const QString &surf, 
     return read(p_sFile, p_Surface, p_bLoadCurvature);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Surface::read(const QString &path, qint32 hemi, const QString &surf, Surface &p_Surface, bool p_bLoadCurvature)
 {
@@ -216,8 +203,7 @@ bool Surface::read(const QString &path, qint32 hemi, const QString &surf, Surfac
     return read(p_sFile, p_Surface, p_bLoadCurvature);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Surface::read(const QString &p_sFile, Surface &p_Surface, bool p_bLoadCurvature)
 {
@@ -419,8 +405,7 @@ bool Surface::read(const QString &p_sFile, Surface &p_Surface, bool p_bLoadCurva
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 VectorXf Surface::read_curv(const QString &p_sFileName)
 {

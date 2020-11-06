@@ -1,48 +1,44 @@
 //=============================================================================================================
 /**
-* @file     fiff_dig_point_set.cpp
-* @author   Jana Kiesel <jana.kiesel@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Jana Kiesel and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    fiff_dig_point_set class definition.
-*
-*/
+ * @file     fiff_dig_point_set.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lorenz Esch, Matti Hamalainen. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    fiff_dig_point_set class definition.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "fiff_dig_point_set.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -52,34 +48,25 @@
 #include "fiff_tag.h"
 #include "fiff_types.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace FIFFLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE GLOBAL METHODS
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -89,17 +76,14 @@ FiffDigPointSet::FiffDigPointSet()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDigPointSet::FiffDigPointSet(const FiffDigPointSet &p_FiffDigPointSet)
 : m_qListDigPoint(p_FiffDigPointSet.m_qListDigPoint)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDigPointSet::FiffDigPointSet(QIODevice &p_IODevice)   //const FiffDigPointSet &p_FiffDigPointSet
 {
@@ -108,24 +92,21 @@ FiffDigPointSet::FiffDigPointSet(QIODevice &p_IODevice)   //const FiffDigPointSe
     //
     FiffStream::SPtr t_pStream(new FiffStream(&p_IODevice));
 
-    if(!FiffDigPointSet::readFromStream(t_pStream, *this))
-    {
+    if(!FiffDigPointSet::readFromStream(t_pStream, *this)) {
         t_pStream->close();
-        qDebug() << "Could not read the FiffDigPointSet\n"; // ToDo throw error
+        qInfo() << "[FiffDigPointSet::FiffDigPointSet] Could not read the FiffDigPointSet"; // ToDo throw error
     }
-    qDebug("%i digitizer Points read in file.", this->size());
+
+    qInfo("[FiffDigPointSet::FiffDigPointSet] %i digitizer Points read from file.", this->size());
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDigPointSet::~FiffDigPointSet()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffDigPointSet::readFromStream(FiffStream::SPtr &p_pStream, FiffDigPointSet &p_Dig)
 {
@@ -205,8 +186,7 @@ bool FiffDigPointSet::readFromStream(FiffStream::SPtr &p_pStream, FiffDigPointSe
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffDigPointSet::write(QIODevice &p_IODevice)
 {
@@ -218,10 +198,10 @@ void FiffDigPointSet::write(QIODevice &p_IODevice)
     FiffStream::SPtr t_pStream = FiffStream::start_file(p_IODevice);
     printf("Write Digitizer Points in %s...\n", t_pStream->streamName().toUtf8().constData());
     this->writeToStream(t_pStream.data());
+    t_pStream->end_file();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffDigPointSet::writeToStream(FiffStream* p_pStream)
 {
@@ -238,10 +218,9 @@ void FiffDigPointSet::writeToStream(FiffStream* p_pStream)
     p_pStream->end_block(FIFFB_ISOTRAK);
     p_pStream->end_block(FIFFB_MEAS_INFO);
     p_pStream->end_block(FIFFB_MEAS);
-    p_pStream->end_file();
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 const FiffDigPoint& FiffDigPointSet::operator[] (qint32 idx) const
 {
@@ -253,8 +232,7 @@ const FiffDigPoint& FiffDigPointSet::operator[] (qint32 idx) const
     return m_qListDigPoint[idx];
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDigPoint& FiffDigPointSet::operator[] (qint32 idx)
 {
@@ -266,8 +244,7 @@ FiffDigPoint& FiffDigPointSet::operator[] (qint32 idx)
     return m_qListDigPoint[idx];
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDigPointSet FiffDigPointSet::pickTypes(QList<int> includeTypes) const
 {
@@ -282,8 +259,7 @@ FiffDigPointSet FiffDigPointSet::pickTypes(QList<int> includeTypes) const
     return pickedSet;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDigPointSet &FiffDigPointSet::operator<<(const FiffDigPoint &dig)
 {
@@ -291,11 +267,31 @@ FiffDigPointSet &FiffDigPointSet::operator<<(const FiffDigPoint &dig)
     return *this;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDigPointSet &FiffDigPointSet::operator<<(const FiffDigPoint *dig)
 {
     this->m_qListDigPoint.append(*dig);
     return *this;
+}
+
+//=============================================================================================================
+
+void FiffDigPointSet::applyTransform(const FiffCoordTrans& coordTrans, bool bApplyInverse)
+{
+    Vector4f tempvec;
+    for(int i = 0; i < m_qListDigPoint.size(); ++i) {
+        tempvec(0) = m_qListDigPoint.at(i).r[0];
+        tempvec(1) = m_qListDigPoint.at(i).r[1];
+        tempvec(2) = m_qListDigPoint.at(i).r[2];
+        tempvec(3) = 1.0f;
+        if(bApplyInverse) {
+            tempvec = coordTrans.invtrans * tempvec;
+        } else {
+            tempvec = coordTrans.trans * tempvec;
+        }
+        m_qListDigPoint[i].r[0] = tempvec(0);
+        m_qListDigPoint[i].r[1] = tempvec(1);
+        m_qListDigPoint[i].r[2] = tempvec(2);
+    }
 }

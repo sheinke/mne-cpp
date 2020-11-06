@@ -1,44 +1,41 @@
 //=============================================================================================================
 /**
-* @file     tmsidriver.h
-* @author   Lorenz Esch <lorenz.esch@tu-ilmenau.de>;
-*           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-* @version  1.0
-* @date     September, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Lorenz Esch, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Contains the declaration of the tmsidriver class. This class implements the basic communication between MNE-X and a TMSI Refa device
-*
-*/
+ * @file     tmsidriver.h
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     September, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Christoph Dinh, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Contains the declaration of the tmsidriver class. This class implements the basic communication between MNE Scan and a TMSI Refa device
+ *
+ */
 
 #ifndef TMSIDRIVER_H
 #define TMSIDRIVER_H
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -54,8 +51,6 @@
 #include <windows.h>
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT STL INCLUDES
 //=============================================================================================================
@@ -65,17 +60,13 @@
 #include <QVector>
 #include <QSysInfo>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE TMSIPlugin
+// DEFINE NAMESPACE TMSIPLUGIN
 //=============================================================================================================
 
-namespace TMSIPlugin
+namespace TMSIPLUGIN
 {
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // Structure Typedefs - structure define as used in the TMSiSDK.dll
 //=============================================================================================================
@@ -153,7 +144,6 @@ typedef struct _FRONTENDINFO
     unsigned short Check;
 }FRONTENDINFO,*PFRONTENDINFO;
 
-//*************************************************************************************************************
 //=============================================================================================================
 // Method Typedefs - method defines as used in the RTINST.DLL
 //=============================================================================================================
@@ -176,8 +166,6 @@ typedef BOOLEAN         ( __stdcall * PSETREFCALCULATION) (IN HANDLE Handle, IN 
 typedef BOOLEAN         ( __stdcall * PSETMEASURINGMODE) (IN HANDLE Handle, IN ULONG Mode, IN int Value );
 typedef BOOLEAN         ( __stdcall * PGETERRORCODE) (IN HANDLE Handle);
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -185,16 +173,12 @@ typedef BOOLEAN         ( __stdcall * PGETERRORCODE) (IN HANDLE Handle);
 using namespace std;
 using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
 class TMSIProducer;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINES
 //=============================================================================================================
@@ -262,53 +246,51 @@ class TMSIProducer;
 //#define TMSISDK false
 //#endif
 
-
 //=============================================================================================================
 /**
-* TMSIDriver
-*
-* @brief The TMSIDriver class provides real time data acquisition of EEG data with a TMSi Refa device.
-*/
+ * TMSIDriver
+ *
+ * @brief The TMSIDriver class provides real time data acquisition of EEG data with a TMSi Refa device.
+ */
 class TMSIDriver
 {
 public:
     //=========================================================================================================
     /**
-    * Constructs a TMSIDriver.
-    *
-    * @param [in] pTMSIProducer a pointer to the corresponding TMSI Producer class.
-    */
+     * Constructs a TMSIDriver.
+     *
+     * @param [in] pTMSIProducer a pointer to the corresponding TMSI Producer class.
+     */
     TMSIDriver(TMSIProducer* pTMSIProducer);
 
     //=========================================================================================================
     /**
-    * Destroys the TMSIDriver.
-    */
+     * Destroys the TMSIDriver.
+     */
     ~TMSIDriver();
 
     //=========================================================================================================
     /**
-    * Get sample from the device in form of a mtrix.
-    * @param [in] MatrixXf the block sample values in form of a matrix.
-    * @param [out] bool returns true if sample was successfully written to the input variable, false otherwise.
-    */
+     * Get sample from the device in form of a mtrix.
+     * @param [in] MatrixXf the block sample values in form of a matrix.
+     * @param [out] bool returns true if sample was successfully written to the input variable, false otherwise.
+     */
     bool getSampleMatrixValue(MatrixXf& sampleMatrix);
 
     //=========================================================================================================
     /**
-    * Initialise device.
-    * @param [in] iNumberOfChannels number of channels specified by the user.
-    * @param [in] iSamplingFrequency sampling frequency specified by the user.
-    * @param [in] iSamplesPerBlock samples per block specified by the user.
-    * @param [in] bUseChExponent Flag for using the channels exponent. Defined by the user via the GUI.
-    * @param [in] bUseUnitGain Flag for using the channels unit gain. Defined by the user via the GUI.
-    * @param [in] bUseUnitOffset Flag for using the channels unit offset. Defined by the user via the GUI.
-    * @param [in] bWriteDriverDebugToFile Flag for writing driver debug information to a file. Defined by the user via the GUI.
-    * @param [in] sOutpuFilePath Holds the path for the output file. Defined by the user via the GUI.
-    * @param [out] bool returns true if device was successfully initialised, false otherwise.
-    * @param [in] bUseCommonAverage Flag for using common average when recording EEG data. Defined by the user via the GUI.
-    * @param [in] bMeasureImpedance Flag for measuring impedances.
-    */
+     * Initialise device.
+     * @param [in] iNumberOfChannels number of channels specified by the user.
+     * @param [in] iSamplingFrequency sampling frequency specified by the user.
+     * @param [in] iSamplesPerBlock samples per block specified by the user.
+     * @param [in] bUseChExponent Flag for using the channels exponent. Defined by the user via the GUI.
+     * @param [in] bUseUnitGain Flag for using the channels unit gain. Defined by the user via the GUI.
+     * @param [in] bUseUnitOffset Flag for using the channels unit offset. Defined by the user via the GUI.
+     * @param [in] bWriteDriverDebugToFile Flag for writing driver debug information to a file. Defined by the user via the GUI.
+     * @param [out] bool returns true if device was successfully initialised, false otherwise.
+     * @param [in] bUseCommonAverage Flag for using common average when recording EEG data. Defined by the user via the GUI.
+     * @param [in] bMeasureImpedance Flag for measuring impedances.
+     */
     bool initDevice(int iNumberOfChannels,
                     int iSamplingFrequency,
                     int iSamplesPerBlock,
@@ -316,15 +298,14 @@ public:
                     bool bUseUnitGain,
                     bool bUseUnitOffset,
                     bool bWriteDriverDebugToFile,
-                    QString sOutpuFilePath,
                     bool bUseCommonAverage,
                     bool bMeasureImpedance);
 
     //=========================================================================================================
     /**
-    * Uninitialise device.
-    * @param [out] bool returns true if device was successfully uninitialised, false otherwise.
-    */
+     * Uninitialise device.
+     * @param [out] bool returns true if device was successfully uninitialised, false otherwise.
+     */
     bool uninitDevice();
 
 private:
@@ -343,7 +324,6 @@ private:
     bool                m_bUseUnitOffset;               /**< Flag for using the channels unit offset. Defined by the user via the GUI.*/
     bool                m_bWriteDriverDebugToFile;      /**< Flag for for writing driver debug informstions to a file. Defined by the user via the GUI.*/
     bool                m_bUsePreprocessing;            /**< Flag for using preprocessing actions for the EEG data. Defined by the user via the GUI.*/
-    QString             m_sOutputFilePath;              /**< Holds the path for the output file. Defined by the user via the GUI.*/
     bool                m_bUseCommonAverage;            /**< Flag for using common average.*/
     bool                m_bMeasureImpedances;           /**< Flag for impedance measuring mode.*/
 
@@ -384,7 +364,6 @@ private:
     PSETMEASURINGMODE   m_oFpSetMeasuringMode;
     PGETERRORCODE       m_oFpGetErrorCode;
 };
-
 } // NAMESPACE
 
 #endif // TMSIDRIVER_H

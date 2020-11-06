@@ -5,15 +5,11 @@
 #include "guess_data.h"
 
 #include <string.h>
-
-
+#include <QScopedPointer>
 
 using namespace INVERSELIB;
 using namespace MNELIB;
 using namespace FWDLIB;
-
-
-
 
 #if defined(_WIN32) || defined(_WIN64)
 #define snprintf _snprintf
@@ -22,8 +18,6 @@ using namespace FWDLIB;
 #define strncasecmp _strnicmp
 #endif
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // STATIC DEFINITIONS
 //=============================================================================================================
@@ -31,7 +25,6 @@ using namespace FWDLIB;
 #ifndef PROGRAM_VERSION
 #define PROGRAM_VERSION     "1.00"
 #endif
-
 
 #ifndef FAIL
 #define FAIL -1
@@ -49,20 +42,15 @@ using namespace FWDLIB;
 #define FALSE 0
 #endif
 
-
 #define BIG_TIME 1e6
 
 #define SEG_LEN 10.0
 
-
 #define EPS_VALUES 0.05
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // STATIC DEFINITIONS ToDo make members
 //=============================================================================================================
-
 
 #define MALLOC(x,t) (t *)malloc((x)*sizeof(t))
 #define REALLOC(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
@@ -71,7 +59,6 @@ using namespace FWDLIB;
 #define ALLOC_CMATRIX(x,y) mne_cmatrix((x),(y))
 
 #define FREE_CMATRIX(m) mne_free_cmatrix((m))
-
 
 static void matrix_error(int kind, int nr, int nc)
 
@@ -90,8 +77,6 @@ static void matrix_error(int kind, int nr, int nc)
     exit(1);
 }
 
-
-
 float **mne_cmatrix (int nr,int nc)
 
 {
@@ -109,8 +94,6 @@ float **mne_cmatrix (int nr,int nc)
     return m;
 }
 
-
-
 void mne_free_cmatrix (float **m)
 {
     if (m) {
@@ -118,13 +101,6 @@ void mne_free_cmatrix (float **m)
         FREE(m);
     }
 }
-
-
-
-
-
-
-
 
 //char *mne_compose_mne_name(const char *path, const char *filename)
 ///*
@@ -160,18 +136,14 @@ void mne_free_cmatrix (float **m)
 //    return res;
 //}
 
-
-
 //============================= misc_util.c =============================
-
-
 
 //============================= mne_named_matrix.c =============================
 
 void mne_free_name_list(char **list, int nlist)
 /*
-* Free a name list array
-*/
+ * Free a name list array
+ */
 {
     int k;
     if (list == NULL || nlist == 0)
@@ -185,7 +157,6 @@ void mne_free_name_list(char **list, int nlist)
     FREE(list);
     return;
 }
-
 
 //============================= mne_ch_selections.c =============================
 
@@ -210,7 +181,6 @@ static mneChSelection new_ch_selection()
     return newsel;
 }
 
-
 mneChSelection mne_ch_selection_these(const QString& selname, const QStringList& names, int nch)
 /*
  * Give an explicit list of interesting channels
@@ -231,8 +201,6 @@ mneChSelection mne_ch_selection_these(const QString& selname, const QStringList&
     return sel;
 }
 
-
-
 static void omit_spaces(QStringList names, int nnames)
 
 {
@@ -244,10 +212,6 @@ static void omit_spaces(QStringList names, int nnames)
     }
     return;
 }
-
-
-
-
 
 int mne_ch_selection_assign_chs(mneChSelection sel,
                                 MneRawData*     data)
@@ -292,8 +256,8 @@ int mne_ch_selection_assign_chs(mneChSelection sel,
         }
     }
     /*
-    * Maybe the derivations will help
-    */
+     * Maybe the derivations will help
+     */
     sel->nderiv = 0;
     if (data->deriv_matched) {
         QStringList deriv_names = data->deriv_matched->deriv_data->rowlist;
@@ -342,8 +306,6 @@ int mne_ch_selection_assign_chs(mneChSelection sel,
         fprintf(stderr,"Selection %c%s%c has %d matched derived channels.\n",'"',sel->name.toUtf8().constData(),'"',sel->nderiv);
     return nch;
 }
-
-
 
 //============================= mne_get_values.c =============================
 
@@ -474,8 +436,6 @@ int mne_get_values_from_data (float time,         /* Interesting time point */
     return (0);
 }
 
-
-
 int mne_get_values_from_data_ch (float time,      /* Interesting time point */
                                  float integ,	  /* Time integration */
                                  float **data,	  /* The data values (channel by channel) */
@@ -586,18 +546,6 @@ int mne_get_values_from_data_ch (float time,      /* Interesting time point */
     return (0);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -607,12 +555,11 @@ DipoleFit::DipoleFit(DipoleFitSettings* p_settings)
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //todo split in initFit where the settings are handed over and the actual fit
 ECDSet DipoleFit::calculateFit() const
 {
-    GuessData*          guess    = NULL;
+    QScopedPointer<GuessData>guess (Q_NULLPTR);
     ECDSet              set;
     FwdEegSphereModel*  eeg_model = NULL;
     DipoleFitData*      fit_data = NULL;
@@ -629,12 +576,21 @@ ECDSet DipoleFit::calculateFit() const
     if ((fit_data = DipoleFitData::setup_dipole_fit_data(   settings->mriname,
                                                             settings->measname,
                                                             settings->bemname.isEmpty() ? NULL : settings->bemname.toUtf8().data(),
-                                                            &settings->r0,eeg_model,settings->accurate,
+                                                            &settings->r0,
+                                                            eeg_model,
+                                                            settings->accurate,
                                                             settings->badname,
                                                             settings->noisename,
-                                                            settings->grad_std,settings->mag_std,settings->eeg_std,
-                                                            settings->mag_reg,settings->grad_reg,settings->eeg_reg,
-                                                            settings->diagnoise,settings->projnames,settings->include_meg,settings->include_eeg)) == NULL   )
+                                                            settings->grad_std,
+                                                            settings->mag_std,
+                                                            settings->eeg_std,
+                                                            settings->mag_reg,
+                                                            settings->grad_reg,
+                                                            settings->eeg_reg,
+                                                            settings->diagnoise,
+                                                            settings->projnames,
+                                                            settings->include_meg,
+                                                            settings->include_eeg)) == NULL)
         goto out;
 
     fit_data->fit_mag_dipoles = settings->fit_mag_dipoles;
@@ -673,8 +629,12 @@ ECDSet DipoleFit::calculateFit() const
     }
     else {
         printf("\n---- Reading data...\n\n");
-        if ((data = MneMeasData::mne_read_meas_data(settings->measname,settings->setno,NULL,NULL,
-                                       fit_data->ch_names,fit_data->nmeg+fit_data->neeg)) == NULL)
+        if ((data = MneMeasData::mne_read_meas_data(settings->measname,
+                                                    settings->setno,
+                                                    NULL,
+                                                    NULL,
+                                                    fit_data->ch_names,
+                                                    fit_data->nmeg+fit_data->neeg)) == NULL)
             goto out;
         if (settings->do_baseline)
             data->adjust_baselines(settings->bmin,settings->bmax);
@@ -697,36 +657,34 @@ ECDSet DipoleFit::calculateFit() const
     }
 
     /*
-    * Proceed to computing the fits
-    */
+     * Proceed to computing the fits
+     */
     printf("\n---- Computing the forward solution for the guesses...\n\n");
-    if ((guess = new GuessData( settings->guessname,
-                                settings->guess_surfname,
-                                settings->guess_mindist, settings->guess_exclude, settings->guess_grid, fit_data)) == NULL)
+    guess.reset(new GuessData( settings->guessname,
+                               settings->guess_surfname,
+                               settings->guess_mindist, settings->guess_exclude, settings->guess_grid, fit_data));
+    if (guess.isNull())
         goto out;
 
     fprintf (stderr,"\n---- Fitting : %7.1f ... %7.1f ms (step: %6.1f ms integ: %6.1f ms)\n\n",
              1000*settings->tmin,1000*settings->tmax,1000*settings->tstep,1000*settings->integ);
 
-
     if (raw) {
-        if (fit_dipoles_raw(settings->measname,raw,sel,fit_data,guess,settings->tmin,settings->tmax,settings->tstep,settings->integ,settings->verbose) == FAIL)
+        if (fit_dipoles_raw(settings->measname,raw,sel,fit_data,guess.take(),settings->tmin,settings->tmax,settings->tstep,settings->integ,settings->verbose) == FAIL)
             goto out;
     }
     else {
-        if (fit_dipoles(settings->measname,data,fit_data,guess,settings->tmin,settings->tmax,settings->tstep,settings->integ,settings->verbose,set) == FAIL)
+        if (fit_dipoles(settings->measname,data,fit_data,guess.take(),settings->tmin,settings->tmax,settings->tstep,settings->integ,settings->verbose,set) == FAIL)
             goto out;
     }
     printf("%d dipoles fitted\n",set.size());
-
 
 out : {
         return set;
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int DipoleFit::fit_dipoles( const QString& dataname, MneMeasData* data, DipoleFitData* fit, GuessData* guess, float tmin, float tmax, float tstep, float integ, int verbose, ECDSet& p_set)
 {
@@ -769,8 +727,7 @@ int DipoleFit::fit_dipoles( const QString& dataname, MneMeasData* data, DipoleFi
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int DipoleFit::fit_dipoles_raw(const QString& dataname, MneRawData* raw, mneChSelection sel, DipoleFitData* fit, GuessData* guess, float tmin, float tmax, float tstep, float integ, int verbose, ECDSet& p_set)
 {
@@ -843,8 +800,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int DipoleFit::fit_dipoles_raw(const QString& dataname, MneRawData* raw, mneChSelection sel, DipoleFitData* fit, GuessData* guess, float tmin, float tmax, float tstep, float integ, int verbose)
 {

@@ -1,39 +1,38 @@
 //=============================================================================================================
 /**
-* @file     plotter.h
-* @author   Limin Sun <liminsun@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     February, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Limin Sun and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Plotter class definition.
-*
-*/
+ * @file     plotter.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     February, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Christoph Dinh, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Plotter class definition.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -42,30 +41,22 @@
 
 #include <cmath>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
 #include <QStylePainter>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace BABYMEGPLUGIN;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -90,8 +81,7 @@ Plotter::Plotter(QWidget *parent)
     setPlotSettings(PlotSettings());
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Plotter::setPlotSettings(const PlotSettings &settings)
 {
@@ -103,8 +93,7 @@ void Plotter::setPlotSettings(const PlotSettings &settings)
     refreshPixmap();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 //void Plotter::zoomOut()
 //{
@@ -117,8 +106,7 @@ void Plotter::setPlotSettings(const PlotSettings &settings)
 //    }
 //}
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 //void Plotter::zoomIn()
 //{
@@ -131,8 +119,7 @@ void Plotter::setPlotSettings(const PlotSettings &settings)
 //    }
 //}
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Plotter::setCurveData(int id, const QVector<QPointF> &data)
 {
@@ -140,8 +127,7 @@ void Plotter::setCurveData(int id, const QVector<QPointF> &data)
     refreshPixmap();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Plotter::clearCurve(int id)
 {
@@ -149,24 +135,21 @@ void Plotter::clearCurve(int id)
     refreshPixmap();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QSize Plotter::minimumSizeHint() const
 {
     return QSize(6*Margin,4*Margin);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QSize Plotter::sizeHint() const
 {
     return QSize(12*Margin, 8*Margin);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Plotter::paintEvent(QPaintEvent * /*event*/)
 {
@@ -187,8 +170,7 @@ void Plotter::paintEvent(QPaintEvent * /*event*/)
 //    }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Plotter::resizeEvent(QResizeEvent * /*event*/)
 {
@@ -199,24 +181,21 @@ void Plotter::resizeEvent(QResizeEvent * /*event*/)
     refreshPixmap();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Plotter::refreshPixmap()
 {
     pixmap = QPixmap(size());
     //pixmap.fill(this, 0, 0);
 
-
     QPainter painter(&pixmap);
-    painter.initFrom(this);
+    painter.begin(this);
     drawGrid(&painter);
     drawCurve(&painter);
     update();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Plotter::drawGrid(QPainter *painter)
 {
@@ -224,7 +203,7 @@ void Plotter::drawGrid(QPainter *painter)
     if(!rect.isValid()) return;
 
     PlotSettings settings = zoomStack[curZoom];
-    QPen quiteDark = palette().dark().color().light();
+    QPen quiteDark = palette().dark().color().lighter();
     QPen light = palette().light().color();
 
     for(int i=0; i<=settings.numXTicks;++i)
@@ -239,7 +218,6 @@ void Plotter::drawGrid(QPainter *painter)
     }
 
     painter->drawText(rect.left(),rect.bottom()+20,rect.width(),20,Qt::AlignCenter, settings.xlabel);
-
 
     for(int j=0; j<=settings.numYTicks;++j)
     {
@@ -257,11 +235,9 @@ void Plotter::drawGrid(QPainter *painter)
 
     drawRotatedText(painter, rect.left()-80, rect.bottom()-40, settings.ylabel);
     painter->drawRect(rect.adjusted(0,0,-1,-1));
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Plotter::drawRotatedText(QPainter *painter, int x, int y, const QString &text)
 {
@@ -272,8 +248,7 @@ void Plotter::drawRotatedText(QPainter *painter, int x, int y, const QString &te
     painter->restore();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Plotter::drawCurve(QPainter *painter)
 {
@@ -302,8 +277,7 @@ void Plotter::drawCurve(QPainter *painter)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 PlotSettings::PlotSettings()
 {
@@ -316,8 +290,7 @@ PlotSettings::PlotSettings()
     numYTicks = 5;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PlotSettings::adjustAxis(double &min, double &max, int &numTicks)
 {

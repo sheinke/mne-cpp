@@ -1,48 +1,44 @@
 //=============================================================================================================
 /**
-* @file     mne_project_to_surface.cpp
-* @author   Jana Kiesel <jana.kiesel@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     August, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Jana Kiesel and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    MNEProjectToSurface class definition.
-*
-*/
+ * @file     mne_project_to_surface.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     August, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lorenz Esch, Matti Hamalainen. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    MNEProjectToSurface class definition.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "mne_project_to_surface.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -50,22 +46,16 @@
 #include <mne/mne_bem_surface.h>
 #include <mne/mne_surface.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Geometry>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -73,14 +63,10 @@
 using namespace MNELIB;
 using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE GLOBAL METHODS
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -95,11 +81,9 @@ MNEProjectToSurface::MNEProjectToSurface()
 , c(VectorXf::Zero(1))
 , det(VectorXf::Zero(1))
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEProjectToSurface::MNEProjectToSurface(const MNEBemSurface &p_MNEBemSurf)
 : r1(MatrixX3f::Zero(p_MNEBemSurf.ntri,3))
@@ -135,8 +119,7 @@ MNEProjectToSurface::MNEProjectToSurface(const MNEBemSurface &p_MNEBemSurf)
     det = (a.array()*b.array() - c.array()*c.array()).matrix();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEProjectToSurface::MNEProjectToSurface(const MNESurface &p_MNESurf)
 : r1(MatrixX3f::Zero(p_MNESurf.ntri,3))
@@ -162,14 +145,16 @@ MNEProjectToSurface::MNEProjectToSurface(const MNESurface &p_MNESurf)
     det = (a.array()*b.array() - c.array()*c.array()).matrix();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNEProjectToSurface::mne_find_closest_on_surface(const MatrixXf &r, const int np, MatrixXf &rTri,
                                                       VectorXi &nearest, VectorXf &dist)
 {
+    // resize output
     nearest.resize(np);
     dist.resize(np);
+    rTri.resize(np,3);
+
     if (this->r1.isZero(0))
     {
         qDebug() << "No surface loaded to make the projection./n";
@@ -196,8 +181,7 @@ bool MNEProjectToSurface::mne_find_closest_on_surface(const MatrixXf &r, const i
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNEProjectToSurface::mne_project_to_surface(const Vector3f &r, Vector3f &rTri, int &bestTri, float &bestDist)
 {
@@ -235,8 +219,7 @@ bool MNEProjectToSurface::mne_project_to_surface(const Vector3f &r, Vector3f &rT
     return false;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNEProjectToSurface::nearest_triangle_point(const Vector3f &r, const int tri, float &p, float &q, float &dist)
 {
@@ -287,8 +270,8 @@ bool MNEProjectToSurface::nearest_triangle_point(const Vector3f &r, const int tr
     bestp = p0;
     bestq = q0;
     /*
-    * Side 2 -> 3
-    */
+     * Side 2 -> 3
+     */
     t0 = ((a(tri)-c(tri))*(-p) + (b(tri)-c(tri))*q)/(a(tri)+b(tri)-2*c(tri));
     // Place the point in the corner if it is not on the side
     if (t0 < 0.0)
@@ -313,8 +296,8 @@ bool MNEProjectToSurface::nearest_triangle_point(const Vector3f &r, const int tr
         bestq = q0;
     }
     /*
-    * Side 1 -> 3
-    */
+     * Side 1 -> 3
+     */
     p0 = 0.0;
     q0 = q + (p * c(tri))/b(tri);
     // Place the point in the corner if it is not on the side
@@ -344,8 +327,7 @@ bool MNEProjectToSurface::nearest_triangle_point(const Vector3f &r, const int tr
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNEProjectToSurface::project_to_triangle(Vector3f &rTri, const float p, const float q, const int tri)
 {

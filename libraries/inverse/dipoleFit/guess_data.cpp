@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     guess_data.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     December, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the GuessData Class.
-*
-*/
+ * @file     guess_data.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     December, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the GuessData Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -49,8 +49,6 @@
 
 #include <QFile>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -60,7 +58,6 @@ using namespace FIFFLIB;
 using namespace MNELIB;
 using namespace FWDLIB;
 using namespace INVERSELIB;
-
 
 //ToDo remove later on
 #ifndef TRUE
@@ -79,15 +76,9 @@ using namespace INVERSELIB;
 #define OK 0
 #endif
 
-
-
-
-
-
 #define X_16 0
 #define Y_16 1
 #define Z_16 2
-
 
 #define VEC_COPY_16(to,from) {\
     (to)[X_16] = (from)[X_16];\
@@ -95,15 +86,11 @@ using namespace INVERSELIB;
     (to)[Z_16] = (from)[Z_16];\
     }
 
-
-
 #define MALLOC_16(x,t) (t *)malloc((x)*sizeof(t))
 
 #define REALLOC_16(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
 
 #define ALLOC_CMATRIX_16(x,y) mne_cmatrix_16((x),(y))
-
-
 
 static void matrix_error_16(int kind, int nr, int nc)
 
@@ -122,7 +109,6 @@ static void matrix_error_16(int kind, int nr, int nc)
     exit(1);
 }
 
-
 float **mne_cmatrix_16(int nr,int nc)
 
 {
@@ -140,9 +126,6 @@ float **mne_cmatrix_16(int nr,int nc)
     return m;
 }
 
-
-
-
 #define FREE_16(x) if ((char *)(x) != NULL) free((char *)(x))
 #define FREE_CMATRIX_16(m) mne_free_cmatrix_16((m))
 
@@ -153,13 +136,6 @@ void mne_free_cmatrix_16 (float **m)
         FREE_16(m);
     }
 }
-
-
-
-
-
-
-
 
 void fromFloatEigenMatrix_16(const Eigen::MatrixXf& from_mat, float **& to_mat, const int m, const int n)
 {
@@ -172,7 +148,6 @@ void fromFloatEigenMatrix_16(const Eigen::MatrixXf& from_mat, float **& to_mat)
 {
     fromFloatEigenMatrix_16(from_mat, to_mat, from_mat.rows(), from_mat.cols());
 }
-
 
 //int
 void fromIntEigenMatrix_16(const Eigen::MatrixXi& from_mat, int **&to_mat, const int m, const int n)
@@ -187,8 +162,6 @@ void fromIntEigenMatrix_16(const Eigen::MatrixXi& from_mat, int **&to_mat)
     fromIntEigenMatrix_16(from_mat, to_mat, from_mat.rows(), from_mat.cols());
 }
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -198,18 +171,15 @@ GuessData::GuessData()
 , guess_fwd(NULL)
 , nguess(0)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 //GuessData::GuessData(const GuessData& p_GuessData)
 //{
 //}
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 GuessData::GuessData(const QString &guessname, const QString &guess_surfname, float mindist, float exclude, float grid, DipoleFitData *f)
 {
@@ -309,8 +279,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 GuessData::GuessData(const QString &guessname, const QString &guess_surfname, float mindist, float exclude, float grid, DipoleFitData *f, char *guess_save_name)
 {
@@ -374,8 +343,8 @@ GuessData::GuessData(const QString &guessname, const QString &guess_surfname, fl
         //    printf("Wrote guess locations to %s\n",guess_save_name);
     }
     /*
-    * Transform the guess locations to the appropriate coordinate frame
-    */
+     * Transform the guess locations to the appropriate coordinate frame
+     */
     if (MneSurfaceOrVolume::mne_transform_source_spaces_to(f->coord_frame,f->mri_head_t,&guesses,1) != OK)
         goto bad;
     printf("Guess locations are now in %s coordinates.\n",FiffCoordTransOld::mne_coord_frame_name(f->coord_frame));
@@ -413,8 +382,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 GuessData::~GuessData()
 {
@@ -427,8 +395,7 @@ GuessData::~GuessData()
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool GuessData::compute_guess_fields(DipoleFitData* f)
 {

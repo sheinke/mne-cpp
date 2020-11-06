@@ -1,40 +1,38 @@
 //=============================================================================================================
 /**
-* @file     geometryinfo.cpp
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     May, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Lars Debor and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    GeometryInfo class definition.
-*
-*/
+ * @file     geometryinfo.cpp
+ * @author   Gabriel B Motta <gabrielbenmotta@gmail.com>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     May, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Gabriel B Motta, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    GeometryInfo class definition.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,8 +41,6 @@
 
 #include <fiff/fiff_info.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -53,22 +49,16 @@
 #include <fstream>
 #include <set>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
 #include <QtConcurrent/QtConcurrent>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -77,21 +67,17 @@ using namespace DISP3DLIB;
 using namespace Eigen;
 using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE GLOBAL METHODS
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
 QSharedPointer<MatrixXd> GeometryInfo::scdc(const MatrixX3f &matVertices,
                                             const QVector<QVector<int> > &vecNeighborVertices,
-                                            QVector<qint32> &vecVertSubset,
+                                            QVector<int> &vecVertSubset,
                                             double dCancelDist)
 {
     // create matrix and check for empty subset:
@@ -117,32 +103,39 @@ QSharedPointer<MatrixXd> GeometryInfo::scdc(const MatrixX3f &matVertices,
     }
 
     // start threads with their respective parts of the final subset
-    qint32 iSubArraySize = ceil(vecVertSubset.size() / iCores);
-    QVector<QFuture<void> > vecThreads(iCores - 1);
+    qint32 iSubArraySize = int(double(vecVertSubset.size()) / double(iCores));
+    QVector<QFuture<void> > vecThreads(iCores);
     qint32 iBegin = 0;
     qint32 iEnd = iSubArraySize;
 
     for (int i = 0; i < vecThreads.size(); ++i) {
-        vecThreads[i] = QtConcurrent::run(std::bind(iterativeDijkstra,
-                                                    returnMat,
-                                                    std::cref(matVertices),
-                                                    std::cref(vecNeighborVertices),
-                                                    std::cref(vecVertSubset),
-                                                    iBegin,
-                                                    iEnd,
-                                                    dCancelDist));
-        iBegin += iSubArraySize;
-        iEnd += iSubArraySize;
+        //last round
+        if(i == vecThreads.size()-1)
+        {
+            vecThreads[i] = QtConcurrent::run(std::bind(iterativeDijkstra,
+                                                        returnMat,
+                                                        std::cref(matVertices),
+                                                        std::cref(vecNeighborVertices),
+                                                        std::cref(vecVertSubset),
+                                                        iBegin,
+                                                        vecVertSubset.size(),
+                                                        dCancelDist));
+            break;
+        }
+        else
+        {
+            vecThreads[i] = QtConcurrent::run(std::bind(iterativeDijkstra,
+                                                        returnMat,
+                                                        std::cref(matVertices),
+                                                        std::cref(vecNeighborVertices),
+                                                        std::cref(vecVertSubset),
+                                                        iBegin,
+                                                        iEnd,
+                                                        dCancelDist));
+            iBegin += iSubArraySize;
+            iEnd += iSubArraySize;
+        }
     }
-
-    // use main thread to calculate last part of the final subset
-    iterativeDijkstra(returnMat,
-                      matVertices,
-                      vecNeighborVertices,
-                      vecVertSubset,
-                      iBegin,
-                      vecVertSubset.size(),
-                      dCancelDist);
 
     // wait for all other threads to finish
     for (QFuture<void>& f : vecThreads) {
@@ -152,13 +145,12 @@ QSharedPointer<MatrixXd> GeometryInfo::scdc(const MatrixX3f &matVertices,
     return returnMat;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-QVector<qint32> GeometryInfo::projectSensors(const MatrixX3f &matVertices,
-                                             const QVector<Vector3f> &vecSensorPositions)
+QVector<int> GeometryInfo::projectSensors(const MatrixX3f &matVertices,
+                                          const QVector<Vector3f> &vecSensorPositions)
 {
-    QVector<qint32> vecOutputArray;
+    QVector<int> vecOutputArray;
 
     qint32 iCores = QThread::idealThreadCount();
     if (iCores <= 0)
@@ -167,7 +159,7 @@ QVector<qint32> GeometryInfo::projectSensors(const MatrixX3f &matVertices,
         iCores = 2;
     }
 
-    const qint32 iSubArraySize = ceil(vecSensorPositions.size() / iCores);
+    const qint32 iSubArraySize = int(double(vecSensorPositions.size()) / double(iCores));
 
     //small input size no threads needed
     if(iSubArraySize <= 1)
@@ -177,14 +169,15 @@ QVector<qint32> GeometryInfo::projectSensors(const MatrixX3f &matVertices,
                                               vecSensorPositions.constEnd()));
         return vecOutputArray;
     }
+
     // split input array + thread start
-    QVector<QFuture<QVector<qint32>>> vecThreads(iCores - 1);
-    qint32 iBeginOffset = iSubArraySize;
+    QVector<QFuture<QVector<int> > > vecThreads(iCores);
+    qint32 iBeginOffset = 0;
     qint32 iEndOffset = iBeginOffset + iSubArraySize;
     for(qint32 i = 0; i < vecThreads.size(); ++i)
     {
         //last round
-        if(i == vecThreads.size() -1)
+        if(i == vecThreads.size()-1)
         {
             vecThreads[i] = QtConcurrent::run(nearestNeighbor,
                                               matVertices,
@@ -202,13 +195,9 @@ QVector<qint32> GeometryInfo::projectSensors(const MatrixX3f &matVertices,
             iEndOffset += iSubArraySize;
         }
     }
-    //calc while waiting for other threads
-    vecOutputArray.append(nearestNeighbor(matVertices,
-                                          vecSensorPositions.constBegin(),
-                                          vecSensorPositions.constBegin() + iSubArraySize));
 
     //wait for threads to finish
-    for (QFuture<QVector<qint32>>& f : vecThreads) {
+    for (QFuture<QVector<int> >& f : vecThreads) {
         f.waitForFinished();
     }
 
@@ -221,17 +210,16 @@ QVector<qint32> GeometryInfo::projectSensors(const MatrixX3f &matVertices,
     return vecOutputArray;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-QVector<qint32> GeometryInfo::nearestNeighbor(const MatrixX3f &matVertices,
-                                              QVector<Vector3f>::const_iterator itSensorBegin,
-                                              QVector<Vector3f>::const_iterator itSensorEnd)
+QVector<int> GeometryInfo::nearestNeighbor(const MatrixX3f &matVertices,
+                                           QVector<Vector3f>::const_iterator itSensorBegin,
+                                           QVector<Vector3f>::const_iterator itSensorEnd)
 {
-    ///lin search sensor positions
-    QVector<qint32> vecMappedSensors;
+    //lin search sensor positions
+    QVector<int> vecMappedSensors;
     vecMappedSensors.reserve(std::distance(itSensorBegin, itSensorEnd));
-
+int u =0;
     for(auto sensor = itSensorBegin; sensor != itSensorEnd; ++sensor)
     {
         qint32 iChampionId;
@@ -240,26 +228,27 @@ QVector<qint32> GeometryInfo::nearestNeighbor(const MatrixX3f &matVertices,
         {
             //calculate 3d euclidian distance
             double dDist = sqrt(squared(matVertices(i, 0) - (*sensor)[0])  // x-cord
-                    + squared(matVertices(i, 1) - (*sensor)[1])    // y-cord
-                    + squared(matVertices(i, 2) - (*sensor)[2]));  // z-cord
+                                + squared(matVertices(i, 1) - (*sensor)[1])    // y-cord
+                                + squared(matVertices(i, 2) - (*sensor)[2]));  // z-cord
             if(dDist < iChampDist)
             {
                 iChampionId = i;
                 iChampDist = dDist;
             }
         }
+       // qDebug() << "[GeometryInfo::nearestNeighbor] u" << u++;
         vecMappedSensors.push_back(iChampionId);
     }
+
     return vecMappedSensors;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void GeometryInfo::iterativeDijkstra(QSharedPointer<MatrixXd> matOutputDistMatrix,
                                      const MatrixX3f &matVertices,
                                      const QVector<QVector<int> > &vecNeighborVertices,
-                                     const QVector<qint32> &vecVertSubset,
+                                     const QVector<int> &vecVertSubset,
                                      qint32 iBegin,
                                      qint32 iEnd,
                                      double dCancelDistance) {
@@ -273,6 +262,8 @@ void GeometryInfo::iterativeDijkstra(QSharedPointer<MatrixXd> matOutputDistMatri
     // outer loop, iterated for each vertex of 'vertSubset' between 'begin' and 'end'
     for (qint32 i = iBegin; i < iEnd; ++i) {
         // init phase of dijkstra: set source node for current iteration and reset data fields
+        if(i ==123)
+            qDebug() << "blabla";
         qint32 iRoot = vecVertSubset.at(i);
         vertexQ.clear();
         vecMinDists.fill(INF);
@@ -318,14 +309,13 @@ void GeometryInfo::iterativeDijkstra(QSharedPointer<MatrixXd> matOutputDistMatri
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-QVector<qint32> GeometryInfo::filterBadChannels(QSharedPointer<Eigen::MatrixXd> matDistanceTable,
+QVector<int> GeometryInfo::filterBadChannels(QSharedPointer<Eigen::MatrixXd> matDistanceTable,
                                                 const FIFFLIB::FiffInfo& fiffInfo,
                                                 qint32 iSensorType) {
     // use pointer to avoid copying of FiffChInfo objects
-    QVector<qint32> vecBadColumns;
+    QVector<int> vecBadColumns;
     QVector<const FiffChInfo*> vecSensors;
     for(const FiffChInfo& s : fiffInfo.chs){
         //Only take EEG with V as unit or MEG magnetometers with T as unit

@@ -1,39 +1,40 @@
 //=============================================================================================================
 /**
-* @file     fiff_stream.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FiffStream Class.
-*
-*/
+ * @file     fiff_stream.cpp
+ * @author   Gabriel B Motta <gabrielbenmotta@gmail.com>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Gabriel B Motta, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FiffStream Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -67,44 +68,31 @@
 #define FALSE 0
 #endif
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
-
 #include <iostream>
 #include <time.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/LU>
 #include <Eigen/Dense>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QFile>
 #include <QTcpSocket>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace FIFFLIB;
 using namespace UTILSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -117,10 +105,10 @@ FiffStream::FiffStream(QIODevice *p_pIODevice)
     this->setVersion(QDataStream::Qt_5_0);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-FiffStream::FiffStream(QByteArray * a, QIODevice::OpenMode mode)
+FiffStream::FiffStream(QByteArray * a,
+                       QIODevice::OpenMode mode)
 : QDataStream(a, mode)
 {
     this->setFloatingPointPrecision(QDataStream::SinglePrecision);
@@ -128,8 +116,7 @@ FiffStream::FiffStream(QByteArray * a, QIODevice::OpenMode mode)
     this->setVersion(QDataStream::Qt_5_0);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QString FiffStream::streamName()
 {
@@ -143,69 +130,61 @@ QString FiffStream::streamName()
     return p_sFileName;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffId FiffStream::id() const
 {
     return m_id;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QList<FiffDirEntry::SPtr>& FiffStream::dir()
 {
     return m_dir;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const QList<FiffDirEntry::SPtr>& FiffStream::dir() const
 {
     return m_dir;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int FiffStream::nent() const
 {
     return m_dir.size();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const FiffDirNode::SPtr& FiffStream::dirtree() const
 {
     return m_dirtree;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::end_block(fiff_int_t kind, fiff_int_t next)
 {
     return this->write_int(FIFF_BLOCK_END,&kind,1,next);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffStream::end_file()
 {
     fiff_int_t datasize = 0;
 
-    *this << (qint32)FIFF_NOP;
-    *this << (qint32)FIFFT_VOID;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_NONE;
+     *this << (qint32)FIFF_NOP;
+     *this << (qint32)FIFFT_VOID;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_NONE;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffStream::finish_writing_raw()
 {
@@ -215,8 +194,7 @@ void FiffStream::finish_writing_raw()
     this->close();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::get_evoked_entries(const QList<FiffDirNode::SPtr> &evoked_node, QStringList &comments, QList<fiff_int_t> &aspect_kinds, QString &t)
 {
@@ -273,8 +251,7 @@ bool FiffStream::get_evoked_entries(const QList<FiffDirNode::SPtr> &evoked_node,
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::open(QIODevice::OpenModeFlag mode)
 {
@@ -282,8 +259,8 @@ bool FiffStream::open(QIODevice::OpenModeFlag mode)
     FiffTag::SPtr t_pTag;
 
     /*
-    * Try to open...
-    */
+     * Try to open...
+     */
     if (!this->device()->open(mode))
     {
         qCritical("Cannot open %s\n", t_sFileName.toUtf8().constData());//consider throw
@@ -294,8 +271,8 @@ bool FiffStream::open(QIODevice::OpenModeFlag mode)
         return false;
 
     /*
-    * Read id and directory pointer
-    */
+     * Read id and directory pointer
+     */
     if (t_pTag->kind != FIFF_FILE_ID) {
         qCritical("FIFF file should start with FIFF_FILE_ID!");//consider throw
         this->device()->close();
@@ -305,7 +282,7 @@ bool FiffStream::open(QIODevice::OpenModeFlag mode)
 
     this->read_tag(t_pTag);
     if (t_pTag->kind != FIFF_DIR_POINTER) {
-        printf("Fiff::open: file does have a directory pointer");//consider throw
+        qWarning("Fiff::open: file does have a directory pointer");//consider throw
         this->device()->close();
         return false;
     }
@@ -313,13 +290,12 @@ bool FiffStream::open(QIODevice::OpenModeFlag mode)
     //
     //   Read or create the directory tree
     //
-    printf("\nCreating tag directory for %s...", t_sFileName.toUtf8().constData());
-
+    qInfo("Creating tag directory for %s...", t_sFileName.toUtf8().constData());
     m_dir.clear();
     qint32 dirpos = *t_pTag->toInt();
     /*
-    * Do we have a directory or not?
-    */
+     * Do we have a directory or not?
+     */
     if (dirpos <= 0) {  /* Must do it in the hard way... */
         bool ok = false;
         m_dir = this->make_dir(&ok);
@@ -337,8 +313,8 @@ bool FiffStream::open(QIODevice::OpenModeFlag mode)
     }
 
     /*
-    * Check for a mistake
-    */
+     * Check for a mistake
+     */
     if (m_dir[m_dir.size()-2]->kind == FIFF_DIR) {
         m_dir.removeLast();
         m_dir[m_dir.size()-1]->kind = -1;
@@ -355,8 +331,6 @@ bool FiffStream::open(QIODevice::OpenModeFlag mode)
     else
         this->m_dirtree->parent.clear();
 
-    printf("[done]\n");
-
     //
     //   Back to the beginning
     //
@@ -364,8 +338,7 @@ bool FiffStream::open(QIODevice::OpenModeFlag mode)
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::close()
 {
@@ -375,8 +348,7 @@ bool FiffStream::close()
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDirNode::SPtr FiffStream::make_subtree(QList<FiffDirEntry::SPtr> &dentry)
 {
@@ -438,14 +410,13 @@ FiffDirNode::SPtr FiffStream::make_subtree(QList<FiffDirEntry::SPtr> &dentry)
         }
     }
     /*
-    * Strip unused entries
-    */
+     * Strip unused entries
+     */
     node->dir = dir;
     return node;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QStringList FiffStream::read_bad_channels(const FiffDirNode::SPtr& p_Node)
 {
@@ -461,8 +432,7 @@ QStringList FiffStream::read_bad_channels(const FiffDirNode::SPtr& p_Node)
     return bads;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::read_cov(const FiffDirNode::SPtr& p_Node, fiff_int_t cov_kind, FiffCov& p_covData)
 {
@@ -474,7 +444,7 @@ bool FiffStream::read_cov(const FiffDirNode::SPtr& p_Node, fiff_int_t cov_kind, 
     QList<FiffDirNode::SPtr> covs = p_Node->dir_tree_find(FIFFB_MNE_COV);
     if (covs.size() == 0)
     {
-        printf("No covariance matrices found");
+        qWarning("No covariance matrices found");
         return false;
     }
     //
@@ -503,7 +473,7 @@ bool FiffStream::read_cov(const FiffDirNode::SPtr& p_Node, fiff_int_t cov_kind, 
             //
             if (!current->find_tag(this, FIFF_MNE_COV_DIM, tag))
             {
-                printf("Covariance matrix dimension not found.\n");
+                qWarning("Covariance matrix dimension not found.\n");
                 return false;
             }
             dim = *tag->toInt();
@@ -517,7 +487,7 @@ bool FiffStream::read_cov(const FiffDirNode::SPtr& p_Node, fiff_int_t cov_kind, 
                 names = FiffStream::split_name_list(tag->toString());
                 if (names.size() != dim)
                 {
-                    printf("Number of names does not match covariance matrix dimension\n");
+                    qWarning("Number of names does not match covariance matrix dimension\n");
                     return false;
                 }
             }
@@ -525,7 +495,7 @@ bool FiffStream::read_cov(const FiffDirNode::SPtr& p_Node, fiff_int_t cov_kind, 
             {
                 if (!current->find_tag(this, FIFF_MNE_COV_DIAG, tag))
                 {
-                    printf("No covariance matrix data found\n");
+                    qWarning("No covariance matrix data found\n");
                     return false;
                 }
                 else
@@ -542,12 +512,12 @@ bool FiffStream::read_cov(const FiffDirNode::SPtr& p_Node, fiff_int_t cov_kind, 
                         cov_diag = Map<VectorXf>(tag->toFloat(),dim).cast<double>();
                     }
                     else {
-                        printf("Illegal data type for covariance matrix\n");
+                        qCritical("Illegal data type for covariance matrix\n");
                         return false;
                     }
 
                     diagmat = true;
-                    printf("\t%d x %d diagonal covariance (kind = %d) found.\n", dim, dim, cov_kind);
+                    qInfo("\t%d x %d diagonal covariance (kind = %d) found.\n", dim, dim, cov_kind);
                 }
             }
             else
@@ -590,7 +560,7 @@ bool FiffStream::read_cov(const FiffDirNode::SPtr& p_Node, fiff_int_t cov_kind, 
                             cov(j,k) = cov(k,j);
 
                     diagmat = false;
-                    printf("\t%d x %d full covariance (kind = %d) found.\n", dim, dim, cov_kind);
+                    qInfo("\t%d x %d full covariance (kind = %d) found.\n", dim, dim, cov_kind);
 
                 }
                 else
@@ -598,7 +568,7 @@ bool FiffStream::read_cov(const FiffDirNode::SPtr& p_Node, fiff_int_t cov_kind, 
                     diagmat = false;
                     qDebug() << "ToDo: FiffStream::read_cov - this needs to be debugged.\n";
                     cov = vals;
-                    printf("\t%d x %d sparse covariance (kind = %d) found.\n", dim, dim, cov_kind);
+                    qInfo("\t%d x %d sparse covariance (kind = %d) found.\n", dim, dim, cov_kind);
                 }
 //MATLAB
 //                    if ~issparse(tag.data)
@@ -677,12 +647,11 @@ bool FiffStream::read_cov(const FiffDirNode::SPtr& p_Node, fiff_int_t cov_kind, 
         }
     }
 
-    printf("Did not find the desired covariance matrix\n");
+    qInfo("Did not find the desired covariance matrix\n");
     return false;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QList<FiffCtfComp> FiffStream::read_ctf_comp(const FiffDirNode::SPtr& p_Node, const QList<FiffChInfo>& p_Chs)
 {
@@ -712,7 +681,7 @@ QList<FiffCtfComp> FiffStream::read_ctf_comp(const FiffDirNode::SPtr& p_Node, co
         }
         if (!t_pTag)
         {
-            printf("Compensation type not found\n");
+            qWarning("Compensation type not found\n");
             return compdata;
         }
         //
@@ -784,12 +753,12 @@ QList<FiffCtfComp> FiffStream::read_ctf_comp(const FiffDirNode::SPtr& p_Node, co
                 }
                 if (count == 0)
                 {
-                    printf("Channel %s is not available in data",mat->col_names.at(col).toUtf8().constData());
+                    qWarning("Channel %s is not available in data",mat->col_names.at(col).toUtf8().constData());
                     return compdata;
                 }
                 else if (count > 1)
                 {
-                    printf("Ambiguous channel %s",mat->col_names.at(col).toUtf8().constData());
+                    qWarning("Ambiguous channel %s",mat->col_names.at(col).toUtf8().constData());
                     return compdata;
                 }
                 col_cals(col,0) = 1.0f/(p_Chs[p].range*p_Chs[p].cal);
@@ -813,12 +782,12 @@ QList<FiffCtfComp> FiffStream::read_ctf_comp(const FiffDirNode::SPtr& p_Node, co
 
                 if (count == 0)
                 {
-                    printf("Channel %s is not available in data",mat->row_names.at(row).toUtf8().constData());
+                    qWarning("Channel %s is not available in data",mat->row_names.at(row).toUtf8().constData());
                     return compdata;
                 }
                 else if (count > 1)
                 {
-                    printf("Ambiguous channel %s",mat->row_names.at(row).toUtf8().constData());
+                    qWarning("Ambiguous channel %s",mat->row_names.at(row).toUtf8().constData());
                     return compdata;
                 }
 
@@ -833,13 +802,12 @@ QList<FiffCtfComp> FiffStream::read_ctf_comp(const FiffDirNode::SPtr& p_Node, co
     }
 
     if (compdata.size() > 0)
-        printf("\tRead %d compensation matrices\n",compdata.size());
+        qInfo("\tRead %d compensation matrices\n",compdata.size());
 
     return compdata;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::read_digitizer_data(const FiffDirNode::SPtr& p_Node, FiffDigitizerData& p_digData)
 {
@@ -901,8 +869,7 @@ bool FiffStream::read_digitizer_data(const FiffDirNode::SPtr& p_Node, FiffDigiti
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::read_meas_info_base(const FiffDirNode::SPtr& p_Node, FiffInfoBase& p_InfoForward)
 {
@@ -915,7 +882,7 @@ bool FiffStream::read_meas_info_base(const FiffDirNode::SPtr& p_Node, FiffInfoBa
 
     if (parent_meg.size() == 0)
     {
-        printf("No parent MEG information found in operator\n");
+        qWarning("No parent MEG information found in operator\n");
         return false;
     }
 
@@ -958,10 +925,10 @@ bool FiffStream::read_meas_info_base(const FiffDirNode::SPtr& p_Node, FiffInfoBa
         else if (cand.from == FIFFV_MNE_COORD_CTF_HEAD && cand.to == FIFFV_COORD_HEAD)
             p_InfoForward.ctf_head_t = cand;
         else
-            printf("MEG device/head coordinate transformation not found");
+            qWarning("MEG device/head coordinate transformation not found");
     }
     else
-        printf("MEG/head coordinate transformation not found.\n");
+        qWarning("MEG/head coordinate transformation not found.\n");
 
     //
     //   Load the bad channel list
@@ -971,8 +938,7 @@ bool FiffStream::read_meas_info_base(const FiffDirNode::SPtr& p_Node, FiffInfoBa
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::read_meas_info(const FiffDirNode::SPtr& p_Node, FiffInfo& info, FiffDirNode::SPtr& p_NodeInfo)
 {
@@ -986,13 +952,13 @@ bool FiffStream::read_meas_info(const FiffDirNode::SPtr& p_Node, FiffInfo& info,
 
     if (meas.size() == 0)
     {
-        printf("Could not find measurement data\n");
+        qWarning("Could not find measurement data\n");
         return false;
     }
     //
     QList<FiffDirNode::SPtr> meas_info = meas[0]->dir_tree_find(FIFFB_MEAS_INFO);
     if (meas_info.count() == 0) {
-        printf("Could not find measurement info\n");
+        qWarning("Could not find measurement info\n");
 //        delete meas[0];
         return false;
     }
@@ -1003,9 +969,20 @@ bool FiffStream::read_meas_info(const FiffDirNode::SPtr& p_Node, FiffInfo& info,
 
     fiff_int_t nchan = -1;
     float sfreq = -1.0f;
+    float linefreq = -1.0f;
     QList<FiffChInfo> chs;
     float lowpass = -1.0f;
     float highpass = -1.0f;
+
+    int proj_id = 0;
+    QString proj_name = "";
+    QString xplotter_layout = "";
+
+    QString utc_offset = "";
+    fiff_int_t gantry_angle = -1;
+
+    QString experimenter = "";
+    QString description = "";
 
     FiffChInfo t_chInfo;
 
@@ -1034,6 +1011,10 @@ bool FiffStream::read_meas_info(const FiffDirNode::SPtr& p_Node, FiffInfo& info,
                 this->read_tag(t_pTag, pos);
                 sfreq = *t_pTag->toFloat();
                 break;
+            case FIFF_LINE_FREQ:
+                this->read_tag(t_pTag, pos);
+                linefreq = *t_pTag->toFloat();
+                break;
             case FIFF_CH_INFO:
                 this->read_tag(t_pTag, pos);
                 chs.append( t_pTag->toChInfo() );
@@ -1060,6 +1041,34 @@ bool FiffStream::read_meas_info(const FiffDirNode::SPtr& p_Node, FiffInfo& info,
                 else if (cand.from == FIFFV_MNE_COORD_CTF_HEAD && cand.to == FIFFV_COORD_HEAD)
                     ctf_head_t = cand;
                 break;
+            case FIFF_PROJ_ID:
+                this->read_tag(t_pTag,pos);
+                proj_id = *t_pTag->toInt();
+                break;
+            case FIFF_PROJ_NAME:
+                this->read_tag(t_pTag,pos);
+                proj_name = t_pTag->toString();
+                break;
+            case FIFF_XPLOTTER_LAYOUT:
+                this->read_tag(t_pTag,pos);
+                xplotter_layout = t_pTag->toString();
+                break;
+            case FIFF_EXPERIMENTER:
+                this->read_tag(t_pTag,pos);
+                experimenter = t_pTag->toString();
+                break;
+            case FIFF_DESCRIPTION:
+                this->read_tag(t_pTag,pos);
+                description = t_pTag->toString();
+                break;
+            case FIFF_GANTRY_ANGLE:
+                this->read_tag(t_pTag,pos);
+                gantry_angle = *t_pTag->toInt();
+                break;
+            case FIFF_UTC_OFFSET:
+                this->read_tag(t_pTag,pos);
+                utc_offset = t_pTag->toString();
+                break;
         }
     }
     //
@@ -1067,22 +1076,26 @@ bool FiffStream::read_meas_info(const FiffDirNode::SPtr& p_Node, FiffInfo& info,
     //
     if (nchan < 0)
     {
-        printf("Number of channels in not defined\n");
+        qWarning("Number of channels in not defined\n");
         return false;
     }
     if (sfreq < 0)
     {
-        printf("Sampling frequency is not defined\n");
+        qWarning("Sampling frequency is not defined\n");
         return false;
+    }
+    if (linefreq < 0)
+    {
+        qWarning("Line frequency is not defined\n");
     }
     if (chs.size() == 0)
     {
-        printf("Channel information not defined\n");
+        qWarning("Channel information not defined\n");
         return false;
     }
     if (chs.size() != nchan)
     {
-        printf("Incorrect number of channel definitions found\n");
+        qWarning("Incorrect number of channel definitions found\n");
         return false;
     }
 
@@ -1233,6 +1246,8 @@ bool FiffStream::read_meas_info(const FiffDirNode::SPtr& p_Node, FiffInfo& info,
 
     info.nchan  = nchan;
     info.sfreq  = sfreq;
+    info.linefreq = linefreq;
+
     if (highpass != -1.0f)
         info.highpass = highpass;
     else
@@ -1272,6 +1287,14 @@ bool FiffStream::read_meas_info(const FiffDirNode::SPtr& p_Node, FiffInfo& info,
     if (!dig_trans.isEmpty())
         info.dig_trans = dig_trans;
 
+    info.experimenter = experimenter;
+    info.description = description;
+    info.proj_id = proj_id;
+    info.proj_name = proj_name;
+    info.xplotter_layout = xplotter_layout;
+    info.gantry_angle = gantry_angle;
+    info.utc_offset = utc_offset;
+
     info.bads  = bads;
     info.projs = projs;
     info.comps = comps;
@@ -1283,8 +1306,7 @@ bool FiffStream::read_meas_info(const FiffDirNode::SPtr& p_Node, FiffInfo& info,
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::read_named_matrix(const FiffDirNode::SPtr& p_Node, fiff_int_t matkind, FiffNamedMatrix& mat)
 {
@@ -1311,7 +1333,7 @@ bool FiffStream::read_named_matrix(const FiffDirNode::SPtr& p_Node, fiff_int_t m
        }
        if (!found_it)
        {
-          printf("Fiff::read_named_matrix: Desired named matrix (kind = %d) not available\n",matkind);
+          qWarning("Fiff::read_named_matrix: Desired named matrix (kind = %d) not available\n",matkind);
           return false;
        }
     }
@@ -1319,7 +1341,7 @@ bool FiffStream::read_named_matrix(const FiffDirNode::SPtr& p_Node, fiff_int_t m
     {
         if (!node->has_tag(matkind))
         {
-            printf("Desired named matrix (kind = %d) not available",matkind);
+            qWarning("Desired named matrix (kind = %d) not available",matkind);
             return false;
         }
     }
@@ -1330,7 +1352,7 @@ bool FiffStream::read_named_matrix(const FiffDirNode::SPtr& p_Node, fiff_int_t m
     //
     if(!node->find_tag(this, matkind, t_pTag))
     {
-        printf("Matrix data missing.\n");
+        qWarning("Matrix data missing.\n");
         return false;
     }
     else
@@ -1346,13 +1368,13 @@ bool FiffStream::read_named_matrix(const FiffDirNode::SPtr& p_Node, fiff_int_t m
     if(node->find_tag(this, FIFF_MNE_NROW, t_pTag))
         if (*t_pTag->toInt() != mat.nrow)
         {
-            printf("Number of rows in matrix data and FIFF_MNE_NROW tag do not match");
+            qWarning("Number of rows in matrix data and FIFF_MNE_NROW tag do not match");
             return false;
         }
     if(node->find_tag(this, FIFF_MNE_NCOL, t_pTag))
         if (*t_pTag->toInt() != mat.ncol)
         {
-            printf("Number of columns in matrix data and FIFF_MNE_NCOL tag do not match");
+            qWarning("Number of columns in matrix data and FIFF_MNE_NCOL tag do not match");
             return false;
         }
 
@@ -1375,19 +1397,18 @@ bool FiffStream::read_named_matrix(const FiffDirNode::SPtr& p_Node, fiff_int_t m
 
     if (mat.row_names.size() != mat.nrow)
     {
-        printf("FiffStream::read_named_matrix - Number of rows in matrix data and row names do not match");
+        qWarning("FiffStream::read_named_matrix - Number of rows in matrix data and row names do not match\n");
     }
 
     if (mat.col_names.size() != mat.ncol)
     {
-        printf("FiffStream::read_named_matrix - Number of columns in matrix data and column names do not match");
+        qWarning("FiffStream::read_named_matrix - Number of columns in matrix data and column names do not match\n");
     }
 
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QList<FiffProj> FiffStream::read_proj(const FiffDirNode::SPtr& p_Node)
 {
@@ -1399,13 +1420,11 @@ QList<FiffProj> FiffStream::read_proj(const FiffDirNode::SPtr& p_Node)
     if ( t_qListNodes.size() == 0 )
         return projdata;
 
-
     FiffTag::SPtr t_pTag;
     t_qListNodes[0]->find_tag(this, FIFF_NCHAN, t_pTag);
     fiff_int_t global_nchan = 0;
     if (t_pTag)
         global_nchan = *t_pTag->toInt();
-
 
     fiff_int_t nchan;
     QList<FiffDirNode::SPtr> t_qListItems = t_qListNodes[0]->dir_tree_find(FIFFB_PROJ_ITEM);
@@ -1435,7 +1454,7 @@ QList<FiffProj> FiffStream::read_proj(const FiffDirNode::SPtr& p_Node)
                 desc = t_pTag->toString();
             else
             {
-                printf("Projection item description missing\n");
+                qWarning("Projection item description missing\n");
                 return projdata;
             }
         }
@@ -1458,7 +1477,7 @@ QList<FiffProj> FiffStream::read_proj(const FiffDirNode::SPtr& p_Node)
         }
         else
         {
-            printf("Projection item kind missing");
+            qWarning("Projection item kind missing");
             return projdata;
         }
         t_pFiffDirTreeItem->find_tag(this, FIFF_PROJ_ITEM_NVEC, t_pTag);
@@ -1469,7 +1488,7 @@ QList<FiffProj> FiffStream::read_proj(const FiffDirNode::SPtr& p_Node)
         }
         else
         {
-            printf("Number of projection vectors not specified\n");
+            qWarning("Number of projection vectors not specified\n");
             return projdata;
         }
         t_pFiffDirTreeItem->find_tag(this, FIFF_PROJ_ITEM_CH_NAME_LIST, t_pTag);
@@ -1480,7 +1499,7 @@ QList<FiffProj> FiffStream::read_proj(const FiffDirNode::SPtr& p_Node)
         }
         else
         {
-            printf("Projection item channel list missing\n");
+            qWarning("Projection item channel list missing\n");
             return projdata;
         }
         t_pFiffDirTreeItem->find_tag(this, FIFF_PROJ_ITEM_VECTORS, t_pTag);
@@ -1492,7 +1511,7 @@ QList<FiffProj> FiffStream::read_proj(const FiffDirNode::SPtr& p_Node)
         }
         else
         {
-            printf("Projection item data missing\n");
+            qWarning("Projection item data missing\n");
             return projdata;
         }
         t_pFiffDirTreeItem->find_tag(this, FIFF_MNE_PROJ_ITEM_ACTIVE, t_pTag);
@@ -1504,11 +1523,9 @@ QList<FiffProj> FiffStream::read_proj(const FiffDirNode::SPtr& p_Node)
 
         if (data.cols() != names.size())
         {
-            printf("Number of channel names does not match the size of data matrix\n");
+            qWarning("Number of channel names does not match the size of data matrix\n");
             return projdata;
         }
-
-
 
         //
         //   create a named matrix for the data
@@ -1537,8 +1554,7 @@ QList<FiffProj> FiffStream::read_proj(const FiffDirNode::SPtr& p_Node)
     return projdata;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::read_tag_data(FiffTag::SPtr &p_pTag, fiff_long_t pos)
 {
@@ -1565,8 +1581,7 @@ bool FiffStream::read_tag_data(FiffTag::SPtr &p_pTag, fiff_long_t pos)
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::read_tag_info(FiffTag::SPtr &p_pTag, bool p_bDoSkip)
 {
@@ -1582,12 +1597,12 @@ fiff_long_t FiffStream::read_tag_info(FiffTag::SPtr &p_pTag, bool p_bDoSkip)
 //    p_pTag->next = Fiff::swap_int(p_pTag->next);
 
     //Option 2
-    *this  >> p_pTag->kind;
-    *this  >> p_pTag->type;
+     *this  >> p_pTag->kind;
+     *this  >> p_pTag->type;
     qint32 size;
-    *this  >> size;
+     *this  >> size;
     p_pTag->resize(size);
-    *this  >> p_pTag->next;
+     *this  >> p_pTag->next;
 
 //    qDebug() << "read_tag_info" << "  Kind:" << p_pTag->kind << "  Type:" << p_pTag->type << "  Size:" << p_pTag->size() << "  Next:" << p_pTag->next;
 
@@ -1619,8 +1634,7 @@ fiff_long_t FiffStream::read_tag_info(FiffTag::SPtr &p_pTag, bool p_bDoSkip)
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::read_rt_tag(FiffTag::SPtr &p_pTag)
 {
@@ -1640,10 +1654,10 @@ bool FiffStream::read_rt_tag(FiffTag::SPtr &p_pTag)
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool FiffStream::read_tag(FiffTag::SPtr &p_pTag, fiff_long_t pos)
+bool FiffStream::read_tag(FiffTag::SPtr &p_pTag,
+                          fiff_long_t pos)
 {
     if (pos >= 0) {
         this->device()->seek(pos);
@@ -1654,22 +1668,32 @@ bool FiffStream::read_tag(FiffTag::SPtr &p_pTag, fiff_long_t pos)
     //
     // Read fiff tag header from stream
     //
-    *this  >> p_pTag->kind;
-    *this  >> p_pTag->type;
+     *this  >> p_pTag->kind;
+     *this  >> p_pTag->type;
     qint32 size;
-    *this  >> size;
+     *this  >> size;
     p_pTag->resize(size);
-    *this  >> p_pTag->next;
+     *this  >> p_pTag->next;
 
 //    qDebug() << "read_tag" << "  Kind:" << p_pTag->kind << "  Type:" << p_pTag->type << "  Size:" << p_pTag->size() << "  Next:" << p_pTag->next;
 
     //
     // Read data when available
     //
+    int endian;
+    if (this->byteOrder() == QDataStream::LittleEndian){
+        endian = FIFFV_LITTLE_ENDIAN;
+        //printf("Endian: Little\n");
+    } else {
+        endian = FIFFV_BIG_ENDIAN;
+        //printf("Endian: Big\n");
+    }
+
     if (p_pTag->size() > 0)
     {
         this->readRawData(p_pTag->data(), p_pTag->size());
-        FiffTag::convert_tag_data(p_pTag,FIFFV_BIG_ENDIAN,FIFFV_NATIVE_ENDIAN);
+        //FiffTag::convert_tag_data(p_pTag,FIFFV_BIG_ENDIAN,FIFFV_NATIVE_ENDIAN);
+        FiffTag::convert_tag_data(p_pTag,endian,FIFFV_NATIVE_ENDIAN);
     }
 
     if (p_pTag->next != FIFFV_NEXT_SEQ)
@@ -1678,10 +1702,12 @@ bool FiffStream::read_tag(FiffTag::SPtr &p_pTag, fiff_long_t pos)
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool FiffStream::setup_read_raw(QIODevice &p_IODevice, FiffRawData& data, bool allow_maxshield)
+bool FiffStream::setup_read_raw(QIODevice &p_IODevice,
+                                FiffRawData& data,
+                                bool allow_maxshield,
+                                bool is_littleEndian)
 {
     //
     //   Open the file
@@ -1689,10 +1715,16 @@ bool FiffStream::setup_read_raw(QIODevice &p_IODevice, FiffRawData& data, bool a
     FiffStream::SPtr t_pStream(new FiffStream(&p_IODevice));
     QString t_sFileName = t_pStream->streamName();
 
-    printf("Opening raw data %s...\n",t_sFileName.toUtf8().constData());
+    if(is_littleEndian){
+        //printf("Setting stream to little Endian\n");
+        t_pStream->setByteOrder(QDataStream::LittleEndian);
+    }
 
-    if(!t_pStream->open())
+    qInfo("Opening raw data %s...\n",t_sFileName.toUtf8().constData());
+
+    if(!t_pStream->open()){
         return false;
+    }
 
     //
     //   Read the measurement info
@@ -1715,9 +1747,11 @@ bool FiffStream::setup_read_raw(QIODevice &p_IODevice, FiffRawData& data, bool a
 //                if(raw[i])
 //                    delete raw[i];
             raw = meas->dir_tree_find(FIFFB_SMSH_RAW_DATA);
+            qInfo("Maxshield data found\n");
+
             if (raw.size() == 0)
             {
-                printf("No raw data in %s\n", t_sFileName.toUtf8().constData());
+                qWarning("No raw data in %s\n", t_sFileName.toUtf8().constData());
                 return false;
             }
         }
@@ -1725,7 +1759,7 @@ bool FiffStream::setup_read_raw(QIODevice &p_IODevice, FiffRawData& data, bool a
         {
             if (raw.size() == 0)
             {
-                printf("No raw data in %s\n", t_sFileName.toUtf8().constData());
+                qWarning("No raw data in %s\n", t_sFileName.toUtf8().constData());
                 return false;
             }
         }
@@ -1743,7 +1777,6 @@ bool FiffStream::setup_read_raw(QIODevice &p_IODevice, FiffRawData& data, bool a
     //
     //   Process the directory
     //
-
     QList<FiffDirEntry::SPtr> dir = raw[0]->dir;
     fiff_int_t nent = raw[0]->nent();
     fiff_int_t nchan = info.nchan;
@@ -1760,7 +1793,6 @@ bool FiffStream::setup_read_raw(QIODevice &p_IODevice, FiffRawData& data, bool a
         first_samp = *t_pTag->toInt();
         ++first;
     }
-
     //
     //  Omit initial skip
     //
@@ -1810,7 +1842,7 @@ bool FiffStream::setup_read_raw(QIODevice &p_IODevice, FiffRawData& data, bool a
                     nsamp = ent->size/(4*nchan);
                     break;
                 default:
-                    printf("Cannot handle data buffers of type %d\n",ent->type);
+                    qWarning("Cannot handle data buffers of type %d\n",ent->type);
                     return false;
             }
             //
@@ -1863,34 +1895,31 @@ bool FiffStream::setup_read_raw(QIODevice &p_IODevice, FiffRawData& data, bool a
     //data->proj       = [];
     //data.comp       = [];
     //
-    printf("\tRange : %d ... %d  =  %9.3f ... %9.3f secs\n",
+    qInfo("\tRange : %d ... %d  =  %9.3f ... %9.3f secs",
            data.first_samp,data.last_samp,
            (double)data.first_samp/data.info.sfreq,
            (double)data.last_samp/data.info.sfreq);
-    printf("Ready.\n");
+    qInfo("Ready.");
     data.file->close();
 
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QStringList FiffStream::split_name_list(QString p_sNameList)
 {
     return p_sNameList.replace(" ","").split(":");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::start_block(fiff_int_t kind)
 {
     return this->write_int(FIFF_BLOCK_START,&kind);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffStream::SPtr FiffStream::start_file(QIODevice& p_IODevice)
 {
@@ -1899,7 +1928,7 @@ FiffStream::SPtr FiffStream::start_file(QIODevice& p_IODevice)
 
     if(!p_pStream->device()->open(QIODevice::WriteOnly))
     {
-        printf("Cannot write to %s\n", t_sFileName.toUtf8().constData());//consider throw
+        qWarning("Cannot write to %s\n", t_sFileName.toUtf8().constData());//consider throw
         FiffStream::SPtr p_pEmptyStream;
         return p_pEmptyStream;
     }
@@ -1917,8 +1946,7 @@ FiffStream::SPtr FiffStream::start_file(QIODevice& p_IODevice)
     return p_pStream;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffStream::SPtr FiffStream::open_update(QIODevice &p_IODevice)
 {
@@ -1927,8 +1955,8 @@ FiffStream::SPtr FiffStream::open_update(QIODevice &p_IODevice)
     QString t_sFileName = t_pStream->streamName();
 
     /*
-    * Try to open...
-    */
+     * Try to open...
+     */
     if(!t_pStream->open(QIODevice::ReadWrite)) {
         qCritical("Cannot open %s\n", t_sFileName.toUtf8().constData());//consider throw
         return FiffStream::SPtr();
@@ -1984,10 +2012,13 @@ FiffStream::SPtr FiffStream::open_update(QIODevice &p_IODevice)
     return t_pStream;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-FiffStream::SPtr FiffStream::start_writing_raw(QIODevice &p_IODevice, const FiffInfo& info, RowVectorXd& cals, MatrixXi sel, bool resetRange)
+FiffStream::SPtr FiffStream::start_writing_raw(QIODevice &p_IODevice,
+                                               const FiffInfo& info,
+                                               RowVectorXd& cals,
+                                               MatrixXi sel,
+                                               bool bResetRange)
 {
     //
     //   We will always write floats
@@ -2024,6 +2055,8 @@ FiffStream::SPtr FiffStream::start_writing_raw(QIODevice &p_IODevice, const Fiff
     //    Measurement info
     //
     t_pStream->start_block(FIFFB_MEAS_INFO);//7
+
+    #ifndef WASMBUILD
     //
     //    Blocks from the original
     //
@@ -2036,7 +2069,10 @@ FiffStream::SPtr FiffStream::start_writing_raw(QIODevice &p_IODevice, const Fiff
         QFile t_qFile(info.filename);//ToDo this has to be adapted for TCPSocket
         FiffStream::SPtr t_pStream2(new FiffStream(&t_qFile));
 
-        t_pStream2->open();
+        if(!t_pStream2->open()){
+            qDebug() << "Failed to open file. Returning early";
+            return t_pStream;
+        }
 
         for(qint32 k = 0; k < blocks.size(); ++k)
         {
@@ -2051,33 +2087,8 @@ FiffStream::SPtr FiffStream::start_writing_raw(QIODevice &p_IODevice, const Fiff
 
         t_pStream2 = FiffStream::SPtr();
     }
-    //
-    // Unused parameters from original file (could eventually put these in info struct)
-    //
-    QList<fiff_int_t> values;
-    values << FIFF_EXPERIMENTER << FIFF_DESCRIPTION << FIFF_PROJ_ID << FIFF_PROJ_NAME << FIFF_LINE_FREQ << FIFF_XPLOTTER_LAYOUT;
-    if (values.size() > 0 && !info.filename.isEmpty())
-    {
-        QFile t_qFile(info.filename);//ToDo this has to be adapted for TCPSocket
-        FiffStream::SPtr t_pStream2(new FiffStream(&t_qFile));
-        FiffTag::SPtr t_pTag;
+    #endif
 
-        t_pStream2->open();
-        QList<FiffDirNode::SPtr> nodes = t_pStream2->dirtree()->dir_tree_find(FIFFB_MEAS_INFO);
-
-        for(qint32 k = 0; k < values.size(); ++k)
-        {
-            if(nodes.size() > 0 && nodes[0]->find_tag(t_pStream2, values[k], t_pTag)) {
-                if (values[k] == FIFF_EXPERIMENTER || values[k] == FIFF_DESCRIPTION || values[k] == FIFF_PROJ_NAME || values[k] == FIFF_XPLOTTER_LAYOUT)
-                    t_pStream->write_string(values[k], t_pTag->toString());
-                else if (values[k] == FIFF_PROJ_ID)
-                    t_pStream->write_int(values[k], t_pTag->toInt());
-                else if (values[k] == FIFF_LINE_FREQ)
-                    t_pStream->write_float(values[k], t_pTag->toFloat());
-            }
-        }
-        t_pStream2 = FiffStream::SPtr();
-    }
     //
     //    megacq parameters
     //
@@ -2092,6 +2103,8 @@ FiffStream::SPtr FiffStream::start_writing_raw(QIODevice &p_IODevice, const Fiff
 
         t_pStream->end_block(FIFFB_DACQ_PARS);
     }
+
+    #ifndef WASMBUILD
     //
     //    Coordinate transformations if the HPI result block was not there
     //
@@ -2114,6 +2127,8 @@ FiffStream::SPtr FiffStream::start_writing_raw(QIODevice &p_IODevice, const Fiff
 
         t_pStream->end_block(FIFFB_ISOTRAK);
     }
+    #endif
+
     //
     //    Projectors
     //
@@ -2137,37 +2152,32 @@ FiffStream::SPtr FiffStream::start_writing_raw(QIODevice &p_IODevice, const Fiff
     t_pStream->write_float(FIFF_SFREQ,&info.sfreq);
     t_pStream->write_float(FIFF_HIGHPASS,&info.highpass);
     t_pStream->write_float(FIFF_LOWPASS,&info.lowpass);
+    t_pStream->write_float(FIFF_LINE_FREQ,&info.linefreq);
+    t_pStream->write_int(FIFF_GANTRY_ANGLE,&info.gantry_angle);
     t_pStream->write_int(FIFF_NCHAN,&nchan);
     t_pStream->write_int(FIFF_DATA_PACK,&data_type);
+    t_pStream->write_int(FIFF_PROJ_ID,&info.proj_id);
+    t_pStream->write_string(FIFF_EXPERIMENTER,info.experimenter);
+    t_pStream->write_string(FIFF_DESCRIPTION,info.description);
+    t_pStream->write_string(FIFF_PROJ_NAME,info.proj_name);
+    t_pStream->write_string(FIFF_XPLOTTER_LAYOUT,info.xplotter_layout);
     if (info.meas_date[0] != -1)
         t_pStream->write_int(FIFF_MEAS_DATE,info.meas_date, 2);
     //
     //    Channel info
     //
     cals = RowVectorXd(nchan);
-
-    if(resetRange)
+    for(k = 0; k < nchan; ++k)
     {
-        for(k = 0; k < nchan; ++k)
-        {
-            //
-            //    Scan numbers may have been messed up
-            //
-            chs[k].scanNo = k+1;//+1 because
-            chs[k].range  = 1.0f;//Why? -> cause its already calibrated through reading
-            cals[k] = chs[k].cal;
-            t_pStream->write_ch_info(chs[k]);
+        //
+        //    Scan numbers may have been messed up
+        //
+        chs[k].scanNo = k+1;
+        if(bResetRange) {
+            chs[k].range = 1.0; // Reset to 1.0 because we always write floats.
         }
-    } else {
-        for(k = 0; k < nchan; ++k)
-        {
-            //
-            //    Scan numbers may have been messed up
-            //
-            chs[k].scanNo = k+1;//+1 because
-            cals[k] = chs[k].cal;
-            t_pStream->write_ch_info(chs[k]);
-        }
+        cals[k] = chs[k].cal;
+        t_pStream->write_ch_info(chs[k]);
     }
     //
     //
@@ -2180,14 +2190,13 @@ FiffStream::SPtr FiffStream::start_writing_raw(QIODevice &p_IODevice, const Fiff
     return t_pStream;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_tag(const QSharedPointer<FiffTag> &p_pTag, fiff_long_t pos)
 {
     /*
-    * Write tag to specified position
-    */
+     * Write tag to specified position
+     */
     if (pos >= 0) {
         this->device()->seek(pos);
     }
@@ -2200,14 +2209,14 @@ fiff_long_t FiffStream::write_tag(const QSharedPointer<FiffTag> &p_pTag, fiff_lo
 
     fiff_int_t datasize = p_pTag->size();
 
-    *this << (qint32)p_pTag->kind;
-    *this << (qint32)p_pTag->type;
-    *this << (qint32)datasize;
-    *this << (qint32)p_pTag->next;
+     *this << static_cast<qint32>(p_pTag->kind);
+     *this << static_cast<qint32>(p_pTag->type);
+     *this << static_cast<qint32>(datasize);
+     *this << static_cast<qint32>(p_pTag->next);
 
     /*
-    * Do we have data?
-    */
+     * Do we have data?
+     */
     if (datasize > 0) {
         /*
         * Data exists...
@@ -2218,8 +2227,7 @@ fiff_long_t FiffStream::write_tag(const QSharedPointer<FiffTag> &p_pTag, fiff_lo
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_ch_info(const FiffChInfo& ch)
 {
@@ -2232,7 +2240,6 @@ fiff_long_t FiffStream::write_ch_info(const FiffChInfo& ch)
     //  fiff_float_t ey[3];              /*!< Coil coordinate system y-axis unit vector */
     //  fiff_float_t ez[3];             /*!< Coil coordinate system z-axis unit vector */
     //} fiffChPosRec,*fiffChPos;        /*!< Measurement channel position and coil type */
-
 
     //typedef struct _fiffChInfoRec {
     //  fiff_int_t    scanNo;        /*!< Scanning order # */
@@ -2247,20 +2254,20 @@ fiff_long_t FiffStream::write_ch_info(const FiffChInfo& ch)
     //} fiffChInfoRec,*fiffChInfo;   /*!< Description of one channel */
     fiff_int_t datasize= 4*13 + 4*7 + 16;
 
-    *this << (qint32)FIFF_CH_INFO;
-    *this << (qint32)FIFFT_CH_INFO_STRUCT;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_SEQ;
+     *this << (qint32)FIFF_CH_INFO;
+     *this << (qint32)FIFFT_CH_INFO_STRUCT;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_SEQ;
 
     //
     //   Start writing fiffChInfoRec
     //
-    *this << (qint32)ch.scanNo;
-    *this << (qint32)ch.logNo;
-    *this << (qint32)ch.kind;
+     *this << (qint32)ch.scanNo;
+     *this << (qint32)ch.logNo;
+     *this << (qint32)ch.kind;
 
-    *this << ch.range;
-    *this << ch.cal;
+     *this << ch.range;
+     *this << ch.cal;
 
     //
     //   FiffChPos follows
@@ -2270,8 +2277,8 @@ fiff_long_t FiffStream::write_ch_info(const FiffChInfo& ch)
     //
     //   unit and unit multiplier
     //
-    *this << (qint32)ch.unit;
-    *this << (qint32)ch.unit_mul;
+     *this << (qint32)ch.unit;
+     *this << (qint32)ch.unit_mul;
 
     //
     //   Finally channel name
@@ -2296,8 +2303,7 @@ fiff_long_t FiffStream::write_ch_info(const FiffChInfo& ch)
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_ch_pos(const FiffChPos &chpos)
 {
@@ -2306,7 +2312,7 @@ fiff_long_t FiffStream::write_ch_pos(const FiffChPos &chpos)
     //
     //   FiffChPos
     //
-    *this << (qint32)chpos.coil_type;
+     *this << (qint32)chpos.coil_type;
 
     qint32 i;
     // r0
@@ -2325,8 +2331,7 @@ fiff_long_t FiffStream::write_ch_pos(const FiffChPos &chpos)
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_coord_trans(const FiffCoordTrans& trans)
 {
@@ -2342,16 +2347,16 @@ fiff_long_t FiffStream::write_coord_trans(const FiffCoordTrans& trans)
     //} *fiffCoordTrans, fiffCoordTransRec;  /*!< Coordinate transformation descriptor */
     fiff_int_t datasize = 4*2*12 + 4*2;
 
-    *this << (qint32)FIFF_COORD_TRANS;
-    *this << (qint32)FIFFT_COORD_TRANS_STRUCT;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_SEQ;
+     *this << (qint32)FIFF_COORD_TRANS;
+     *this << (qint32)FIFFT_COORD_TRANS_STRUCT;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_SEQ;
 
     //
     //   Start writing fiffCoordTransRec
     //
-    *this << (qint32)trans.from;
-    *this << (qint32)trans.to;
+     *this << (qint32)trans.from;
+     *this << (qint32)trans.to;
 
     //
     //   The transform...
@@ -2375,8 +2380,7 @@ fiff_long_t FiffStream::write_coord_trans(const FiffCoordTrans& trans)
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_cov(const FiffCov &p_FiffCov)
 {
@@ -2449,8 +2453,7 @@ fiff_long_t FiffStream::write_cov(const FiffCov &p_FiffCov)
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_ctf_comp(const QList<FiffCtfComp>& comps)
 {
@@ -2488,8 +2491,7 @@ fiff_long_t FiffStream::write_ctf_comp(const QList<FiffCtfComp>& comps)
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_dig_point(const FiffDigPoint& dig)
 {
@@ -2504,30 +2506,29 @@ fiff_long_t FiffStream::write_dig_point(const FiffDigPoint& dig)
     //} *fiffDigPoint,fiffDigPointRec; /*!< Digitization point description */
     fiff_int_t datasize = 5*4;
 
-    *this << (qint32)FIFF_DIG_POINT;
-    *this << (qint32)FIFFT_DIG_POINT_STRUCT;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_SEQ;
+     *this << (qint32)FIFF_DIG_POINT;
+     *this << (qint32)FIFFT_DIG_POINT_STRUCT;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_SEQ;
 
     //
     //   Start writing fiffDigPointRec
     //
-    *this << (qint32)dig.kind;
-    *this << (qint32)dig.ident;
+     *this << (qint32)dig.kind;
+     *this << (qint32)dig.ident;
     for(qint32 i = 0; i < 3; ++i)
         *this << dig.r[i];
 
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_dir_pointer(fiff_int_t dirpos, fiff_long_t pos, fiff_int_t next)
 {
     /*
-    * Write entires to specified position
-    */
+     * Write entires to specified position
+     */
     if (pos >= 0) {
         this->device()->seek(pos);
     }
@@ -2540,18 +2541,17 @@ fiff_long_t FiffStream::write_dir_pointer(fiff_int_t dirpos, fiff_long_t pos, fi
 
     fiff_int_t datasize = 1 * 4;
 
-    *this << (qint32)FIFF_DIR_POINTER;
-    *this << (qint32)FIFFT_INT;
-    *this << (qint32)datasize;
-    *this << (qint32)next;
+     *this << (qint32)FIFF_DIR_POINTER;
+     *this << (qint32)FIFFT_INT;
+     *this << (qint32)datasize;
+     *this << (qint32)next;
 
-    *this << dirpos;
+     *this << dirpos;
 
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_dir_entries(const QList<FiffDirEntry::SPtr> &dir, fiff_long_t pos)
 {
@@ -2566,8 +2566,8 @@ fiff_long_t FiffStream::write_dir_entries(const QList<FiffDirEntry::SPtr> &dir, 
 //     } fiffDirEntryRec,*fiffDirEntry;/**< Directory is composed of these *
 
     /*
-    * Write entires to specified position
-    */
+     * Write entires to specified position
+     */
     if (pos >= 0) {
         this->device()->seek(pos);
     }
@@ -2577,16 +2577,15 @@ fiff_long_t FiffStream::write_dir_entries(const QList<FiffDirEntry::SPtr> &dir, 
             this->device()->seek(file->size());
     }
 
-
     pos = this->device()->pos();
 
     fiff_int_t nent = dir.size();
     fiff_int_t datasize = nent * (fiff_int_t)sizeof(FiffDirEntry);
 
-    *this << (qint32)FIFF_DIR;
-    *this << (qint32)FIFFT_DIR_ENTRY_STRUCT;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_NONE;
+     *this << (qint32)FIFF_DIR;
+     *this << (qint32)FIFFT_DIR_ENTRY_STRUCT;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_NONE;
 
     //
     //   Start writing FiffDirEntries
@@ -2601,8 +2600,7 @@ fiff_long_t FiffStream::write_dir_entries(const QList<FiffDirEntry::SPtr> &dir, 
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_double(fiff_int_t kind, const double* data, fiff_int_t nel)
 {
@@ -2615,16 +2613,13 @@ fiff_long_t FiffStream::write_double(fiff_int_t kind, const double* data, fiff_i
     *this << (qint32)datasize;
     *this << (qint32)FIFFV_NEXT_SEQ;
 
-//    this->setFloatingPointPrecision(QDataStream::SinglePrecision);
-
     for(qint32 i = 0; i < nel; ++i)
         *this << data[i];
 
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_float(fiff_int_t kind, const float* data, fiff_int_t nel)
 {
@@ -2637,16 +2632,13 @@ fiff_long_t FiffStream::write_float(fiff_int_t kind, const float* data, fiff_int
     *this << (qint32)datasize;
     *this << (qint32)FIFFV_NEXT_SEQ;
 
-//    this->setFloatingPointPrecision(QDataStream::SinglePrecision);
-
     for(qint32 i = 0; i < nel; ++i)
         *this << data[i];
 
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_float_matrix(fiff_int_t kind, const MatrixXf& mat)
 {
@@ -2656,10 +2648,10 @@ fiff_long_t FiffStream::write_float_matrix(fiff_int_t kind, const MatrixXf& mat)
 
     fiff_int_t datasize = 4*numel + 4*3;
 
-    *this << (qint32)kind;
-    *this << (qint32)FIFFT_MATRIX_FLOAT;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_SEQ;
+     *this << (qint32)kind;
+     *this << (qint32)FIFFT_MATRIX_FLOAT;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_SEQ;
 
     qint32 i, j;
     // Storage order: row-major
@@ -2678,8 +2670,7 @@ fiff_long_t FiffStream::write_float_matrix(fiff_int_t kind, const MatrixXf& mat)
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_float_sparse_ccs(fiff_int_t kind, const SparseMatrix<float>& mat)
 {
@@ -2722,10 +2713,10 @@ fiff_long_t FiffStream::write_float_sparse_ccs(fiff_int_t kind, const SparseMatr
         }
     }
 
-    *this << (qint32)kind;
-    *this << (qint32)FIFFT_CCS_MATRIX_FLOAT;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_SEQ;
+     *this << (qint32)kind;
+     *this << (qint32)FIFFT_CCS_MATRIX_FLOAT;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_SEQ;
 
     //
     //  The data values
@@ -2772,8 +2763,7 @@ fiff_long_t FiffStream::write_float_sparse_ccs(fiff_int_t kind, const SparseMatr
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_float_sparse_rcs(fiff_int_t kind, const SparseMatrix<float>& mat)
 {
@@ -2819,10 +2809,10 @@ fiff_long_t FiffStream::write_float_sparse_rcs(fiff_int_t kind, const SparseMatr
     //
     // Write tag info header
     //
-    *this << (qint32)kind;
-    *this << (qint32)FIFFT_RCS_MATRIX_FLOAT;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_SEQ;
+     *this << (qint32)kind;
+     *this << (qint32)FIFFT_RCS_MATRIX_FLOAT;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_SEQ;
 
     //
     //  The data values
@@ -2872,8 +2862,7 @@ fiff_long_t FiffStream::write_float_sparse_rcs(fiff_int_t kind, const SparseMatr
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_id(fiff_int_t kind, const FiffId& id)
 {
@@ -2892,10 +2881,10 @@ fiff_long_t FiffStream::write_id(fiff_int_t kind, const FiffId& id)
     //
     fiff_int_t datasize = 5*4;                       //   The id comprises five integers
 
-    *this << (qint32)kind;
-    *this << (qint32)FIFFT_ID_STRUCT;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_SEQ;
+     *this << (qint32)kind;
+     *this << (qint32)FIFFT_ID_STRUCT;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_SEQ;
     //
     // Collect the bits together for one write
     //
@@ -2912,8 +2901,7 @@ fiff_long_t FiffStream::write_id(fiff_int_t kind, const FiffId& id)
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_info_base(const FiffInfoBase & p_FiffInfoBase)
 {
@@ -2946,7 +2934,6 @@ fiff_long_t FiffStream::write_info_base(const FiffInfoBase & p_FiffInfoBase)
         //    Scan numbers may have been messed up
         //
         chs[k].scanNo = k+1;//+1 because
-//        chs[k].range  = 1.0f;//Why? -> cause its already calibrated through reading
         this->write_ch_info(chs[k]);
     }
 
@@ -2981,8 +2968,7 @@ fiff_long_t FiffStream::write_info_base(const FiffInfoBase & p_FiffInfoBase)
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_int(fiff_int_t kind, const fiff_int_t* data, fiff_int_t nel, fiff_int_t next)
 {
@@ -2990,10 +2976,10 @@ fiff_long_t FiffStream::write_int(fiff_int_t kind, const fiff_int_t* data, fiff_
 
     fiff_int_t datasize = nel * 4;
 
-    *this << (qint32)kind;
-    *this << (qint32)FIFFT_INT;
-    *this << (qint32)datasize;
-    *this << (qint32)next;
+     *this << (qint32)kind;
+     *this << (qint32)FIFFT_INT;
+     *this << (qint32)datasize;
+     *this << (qint32)next;
 
     for(qint32 i = 0; i < nel; ++i)
         *this << data[i];
@@ -3001,8 +2987,7 @@ fiff_long_t FiffStream::write_int(fiff_int_t kind, const fiff_int_t* data, fiff_
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_int_matrix(fiff_int_t kind, const MatrixXi& mat)
 {
@@ -3015,10 +3000,10 @@ fiff_long_t FiffStream::write_int_matrix(fiff_int_t kind, const MatrixXi& mat)
 
     fiff_int_t datasize = 4*numel + 4*3;
 
-    *this << (qint32)kind;
-    *this << (qint32)FIFFT_MATRIX_INT;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_SEQ;
+     *this << (qint32)kind;
+     *this << (qint32)FIFFT_MATRIX_INT;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_SEQ;
 
     qint32 i, j;
     // Storage order: row-major
@@ -3037,8 +3022,7 @@ fiff_long_t FiffStream::write_int_matrix(fiff_int_t kind, const MatrixXi& mat)
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_name_list(fiff_int_t kind, const QStringList& data)
 {
@@ -3046,8 +3030,7 @@ fiff_long_t FiffStream::write_name_list(fiff_int_t kind, const QStringList& data
     return this->write_string(kind,all);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_named_matrix(fiff_int_t kind, const FiffNamedMatrix& mat)
 {
@@ -3066,8 +3049,7 @@ fiff_long_t FiffStream::write_named_matrix(fiff_int_t kind, const FiffNamedMatri
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_long_t FiffStream::write_proj(const QList<FiffProj>& projs)
 {
@@ -3102,14 +3084,14 @@ fiff_long_t FiffStream::write_proj(const QList<FiffProj>& projs)
     return pos;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool FiffStream::write_raw_buffer(const MatrixXd& buf, const RowVectorXd& cals)
+bool FiffStream::write_raw_buffer(const MatrixXd& buf,
+                                  const RowVectorXd& cals)
 {
     if (buf.rows() != cals.cols())
     {
-        printf("buffer and calibration sizes do not match\n");
+        qWarning("buffer and calibration sizes do not match\n");
         return false;
     }
 
@@ -3127,13 +3109,13 @@ bool FiffStream::write_raw_buffer(const MatrixXd& buf, const RowVectorXd& cals)
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool FiffStream::write_raw_buffer(const MatrixXd& buf, const SparseMatrix<double>& mult)
+bool FiffStream::write_raw_buffer(const MatrixXd& buf,
+                                  const SparseMatrix<double>& mult)
 {
     if (buf.rows() != mult.cols()) {
-        printf("buffer and mult sizes do not match\n");
+        qWarning("buffer and mult sizes do not match\n");
         return false;
     }
 
@@ -3147,8 +3129,7 @@ bool FiffStream::write_raw_buffer(const MatrixXd& buf, const SparseMatrix<double
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::write_raw_buffer(const MatrixXd& buf)
 {
@@ -3157,41 +3138,39 @@ bool FiffStream::write_raw_buffer(const MatrixXd& buf)
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-fiff_long_t FiffStream::write_string(fiff_int_t kind, const QString& data)
+fiff_long_t FiffStream::write_string(fiff_int_t kind,
+                                     const QString& data)
 {
     fiff_long_t pos = this->device()->pos();
 
     fiff_int_t datasize = data.size();
-    *this << (qint32)kind;
-    *this << (qint32)FIFFT_STRING;
-    *this << (qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_SEQ;
+     *this << (qint32)kind;
+     *this << (qint32)FIFFT_STRING;
+     *this << (qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_SEQ;
 
     this->writeRawData(data.toUtf8().constData(),datasize);
 
     return pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffStream::write_rt_command(fiff_int_t command, const QString& data)
 {
     fiff_int_t datasize = data.size();
-    *this << (qint32)FIFF_MNE_RT_COMMAND;
-    *this << (qint32)FIFFT_VOID;
-    *this << 4+(qint32)datasize;
-    *this << (qint32)FIFFV_NEXT_SEQ;
-    *this << command;
+     *this << (qint32)FIFF_MNE_RT_COMMAND;
+     *this << (qint32)FIFFT_VOID;
+     *this << 4+(qint32)datasize;
+     *this << (qint32)FIFFV_NEXT_SEQ;
+     *this << command;
 
     this->writeRawData(data.toUtf8().constData(),datasize);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QList<FiffDirEntry::SPtr> FiffStream::make_dir(bool *ok)
 {
@@ -3201,8 +3180,8 @@ QList<FiffDirEntry::SPtr> FiffStream::make_dir(bool *ok)
     fiff_long_t pos;
     if(ok) *ok = false;
     /*
-    * Start from the very beginning...
-    */
+     * Start from the very beginning...
+     */
     if(!this->device()->seek(SEEK_SET))
         return dir;
     while ((pos = this->read_tag_info(t_pTag)) != -1) {
@@ -3219,13 +3198,16 @@ QList<FiffDirEntry::SPtr> FiffStream::make_dir(bool *ok)
         t_pFiffDirEntry->type = t_pTag->type;
         t_pFiffDirEntry->size = t_pTag->size();
         t_pFiffDirEntry->pos = (fiff_long_t)pos;
+
+        //qDebug() << "Kind: " << t_pTag->kind << "| Type:" << t_pTag->type << "| Size" << t_pTag->size() << "| Next:" << t_pTag->next;
+
         dir.append(t_pFiffDirEntry);
         if (t_pTag->next < 0)
             break;
     }
     /*
-    * Put in the new the terminating entry
-    */
+     * Put in the new the terminating entry
+     */
     t_pFiffDirEntry = FiffDirEntry::SPtr(new FiffDirEntry);
     t_pFiffDirEntry->kind = -1;
     t_pFiffDirEntry->type = -1;
@@ -3237,8 +3219,7 @@ QList<FiffDirEntry::SPtr> FiffStream::make_dir(bool *ok)
     return dir;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffStream::check_beginning(FiffTag::SPtr &p_pTag)
 {
@@ -3246,18 +3227,18 @@ bool FiffStream::check_beginning(FiffTag::SPtr &p_pTag)
 
     if (p_pTag->kind != FIFF_FILE_ID)
     {
-        printf("Fiff::open: file does not start with a file id tag");//consider throw
+        qWarning("Fiff::open: file does not start with a file id tag\n");//consider throw
         return false;
     }
 
     if (p_pTag->type != FIFFT_ID_STRUCT)
     {
-        printf("Fiff::open: file does not start with a file id tag");//consider throw
+        qWarning("Fiff::open: file does not start with a file id tag\n");//consider throw
         return false;
     }
     if (p_pTag->size() != 20)
     {
-        printf("Fiff::open: file does not start with a file id tag");//consider throw
+        qWarning("Fiff::open: file does not start with a file id tag\n");//consider throw
         return false;
     }
     //do not rewind since the data is contained in the returned tag; -> done for TCP IP reasosn, no rewind possible there

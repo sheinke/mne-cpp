@@ -67,6 +67,12 @@
 #include <mne/c/mne_msh_color_scale_def.h>
 #include <mne/c/mne_surface_patch.h>
 
+//=============================================================================================================
+// DEFINE NAMESPACE INVERSELIB
+//=============================================================================================================
+
+namespace INVERSELIB
+{
 
 typedef struct {
   float  megmin,megmax;             /* MEG gradiometer vertical scale [T/m] */
@@ -308,7 +314,7 @@ typedef struct {
   int           *bads;		                     /* Which channels are bad */
   int           *sels;		                     /* Which channels have been selected for dipole fitting? */
   char          *selname;	                     /* Name of the current channel selection (if any) */
-  mneLayout     lout;				     /* This is the layout */
+  MNELIB::mneLayout     lout;				     /* This is the layout */
   mshScales     scales;				     /* Time and vertical scale and baseline */
 
   float         *custom_data;	                     /* Custom data to use instead of data picked from the responses */
@@ -418,7 +424,6 @@ typedef struct {
 //  FIFFLIB::FiffCoordTransOld*    MNI_tal_tal_ltz_t; /* Transform MNI Talairach to FreeSurfer Talairach coordinates (z < 0) */
 //} *coordTransSet,coordTransSetRec;
 
-
 //typedef struct {		       /* Set of display surfaces */
 //  char              *subj;	       /* The name of the subject */
 //  char              *morph_subj;       /* The subject we are morphing to */
@@ -476,30 +481,6 @@ typedef struct {
   float       max_velocity;	/* Angular velocity scale */
 } *contHpiDataSet, contHpiDataSetRec;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+} // Namespace
 
 #endif

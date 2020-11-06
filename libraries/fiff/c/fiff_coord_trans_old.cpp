@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fiff_coord_trans_old.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FiffCoordTransOld Class.
-*
-*/
+ * @file     fiff_coord_trans_old.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FiffCoordTransOld Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -45,11 +44,8 @@
 
 #include <QFile>
 
-
 #include <Eigen/Dense>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -57,9 +53,6 @@
 using namespace Eigen;
 using namespace FIFFLIB;
 using namespace FIFFLIB;
-
-
-
 
 #ifndef TRUE
 #define TRUE 1
@@ -69,7 +62,6 @@ using namespace FIFFLIB;
 #define FALSE 0
 #endif
 
-
 #ifndef FAIL
 #define FAIL -1
 #endif
@@ -78,16 +70,11 @@ using namespace FIFFLIB;
 #define OK 0
 #endif
 
-
-
 #define X_20 0
 #define Y_20 1
 #define Z_20 2
 
-
-
 #define FREE_20(x) if ((char *)(x) != NULL) free((char *)(x))
-
 
 #define MALLOC_20(x,t) (t *)malloc((x)*sizeof(t))
 
@@ -156,7 +143,6 @@ void mne_free_cmatrix_20(float **m)
 }
 
 #define MIN_20(a,b) ((a) < (b) ? (a) : (b))
-
 
 //float
 Eigen::MatrixXf toFloatEigenMatrix_20(float **mat, const int m, const int n)
@@ -267,7 +253,6 @@ float **mne_matt_mat_mult_20 (float **m1,float **m2,int d1,int d2,int d3)
   return result;
 }
 
-
 static void skip_comments(FILE *in)
 
 {
@@ -286,7 +271,6 @@ static void skip_comments(FILE *in)
     }
 }
 
-
 static int whitespace(int c)
 
 {
@@ -304,7 +288,6 @@ static int whitespace_quote(int c, int inquote)
     else
         return (c == '\t' || c == '\n' || c == ' ');
 }
-
 
 static char *next_word_20(FILE *in)
 
@@ -342,7 +325,6 @@ static char *next_word_20(FILE *in)
     return next;
 }
 
-
 static int get_fval_20(FILE *in, float *fval)
 {
     char *next = next_word_20(in);
@@ -359,21 +341,15 @@ static int get_fval_20(FILE *in, float *fval)
     return OK;
 }
 
-
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
 FiffCoordTransOld::FiffCoordTransOld()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld::FiffCoordTransOld(const FiffCoordTransOld &p_FiffCoordTransOld)
 {
@@ -390,8 +366,7 @@ FiffCoordTransOld::FiffCoordTransOld(const FiffCoordTransOld &p_FiffCoordTransOl
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::catenate(FiffCoordTransOld *t1, FiffCoordTransOld *t2)
 {
@@ -414,8 +389,7 @@ FiffCoordTransOld *FiffCoordTransOld::catenate(FiffCoordTransOld *t1, FiffCoordT
     return (t);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld::FiffCoordTransOld(int from, int to, float rot[3][3], float move[3])
 {
@@ -430,69 +404,64 @@ FiffCoordTransOld::FiffCoordTransOld(int from, int to, float rot[3][3], float mo
     add_inverse(this);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld::~FiffCoordTransOld()
 {
-
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+FiffCoordTrans FiffCoordTransOld::toNew()
+{
+    FiffCoordTrans t = *new FiffCoordTrans;
+    MatrixXf trans = MatrixXf::Identity(4,4);
+    trans.block(0,0,3,3) = this->rot;
+    trans.block(0,3,3,1) = this->move;
+    t.to = this->to;
+    t.from = this->from;
+    t.trans = trans;
+    t.addInverse(t);
+    return t;
+}
+
+//=============================================================================================================
 
 int FiffCoordTransOld::add_inverse(FiffCoordTransOld *t)
 {
-    int   j,k;
-    Matrix4f m;
+    Matrix4f m = Matrix4f::Identity(4,4);
 
-    for (j = 0; j < 3; j++) {
-        for (k = 0; k < 3; k++)
-            m(j,k) = t->rot(j,k);
-        m(j,3) = t->move[j];
-    }
-    for (k = 0; k < 3; k++)
-        m(3,k) = 0.0;
-    m(3,3) = 1.0;
+    m.block(0,0,3,3) = t->rot;
+    m.block(0,3,3,1) = t->move;
 
     m = m.inverse().eval();
 
-    for (j = 0; j < 3; j++) {
-        for (k = 0; k < 3; k++)
-            t->invrot(j,k) = m(j,k);
-        t->invmove[j] = m(j,3);
-    }
+    t->invrot = m.block(0,0,3,3);
+    t->invmove = m.block(0,3,3,1);
+
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::fiff_invert_transform() const
 {
     FiffCoordTransOld* ti = new FiffCoordTransOld;
-    int j,k;
-
-    for (j = 0; j < 3; j++) {
-        ti->move[j] = this->invmove[j];
-        ti->invmove[j] = this->move[j];
-        for (k = 0; k < 3; k++) {
-            ti->rot(j,k)    = this->invrot(j,k);
-            ti->invrot(j,k) = this->rot(j,k);
-        }
-    }
+    ti->move = this->invmove;
+    ti->invmove = this ->move;
+    ti->rot = this->invrot;
+    ti->invrot = this ->rot;
     ti->from = this->to;
     ti->to   = this->from;
     return (ti);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffCoordTransOld::fiff_coord_trans(float r[], const FiffCoordTransOld *t, int do_move)
 /*
-* Apply coordinate transformation
-*/
+ * Apply coordinate transformation
+ */
 {
     int j,k;
     float res[3];
@@ -506,18 +475,17 @@ void FiffCoordTransOld::fiff_coord_trans(float r[], const FiffCoordTransOld *t, 
         r[j] = res[j];
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::fiff_combine_transforms(int from, int to, FiffCoordTransOld *t1, FiffCoordTransOld *t2)
 /*
-* Combine two coordinate transformations
-* to yield a transform from 'from' system
-* to 'to' system.
-*
-* Return NULL if this fails
-*
-*/
+ * Combine two coordinate transformations
+ * to yield a transform from 'from' system
+ * to 'to' system.
+ *
+ * Return NULL if this fails
+ *
+ */
 {
     FiffCoordTransOld* t = NULL;
     int swapped = 0;
@@ -572,13 +540,12 @@ FiffCoordTransOld *FiffCoordTransOld::fiff_combine_transforms(int from, int to, 
     return (t);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffCoordTransOld::fiff_coord_trans_inv(float r[], FiffCoordTransOld *t, int do_move)
 /*
-* Apply inverse coordinate transformation
-*/
+ * Apply inverse coordinate transformation
+ */
 {
     int j,k;
     float res[3];
@@ -592,13 +559,17 @@ void FiffCoordTransOld::fiff_coord_trans_inv(float r[], FiffCoordTransOld *t, in
         r[j] = res[j];
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+namespace FIFFLIB
+{
 
 typedef struct {
     int frame;
     const char *name;
 } frameNameRec;
+
+}
 
 const char *FiffCoordTransOld::mne_coord_frame_name(int frame)
 {
@@ -628,8 +599,7 @@ const char *FiffCoordTransOld::mne_coord_frame_name(int frame)
     return frames[k].name;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffCoordTransOld::mne_print_coord_transform_label(FILE *log, char *label, FiffCoordTransOld *t)
 {
@@ -654,16 +624,14 @@ void FiffCoordTransOld::mne_print_coord_transform_label(FILE *log, char *label, 
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffCoordTransOld::mne_print_coord_transform(FILE *log, FiffCoordTransOld *t)
 {
     mne_print_coord_transform_label(log,NULL,t);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::mne_read_transform(const QString &name, int from, int to)
 /*
@@ -672,7 +640,6 @@ FiffCoordTransOld *FiffCoordTransOld::mne_read_transform(const QString &name, in
 {
     QFile file(name);
     FiffStream::SPtr stream(new FiffStream(&file));
-
 
     FiffCoordTransOld* res = NULL;
     //    fiffFile       in = NULL;
@@ -725,13 +692,12 @@ out : {
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::mne_read_transform_from_node(FiffStream::SPtr &stream, const FiffDirNode::SPtr &node, int from, int to)
 /*
-* Read the specified coordinate transformation
-*/
+ * Read the specified coordinate transformation
+ */
 {
     FiffCoordTransOld* res = NULL;
     FiffTag::SPtr t_pTag;
@@ -772,8 +738,7 @@ out : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::mne_read_mri_transform(const QString &name)
 /*
@@ -783,24 +748,22 @@ FiffCoordTransOld *FiffCoordTransOld::mne_read_mri_transform(const QString &name
     return mne_read_transform(name,FIFFV_COORD_MRI,FIFFV_COORD_HEAD);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::mne_read_meas_transform(const QString &name)
 /*
-* Read the MEG device -> HEAD coordinate transformation
-*/
+ * Read the MEG device -> HEAD coordinate transformation
+ */
 {
     return mne_read_transform(name,FIFFV_COORD_DEVICE,FIFFV_COORD_HEAD);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::mne_read_transform_ascii(char *name, int from, int to)
 /*
-* Read the Neuromag -> FreeSurfer transformation matrix
-*/
+ * Read the Neuromag -> FreeSurfer transformation matrix
+ */
 {
     FILE *in = NULL;
     FiffCoordTransOld* t = NULL;
@@ -847,16 +810,14 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::mne_read_FShead2mri_transform(char *name)
 {
     return mne_read_transform_ascii(name,FIFFV_COORD_HEAD,FIFFV_COORD_MRI);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::mne_identity_transform(int from, int to)
 {
@@ -867,16 +828,15 @@ FiffCoordTransOld *FiffCoordTransOld::mne_identity_transform(int from, int to)
     return new FiffCoordTransOld(from,to,rot,move);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld * FiffCoordTransOld::fiff_make_transform_card (int from,int to,
                                                                  float *rL,
                                                                  float *rN,
                                                                  float *rR)
 /* 'from' coordinate system
-* cardinal points expressed in
-* the 'to' system */
+ * cardinal points expressed in
+ * the 'to' system */
 
 {
     FiffCoordTransOld* t = new FiffCoordTransOld();
@@ -921,8 +881,7 @@ FiffCoordTransOld * FiffCoordTransOld::fiff_make_transform_card (int from,int to
     return (t);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld* FiffCoordTransOld::procrustes_align(int   from_frame,  /* The coordinate frames */
                        int   to_frame,
@@ -943,8 +902,8 @@ FiffCoordTransOld* FiffCoordTransOld::procrustes_align(int   from_frame,  /* The
     float move[3];
 
     /*
-    * Calculate the centroids and subtract;
-    */
+     * Calculate the centroids and subtract;
+     */
     for (c = 0; c < 3; c++)
         from0[c] = to0[c] = 0.0;
     for (j = 0; j < np; j++) {
@@ -964,8 +923,8 @@ FiffCoordTransOld* FiffCoordTransOld::procrustes_align(int   from_frame,  /* The
         }
     }
     /*
-    * Compute the solution of the orthogonal Proscrustes problem
-    */
+     * Compute the solution of the orthogonal Proscrustes problem
+     */
     {
         float **S;
         float **uu = ALLOC_CMATRIX_20(3,3);
@@ -1004,16 +963,16 @@ FiffCoordTransOld* FiffCoordTransOld::procrustes_align(int   from_frame,  /* The
         FREE_CMATRIX_20(vv);
     }
     /*
-    * Now we need to generate a transformed translation vector
-    */
+     * Now we need to generate a transformed translation vector
+     */
     for (j = 0; j < 3; j++) {
         move[j] = to0[j];
         for (k = 0; k < 3; k++)
             move[j] = move[j] - rot[j][k]*from0[k];
     }
     /*
-    * Test the transformation and print the results
-    */
+     * Test the transformation and print the results
+     */
     #ifdef DEBUG
     fprintf(stderr,"Procrustes matching (desired vs. transformed) :\n");
     #endif
@@ -1050,8 +1009,7 @@ FiffCoordTransOld* FiffCoordTransOld::procrustes_align(int   from_frame,  /* The
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCoordTransOld *FiffCoordTransOld::read_helper( FIFFLIB::FiffTag::SPtr& tag)
 {

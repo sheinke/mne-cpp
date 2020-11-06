@@ -1,40 +1,38 @@
 //=============================================================================================================
 /**
-* @file     tmsi.cpp
-* @author   Lorenz Esch <lorenz.esch@tu-ilmenau.de>;
-*           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     September, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Lorenz Esch, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Contains the implementation of the TMSI class.
-*
-*/
+ * @file     tmsi.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     September, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Christoph Dinh, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Contains the implementation of the TMSI class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -42,8 +40,6 @@
 #include "tmsi.h"
 #include "tmsiproducer.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -52,16 +48,19 @@
 #include <QtCore/QTextStream>
 #include <QDebug>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace TMSIPlugin;
+using namespace TMSIPLUGIN;
+using namespace SCSHAREDLIB;
+using namespace SCMEASLIB;
+using namespace UTILSLIB;
+using namespace FIFFLIB;
+using namespace std;
+using namespace UTILSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -69,20 +68,14 @@ using namespace TMSIPlugin;
 TMSI::TMSI()
 : m_pRMTSA_TMSI(0)
 , m_qStringResourcePath(qApp->applicationDirPath()+"/resources/mne_scan/plugins/tmsi/")
-, m_pRawMatrixBuffer_In(0)
 , m_pTMSIProducer(new TMSIProducer(this))
+, m_pCircularBuffer(QSharedPointer<CircularBuffer_Matrix_float>(new CircularBuffer_Matrix_float(8)))
 {
     // Create record file option action bar item/button
     m_pActionSetupProject = new QAction(QIcon(":/images/database.png"), tr("Setup project"), this);
     m_pActionSetupProject->setStatusTip(tr("Setup project"));
     connect(m_pActionSetupProject, &QAction::triggered, this, &TMSI::showSetupProjectDialog);
     addPluginAction(m_pActionSetupProject);
-
-    // Create start recordin action bar item/button
-    m_pActionStartRecording = new QAction(QIcon(":/images/record.png"), tr("Start recording data to fif file"), this);
-    m_pActionStartRecording->setStatusTip(tr("Start recording data to fif file"));
-    connect(m_pActionStartRecording, &QAction::triggered, this, &TMSI::showStartRecording);
-    addPluginAction(m_pActionStartRecording);
 
     // Create impedance action bar item/button
     m_pActionImpedance = new QAction(QIcon(":/images/impedances.png"), tr("Check impedance values"), this);
@@ -91,33 +84,30 @@ TMSI::TMSI()
     addPluginAction(m_pActionImpedance);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 TMSI::~TMSI()
 {
-    //std::cout << "TMSI::~TMSI() " << std::endl;
-
     //If the program is closed while the sampling is in process
-    if(this->isRunning())
+    if(this->isRunning()) {
         this->stop();
+    }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-QSharedPointer<IPlugin> TMSI::clone() const
+QSharedPointer<AbstractPlugin> TMSI::clone() const
 {
     QSharedPointer<TMSI> pTMSIClone(new TMSI());
     return pTMSIClone;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSI::init()
 {
-    m_pRMTSA_TMSI = PluginOutputData<NewRealTimeMultiSampleArray>::create(this, "TMSI", "EEG output data");
+    m_pRMTSA_TMSI = PluginOutputData<RealTimeMultiSampleArray>::create(this, "TMSI", "EEG output data");
+    m_pRMTSA_TMSI->data()->setName(this->getName());//Provide name to auto store widget settings
 
     m_outputConnectors.append(m_pRMTSA_TMSI);
 
@@ -125,28 +115,17 @@ void TMSI::init()
     m_iSamplingFreq = 1024;
     m_iNumberOfChannels = 138;
     m_iSamplesPerBlock = 16;
-    m_iTriggerInterval = 5000;
-    m_iSplitFileSizeMs = 10;
-    m_iSplitCount = 0;
 
     m_bUseChExponent = true;
     m_bUseUnitGain = true;
     m_bUseUnitOffset = true;
-    m_bWriteToFile = false;
     m_bWriteDriverDebugToFile = false;
-    m_bUseFiltering = false;
-    m_bUseFFT = false;
-    m_bIsRunning = false;
     m_bBeepTrigger = false;
     m_bUseCommonAverage = true;
     m_bUseKeyboardTrigger = false;
     m_bCheckImpedances = false;
-    m_bSplitFile = false;
 
     m_iTriggerType = 0;
-
-    QDate date;
-    m_sOutputFilePath = QString ("%1Sequence_01/Subject_01/%2_%3_%4_EEG_001_raw.fif").arg(m_qStringResourcePath).arg(date.currentDate().year()).arg(date.currentDate().month()).arg(date.currentDate().day());
 
     m_sElcFilePath = QString("./resources/general/3DLayouts/standard_waveguard128_duke.elc");
 
@@ -156,42 +135,37 @@ void TMSI::init()
     m_matOldMatrix = MatrixXf::Zero(m_iNumberOfChannels, m_iSamplesPerBlock);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSI::unload()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSI::setUpFiffInfo()
 {
     // Only works for ANT Neuro Waveguard Duke caps
-    //
     //Clear old fiff info data
-    //
     m_pFiffInfo->clear();
 
-    //
     //Set number of channels, sampling frequency and high/-lowpass
-    //
     m_pFiffInfo->nchan = m_iNumberOfChannels;
     m_pFiffInfo->sfreq = m_iSamplingFreq;
     m_pFiffInfo->highpass = (float)0.001;
     m_pFiffInfo->lowpass = m_iSamplingFreq/2;
 
-    //
     //Read electrode positions from .elc file
-    //
-    QList<QVector<double> > elcLocation3D;
-    QList<QVector<double> > elcLocation2D;
+    QList<QVector<float> > elcLocation3D;
+    QList<QVector<float> > elcLocation2D;
     QString unit;
     QStringList elcChannelNames;
 
-    if(!LayoutLoader::readAsaElcFile(m_sElcFilePath, elcChannelNames, elcLocation3D, elcLocation2D, unit))
+    if(!LayoutLoader::readAsaElcFile(m_sElcFilePath,
+                                     elcChannelNames,
+                                     elcLocation3D,
+                                     elcLocation2D,
+                                     unit))
         qDebug() << "Error: Reading elc file.";
 
     //qDebug() << elcLocation3D;
@@ -242,8 +216,8 @@ void TMSI::setUpFiffInfo()
     if(numberEEGCh > elcLocation3D.size())
     {
         qDebug()<<"Warning: setUpFiffInfo() - Not enough positions read from the elc file. Filling missing channel names and positions with zeroes and 'unknown' strings.";
-        QVector<double> tempA(3, 0.0);
-        QVector<double> tempB(2, 0.0);
+        QVector<float> tempA(3, 0.0);
+        QVector<float> tempB(2, 0.0);
         int size = numberEEGCh-elcLocation3D.size();
         for(int i = 0; i<size; i++)
         {
@@ -319,9 +293,7 @@ void TMSI::setUpFiffInfo()
     //Set the final digitizer values to the fiff info
     m_pFiffInfo->dig = digitizerInfo;
 
-    //
     //Set up the channel info
-    //
     QStringList QSLChNames;
     m_pFiffInfo->chs.clear();
 
@@ -444,17 +416,13 @@ void TMSI::setUpFiffInfo()
     //Set channel names in fiff_info_base
     m_pFiffInfo->ch_names = QSLChNames;
 
-    //
     //Set head projection
-    //
     m_pFiffInfo->dev_head_t.from = FIFFV_COORD_DEVICE;
     m_pFiffInfo->dev_head_t.to = FIFFV_COORD_HEAD;
     m_pFiffInfo->ctf_head_t.from = FIFFV_COORD_DEVICE;
     m_pFiffInfo->ctf_head_t.to = FIFFV_COORD_HEAD;
 
-    //
     //Set projection data
-    //
     m_pFiffInfo->projs.clear();
     FiffProj proj;
     proj.kind = 1;
@@ -492,17 +460,13 @@ void TMSI::setUpFiffInfo()
     m_pFiffInfo->projs.append(proj);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool TMSI::start()
 {
-    //Check if the thread is already or still running. This can happen if the start button is pressed immediately after the stop button was pressed. In this case the stopping process is not finished yet but the start process is initiated.
-    if(this->isRunning())
-        QThread::wait();
-
-    if(m_bBeepTrigger)
+    if(m_bBeepTrigger) {
         m_qTimerTrigger.start();
+    }
 
     //Setup fiff info
     setUpFiffInfo();
@@ -512,44 +476,35 @@ bool TMSI::start()
     m_pRMTSA_TMSI->data()->setMultiArraySize(m_iSamplesPerBlock);
     m_pRMTSA_TMSI->data()->setSamplingRate(m_iSamplingFreq);
 
-    //Buffer
-    m_pRawMatrixBuffer_In = QSharedPointer<RawMatrixBuffer>(new RawMatrixBuffer(8, m_iNumberOfChannels, m_iSamplesPerBlock));
-
     m_pTMSIProducer->start(m_iNumberOfChannels,
-                       m_iSamplingFreq,
-                       m_iSamplesPerBlock,
-                       m_bUseChExponent,
-                       m_bUseUnitGain,
-                       m_bUseUnitOffset,
-                       m_bWriteDriverDebugToFile,
-                       m_sOutputFilePath,
-                       m_bUseCommonAverage,
-                       m_bCheckImpedances);
+                           m_iSamplingFreq,
+                           m_iSamplesPerBlock,
+                           m_bUseChExponent,
+                           m_bUseUnitGain,
+                           m_bUseUnitOffset,
+                           m_bWriteDriverDebugToFile,
+                           m_bUseCommonAverage,
+                           m_bCheckImpedances);
+    wait(500);
 
-    if(m_pTMSIProducer->isRunning())
-    {
+    if(m_pTMSIProducer->isRunning()) {
         // Init BCIFeatureWindow for visualization
-        m_tmsiManualAnnotationWidget = QSharedPointer<TMSIManualAnnotationWidget>(new TMSIManualAnnotationWidget(this));
+        m_pTmsiManualAnnotationWidget = QSharedPointer<TMSIManualAnnotationWidget>(new TMSIManualAnnotationWidget(this));
 
-        if(m_bUseKeyboardTrigger && !m_bCheckImpedances)
-        {
-            m_tmsiManualAnnotationWidget->initGui();
-            m_tmsiManualAnnotationWidget->show();
+        if(m_bUseKeyboardTrigger && !m_bCheckImpedances) {
+            m_pTmsiManualAnnotationWidget->initGui();
+            m_pTmsiManualAnnotationWidget->show();
         }
 
-        m_bIsRunning = true;
         QThread::start();
         return true;
-    }
-    else
-    {
-        qWarning() << "Plugin TMSI - ERROR - TMSIProducer thread could not be started - Either the device is turned off (check your OS device manager) or the driver DLL (TMSiSDK.dll / TMSiSDK32bit.dll) is not installed in the system32 / SysWOW64 directory" << endl;
+    } else {
+        qWarning() << "[TMSI::start] TMSIProducer thread could not be started - Either the device is turned off (check your OS device manager) or the driver DLL (TMSiSDK.dll / TMSiSDK32bit.dll) is not installed in the system32 / SysWOW64 directory" << endl;
         return false;
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool TMSI::stop()
 {
@@ -557,38 +512,35 @@ bool TMSI::stop()
     m_pTMSIProducer->stop();
 
     //Wait until this thread (TMSI) is stopped
-    m_bIsRunning = false;
+    requestInterruption();
+    wait(500);
 
-    //In case the semaphore blocks the thread -> Release the QSemaphore and let it exit from the pop function (acquire statement)
-    m_pRawMatrixBuffer_In->releaseFromPop();
-
-    m_pRawMatrixBuffer_In->clear();
-
+    // Clear all data in the buffer connected to displays and other plugins
     m_pRMTSA_TMSI->data()->clear();
+    m_pCircularBuffer->clear();
 
-    m_tmsiManualAnnotationWidget->hide();
+    if(m_pTmsiManualAnnotationWidget) {
+        m_pTmsiManualAnnotationWidget->hide();
+    }
 
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-IPlugin::PluginType TMSI::getType() const
+AbstractPlugin::PluginType TMSI::getType() const
 {
     return _ISensor;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QString TMSI::getName() const
 {
-    return "TMSI EEG";
+    return "TMSI";
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QWidget* TMSI::setupWidget()
 {
@@ -600,208 +552,90 @@ QWidget* TMSI::setupWidget()
     return widget;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSI::setKeyboardTriggerType(int type)
 {
     m_qMutex.lock();
-        m_iTriggerType =type;
+    m_iTriggerType =type;
     m_qMutex.unlock();
 }
 
-
-//*************************************************************************************************************
-
-void TMSI::splitRecordingFile()
-{
-    qDebug() << "Split recording file";
-    ++m_iSplitCount;
-    QString nextFileName = m_sOutputFilePath.remove("_raw.fif");
-    nextFileName += QString("-%1_raw.fif").arg(m_iSplitCount);
-
-    /*
-    * Write the link to the next file
-    */
-    qint32 data;
-    m_pOutfid->start_block(FIFFB_REF);
-    data = FIFFV_ROLE_NEXT_FILE;
-    m_pOutfid->write_int(FIFF_REF_ROLE,&data);
-    m_pOutfid->write_string(FIFF_REF_FILE_NAME, nextFileName);
-    m_pOutfid->write_id(FIFF_REF_FILE_ID);//ToDo meas_id
-    data = m_iSplitCount - 1;
-    m_pOutfid->write_int(FIFF_REF_FILE_NUM, &data);
-    m_pOutfid->end_block(FIFFB_REF);
-
-    //finish file
-    m_pOutfid->finish_writing_raw();
-
-    //start next file
-    m_fileOut.setFileName(nextFileName);
-    m_pOutfid = Fiff::start_writing_raw(m_fileOut, *m_pFiffInfo, m_cals);
-    fiff_int_t first = 0;
-    m_pOutfid->write_int(FIFF_FIRST_SAMPLE, &first);
-}
-
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSI::run()
 {
     qint32 size = 0;
+    MatrixXf matData;
 
-    while(m_bIsRunning)
-    {
-        //std::cout<<"TMSI::run(s)"<<std::endl;
-
+    while(!isInterruptionRequested()) {
         // Check impedances - send new impedance values to graphic scene
-        if(m_pTMSIProducer->isRunning() && m_bCheckImpedances)
-        {
-            MatrixXf matValue = m_pRawMatrixBuffer_In->pop();
-
-            for(qint32 i = 0; i < matValue.cols(); ++i)
-                m_pTmsiImpedanceWidget->updateGraphicScene(matValue.col(i).cast<double>());
+        if(m_pTMSIProducer->isRunning() && m_bCheckImpedances) {
+            if(m_pCircularBuffer->pop(matData)) {
+                for(qint32 i = 0; i < matData.cols(); ++i) {
+                    m_pTmsiImpedanceWidget->updateGraphicScene(matData.col(i).cast<double>());
+                }
+            }
         }
 
         //pop matrix only if the producer thread is running
-        if(m_pTMSIProducer->isRunning() && !m_bCheckImpedances)
-        {
-            MatrixXf matValue = m_pRawMatrixBuffer_In->pop();
-
-            // Set Beep trigger (if activated)
-            if(m_bBeepTrigger && m_qTimerTrigger.elapsed() >= m_iTriggerInterval)
-            {
-                QtConcurrent::run(Beep, 450, 700);
-                //Set trigger in received data samples - just for one sample, so that this event is easy to detect
-                matValue(136, m_iSamplesPerBlock-1) = 252;
-                m_qTimerTrigger.restart();
-            }
-
-            // Set keyboard trigger (if activated and !=0)
-            if(m_bUseKeyboardTrigger && m_iTriggerType!=0)
-                matValue(136, m_iSamplesPerBlock-1) = m_iTriggerType;
-
-            //Write raw data to fif file
-            if(m_bWriteToFile) {
-                m_pOutfid->write_raw_buffer(matValue.cast<double>(), m_cals);
-                size += matValue.cols();
-
-//                qDebug()<<"size"<<size;
-//                qDebug()<<"(m_iSplitFileSizeMs/1000)*m_pFiffInfo->sfreq"<<(double(m_iSplitFileSizeMs)/1000.0)*m_pFiffInfo->sfreq;
-                if(size > (double(m_iSplitFileSizeMs)/1000.0)*m_pFiffInfo->sfreq && m_bSplitFile) {
-                    size = 0;
-                    splitRecordingFile();
+        if(m_pTMSIProducer->isRunning() && !m_bCheckImpedances) {
+            if(m_pCircularBuffer->pop(matData)) {
+                // Set Beep trigger (if activated)
+                if(m_bBeepTrigger && m_qTimerTrigger.elapsed() >= m_iTriggerInterval) {
+                    QtConcurrent::run(Beep, 450, 700);
+                    //Set trigger in received data samples - just for one sample, so that this event is easy to detect
+                    matData(136, m_iSamplesPerBlock-1) = 252;
+                    m_qTimerTrigger.restart();
                 }
-            } else
-                size = 0;
 
-            // TODO: Use preprocessing if wanted by the user
-            if(m_bUseFiltering)
-            {
-                MatrixXf temp = matValue;
-
-                matValue = matValue - m_matOldMatrix;
-                m_matOldMatrix = temp;
-
-                //    //Check filter class - will be removed in the future - testing purpose only!
-                //    FilterTools* filterObject = new FilterTools();
-
-                //    //kaiser window testing
-                //    qint32 numberCoeff = 51;
-                //    QVector<float> impulseResponse(numberCoeff);
-                //    filterObject->createDynamicFilter(QString('LP'), numberCoeff, (float)0.3, impulseResponse);
-
-                //    ofstream outputFileStream("resources/mne_scan/plugins/tmsi/filterToolsTest.txt", ios::out);
-
-                //    outputFileStream << "impulseResponse:\n";
-                //    for(int i=0; i<impulseResponse.size(); i++)
-                //        outputFileStream << impulseResponse[i] << " ";
-                //    outputFileStream << endl;
-
-                //    //convolution testing
-                //    QVector<float> in (12, 2);
-                //    QVector<float> kernel (4, 2);
-
-                //    QVector<float> out = filterObject->convolve(in, kernel);
-
-                //    outputFileStream << "convolution result:\n";
-                //    for(int i=0; i<out.size(); i++)
-                //        outputFileStream << out[i] << " ";
-                //    outputFileStream << endl;
-            }
-
-            // TODO: Perform a fft if wanted by the user
-            if(m_bUseFFT)
-            {
-                QElapsedTimer timer;
-                timer.start();
-
-                FFT<float> fft;
-                Matrix<complex<float>, 138, 16> freq;
-
-                for(qint32 i = 0; i < matValue.rows(); ++i)
-                    fft.fwd(freq.row(i), matValue.row(i));
-
-//                cout<<"FFT postprocessing done in "<<timer.nsecsElapsed()<<" nanosec"<<endl;
-//                cout<<"matValue before FFT:"<<endl<<matValue<<endl;
-//                cout<<"freq after FFT:"<<endl<<freq<<endl;
-//                matValue = freq.cwiseAbs();
-//                cout<<"matValue after FFT:"<<endl<<matValue<<endl;
-            }
-
-            //Change values of the trigger channel for better plotting - this change is not saved in the produced fif file
-            if(m_iNumberOfChannels>137)
-            {
-                for(int i = 0; i<matValue.row(137).cols(); i++)
-                {
-                    // Left keyboard or capacitive
-                    if(matValue.row(136)[i] == 254)
-                        matValue.row(136)[i] = 4000;
-
-                    // Right keyboard
-                    if(matValue.row(136)[i] == 253)
-                        matValue.row(136)[i] = 8000;
-
-                    // Beep
-                    if(matValue.row(136)[i] == 252)
-                        matValue.row(136)[i] = 2000;
+                // Set keyboard trigger (if activated and !=0)
+                if(m_bUseKeyboardTrigger && m_iTriggerType!=0) {
+                    matData(136, m_iSamplesPerBlock-1) = m_iTriggerType;
                 }
+
+                //Change values of the trigger channel for better plotting - this change is not saved in the produced fif file
+                if(m_iNumberOfChannels>137) {
+                    for(int i = 0; i<matData.row(137).cols(); i++) {
+                        // Left keyboard or capacitive
+                        if(matData.row(136)[i] == 254) {
+                            matData.row(136)[i] = 4000;
+                        }
+
+                        // Right keyboard
+                        if(matData.row(136)[i] == 253) {
+                            matData.row(136)[i] = 8000;
+                        }
+
+                        // Beep
+                        if(matData.row(136)[i] == 252) {
+                            matData.row(136)[i] = 2000;
+                        }
+                    }
+                }
+
+                //emit values to real time multi sample array
+                m_pRMTSA_TMSI->data()->setValue(matData.cast<double>());
+
+                // Reset keyboard trigger
+                m_iTriggerType = 0;
             }
-
-            //emit values to real time multi sample array
-            m_pRMTSA_TMSI->data()->setValue(matValue.cast<double>());
-
-            // Reset keyboard trigger
-            m_iTriggerType = 0;
         }
     }
-
-    //Close the fif output stream
-    if(m_bWriteToFile)
-    {
-        m_pOutfid->finish_writing_raw();
-        m_bWriteToFile = false;
-        m_pTimerRecordingChange->stop();
-        m_pActionStartRecording->setIcon(QIcon(":/images/record.png"));
-    }
-
-    //std::cout<<"EXITING - TMSI::run()"<<std::endl;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSI::showImpedanceDialog()
 {
     // Open Impedance dialog only if no sampling process is active
-    if(!m_bIsRunning)
-    {
-        if(m_pTmsiImpedanceWidget == NULL)
+    if(!this->isRunning()) {
+        if(m_pTmsiImpedanceWidget == NULL) {
             m_pTmsiImpedanceWidget = QSharedPointer<TMSIImpedanceWidget>(new TMSIImpedanceWidget(this));
+        }
 
-        if(!m_pTmsiImpedanceWidget->isVisible())
-        {
-            m_pTmsiImpedanceWidget->setWindowTitle("MNE-X - Measure impedances");
+        if(!m_pTmsiImpedanceWidget->isVisible()) {
+            m_pTmsiImpedanceWidget->setWindowTitle("MNE Scan - Measure impedances");
             m_pTmsiImpedanceWidget->show();
             m_pTmsiImpedanceWidget->raise();
         }
@@ -810,121 +644,19 @@ void TMSI::showImpedanceDialog()
     }
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSI::showSetupProjectDialog()
 {
     // Open setup project widget
-    if(m_pTmsiSetupProjectWidget == NULL)
+    if(m_pTmsiSetupProjectWidget == NULL) {
         m_pTmsiSetupProjectWidget = QSharedPointer<TMSISetupProjectWidget>(new TMSISetupProjectWidget(this));
+    }
 
-    if(!m_pTmsiSetupProjectWidget->isVisible())
-    {
+    if(!m_pTmsiSetupProjectWidget->isVisible()) {
         m_pTmsiSetupProjectWidget->setWindowTitle("TMSI EEG Connector - Setup project");
         m_pTmsiSetupProjectWidget->initGui();
         m_pTmsiSetupProjectWidget->show();
         m_pTmsiSetupProjectWidget->raise();
     }
 }
-
-//*************************************************************************************************************
-
-void TMSI::showStartRecording()
-{
-    m_iSplitCount = 0;
-
-    //Setup writing to file
-    if(m_bWriteToFile)
-    {
-        m_pOutfid->finish_writing_raw();
-        m_bWriteToFile = false;
-        m_pTimerRecordingChange->stop();
-        m_pActionStartRecording->setIcon(QIcon(":/images/record.png"));
-    }
-    else
-    {
-        if(!m_bIsRunning)
-        {
-            QMessageBox msgBox;
-            msgBox.setText("Start data acquisition first!");
-            msgBox.exec();
-            return;
-        }
-
-        if(!m_pFiffInfo)
-        {
-            QMessageBox msgBox;
-            msgBox.setText("FiffInfo missing!");
-            msgBox.exec();
-            return;
-        }
-
-        //Initiate the stream for writing to the fif file
-        m_fileOut.setFileName(m_sOutputFilePath);
-        if(m_fileOut.exists())
-        {
-            QMessageBox msgBox;
-            msgBox.setText("The file you want to write already exists.");
-            msgBox.setInformativeText("Do you want to overwrite this file?");
-            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-            int ret = msgBox.exec();
-            if(ret == QMessageBox::No)
-                return;
-        }
-
-        // Check if path exists -> otherwise create it
-        QStringList list = m_sOutputFilePath.split("/");
-        list.removeLast(); // remove file name
-        QString fileDir = list.join("/");
-
-        if(!dirExists(fileDir.toStdString()))
-        {
-            QDir dir;
-            dir.mkpath(fileDir);
-        }
-
-        m_pOutfid = Fiff::start_writing_raw(m_fileOut, *m_pFiffInfo, m_cals);
-        fiff_int_t first = 0;
-        m_pOutfid->write_int(FIFF_FIRST_SAMPLE, &first);
-
-        m_bWriteToFile = true;
-
-        m_pTimerRecordingChange = QSharedPointer<QTimer>(new QTimer);
-        connect(m_pTimerRecordingChange.data(), &QTimer::timeout, this, &TMSI::changeRecordingButton);
-        m_pTimerRecordingChange->start(500);
-    }
-}
-
-
-//*************************************************************************************************************
-
-void TMSI::changeRecordingButton()
-{
-    if(m_iBlinkStatus == 0)
-    {
-        m_pActionStartRecording->setIcon(QIcon(":/images/record.png"));
-        m_iBlinkStatus = 1;
-    }
-    else
-    {
-        m_pActionStartRecording->setIcon(QIcon(":/images/record_active.png"));
-        m_iBlinkStatus = 0;
-    }
-}
-
-
-//*************************************************************************************************************
-
-bool TMSI::dirExists(const std::string& dirName_in)
-{
-    DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
-    if (ftyp == INVALID_FILE_ATTRIBUTES)
-        return false;  //something is wrong with your path!
-
-    if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
-        return true;   // this is a directory!
-
-    return false;    // this is not a directory!
-}
-
-

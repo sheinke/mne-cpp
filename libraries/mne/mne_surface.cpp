@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
  * @file     mne_surface.cpp
- * @author   Christof Pieloth <pieloth@labp.htwk-leipzig.de>;
- *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
- *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
- * @version  1.0
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
  * @date     August, 2013
  *
  * @section  LICENSE
  *
- * Copyright (C) 2012, Christof Pieloth, Christoph Dinh and Matti Hamalainen. All rights reserved.
+ * Copyright (C) 2013, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
  * the following conditions are met:
@@ -34,7 +34,6 @@
  *
  */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -46,7 +45,6 @@
 
 #include "mne_surface.h"
 
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -54,7 +52,6 @@
 using namespace MNELIB;
 using namespace FIFFLIB;
 
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -68,7 +65,7 @@ MNESurface::MNESurface()
     coord_frame = FIFFV_COORD_MRI;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNESurface::read(QIODevice& p_IODevice, QList<MNESurface::SPtr>& surfaces)
 {
@@ -83,7 +80,7 @@ bool MNESurface::read(QIODevice& p_IODevice, QList<MNESurface::SPtr>& surfaces)
     return read(fiffStream, false, fiffStream->dirtree(), surfaces);
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNESurface::read(FiffStream::SPtr& p_pStream, bool add_geom, const FiffDirNode::SPtr& p_Tree, QList<MNESurface::SPtr>& surfaces)
 {
@@ -134,7 +131,7 @@ bool MNESurface::read(FiffStream::SPtr& p_pStream, bool add_geom, const FiffDirN
     return true;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNESurface::read(FIFFLIB::FiffStream::SPtr& fiffStream,
         const FIFFLIB::FiffDirNode::SPtr& dir, const fiff_int_t def_coord_frame,

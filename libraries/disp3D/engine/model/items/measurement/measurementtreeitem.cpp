@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     measurementsettreeitem.cpp
-* @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     November, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Lorenz Esch and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    MeasurementTreeItem class definition.
-*
-*/
+ * @file     measurementtreeitem.cpp
+ * @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+ *           Juan Garcia-Prieto <juangpc@gmail.com>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     November, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lars Debor, Juan Garcia-Prieto, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    MeasurementTreeItem class definition.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -41,7 +41,7 @@
 #include "measurementtreeitem.h"
 #include "../hemisphere/hemispheretreeitem.h"
 #include "../sourcespace/sourcespacetreeitem.h"
-#include "../sourcedata/mneestimatetreeitem.h"
+#include "../sourcedata/mnedatatreeitem.h"
 #include "../sourcedata/ecddatatreeitem.h"
 #include "../network/networktreeitem.h"
 #include "../freesurfer/fssurfacetreeitem.h"
@@ -68,22 +68,16 @@
 
 #include <inverse/dipoleFit/ecd_set.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -93,9 +87,9 @@ using namespace MNELIB;
 using namespace DISP3DLIB;
 using namespace INVERSELIB;
 using namespace CONNECTIVITYLIB;
+using namespace Eigen;
+using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -107,8 +101,7 @@ MeasurementTreeItem::MeasurementTreeItem(int iType,
     initItem();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MeasurementTreeItem::initItem()
 {
@@ -118,14 +111,13 @@ void MeasurementTreeItem::initItem()
     this->setToolTip("Measurement item");
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-SourceSpaceTreeItem* MeasurementTreeItem::addData(const MNESourceSpace& tSourceSpace,
-                                                  Qt3DCore::QEntity* p3DEntityParent)
+QList<SourceSpaceTreeItem*> MeasurementTreeItem::addData(const MNESourceSpace& tSourceSpace,
+                                                         Qt3DCore::QEntity* p3DEntityParent)
 {
     //Generate child items based on surface set input parameters
-    SourceSpaceTreeItem* pReturnItem = Q_NULLPTR;
+    QList<SourceSpaceTreeItem*> pReturnItem;
 
     QList<QStandardItem*> itemList = this->findChildren(Data3DTreeModelItemTypes::HemisphereItem);
 
@@ -138,7 +130,7 @@ SourceSpaceTreeItem* MeasurementTreeItem::addData(const MNESourceSpace& tSourceS
             if(HemisphereTreeItem* pHemiItem = dynamic_cast<HemisphereTreeItem*>(itemList.at(j))) {
                 if(pHemiItem->data(Data3DTreeModelItemRoles::SurfaceHemi).toInt() == i) {
                     hemiItemFound = true;
-                    pReturnItem = pHemiItem->addData(tSourceSpace[i], p3DEntityParent);
+                    pReturnItem.append(pHemiItem->addData(tSourceSpace[i], p3DEntityParent));
                 }
             }
         }
@@ -147,7 +139,7 @@ SourceSpaceTreeItem* MeasurementTreeItem::addData(const MNESourceSpace& tSourceS
             //Item does not exist yet, create it here.
             HemisphereTreeItem* pHemiItem = new HemisphereTreeItem(Data3DTreeModelItemTypes::HemisphereItem);
 
-            pReturnItem = pHemiItem->addData(tSourceSpace[i], p3DEntityParent);
+            pReturnItem.append(pHemiItem->addData(tSourceSpace[i], p3DEntityParent));
 
             QList<QStandardItem*> list;
             list << pHemiItem;
@@ -161,48 +153,46 @@ SourceSpaceTreeItem* MeasurementTreeItem::addData(const MNESourceSpace& tSourceS
     return pReturnItem;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MneEstimateTreeItem* MeasurementTreeItem::addData(const MNESourceEstimate& tSourceEstimate,
-                                                  const MNEForwardSolution& tForwardSolution,
-                                                  const SurfaceSet& tSurfSet,
-                                                  const AnnotationSet& tAnnotSet,
-                                                  Qt3DCore::QEntity* p3DEntityParent,
-                                                  bool bUseGPU)
+MneDataTreeItem* MeasurementTreeItem::addData(const MNESourceEstimate& tSourceEstimate,
+                                              const MNEForwardSolution& tForwardSolution,
+                                              const SurfaceSet& tSurfSet,
+                                              const AnnotationSet& tAnnotSet,
+                                              Qt3DCore::QEntity* p3DEntityParent,
+                                              bool bUseGPU)
 {
     if(!tSourceEstimate.isEmpty()) {        
         //CPU for source data
-        if(m_pMneEstimateTreeItem) {
-            m_pMneEstimateTreeItem->addData(tSourceEstimate);
+        if(m_pMneDataTreeItem) {
+            m_pMneDataTreeItem->addData(tSourceEstimate);
         } else {
             //Add sensor data as child
             //If item does not exists yet, create it here!
-            m_pMneEstimateTreeItem = new MneEstimateTreeItem(Data3DTreeModelItemTypes::MNEEstimateItem,
+            m_pMneDataTreeItem = new MneDataTreeItem(Data3DTreeModelItemTypes::MNEDataItem,
                                                              "MNE data",
                                                              bUseGPU);
 
             QList<QStandardItem*> list;
-            list << m_pMneEstimateTreeItem;
-            list << new QStandardItem(m_pMneEstimateTreeItem->toolTip());
+            list << m_pMneDataTreeItem;
+            list << new QStandardItem(m_pMneDataTreeItem->toolTip());
             this->appendRow(list);
 
-            m_pMneEstimateTreeItem->initData(tForwardSolution,
+            m_pMneDataTreeItem->initData(tForwardSolution,
                                              tSurfSet,
                                              tAnnotSet,
                                              p3DEntityParent);
 
-            m_pMneEstimateTreeItem->addData(tSourceEstimate);
+            m_pMneDataTreeItem->addData(tSourceEstimate);
         }
 
-        return m_pMneEstimateTreeItem;
+        return m_pMneDataTreeItem;
     }
 
     return Q_NULLPTR;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SensorDataTreeItem *MeasurementTreeItem::addData(const MatrixXd &tSensorData,
                                                  const MNEBemSurface &bemSurface,
@@ -272,8 +262,7 @@ SensorDataTreeItem *MeasurementTreeItem::addData(const MatrixXd &tSensorData,
     return Q_NULLPTR;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 EcdDataTreeItem* MeasurementTreeItem::addData(const ECDSet& pECDSet,
                                               Qt3DCore::QEntity* p3DEntityParent)
@@ -307,8 +296,7 @@ EcdDataTreeItem* MeasurementTreeItem::addData(const ECDSet& pECDSet,
     return Q_NULLPTR;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 DigitizerSetTreeItem* MeasurementTreeItem::addData(const FiffDigPointSet& tDigitizer,
                                                    Qt3DCore::QEntity *p3DEntityParent)
@@ -342,33 +330,40 @@ DigitizerSetTreeItem* MeasurementTreeItem::addData(const FiffDigPointSet& tDigit
     return Q_NULLPTR;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 NetworkTreeItem* MeasurementTreeItem::addData(const Network& tNetworkData,
                                               Qt3DCore::QEntity* p3DEntityParent)
 {
     if(!tNetworkData.getNodes().isEmpty()) {
-        //Add source estimation data as child
-        if(this->findChildren(Data3DTreeModelItemTypes::NetworkItem).size() == 0) {
-            //If rt data item does not exists yet, create it here!
-            if(!m_pNetworkTreeItem) {
-                m_pNetworkTreeItem = new NetworkTreeItem(p3DEntityParent);
-            }
+        NetworkTreeItem* pReturnItem = Q_NULLPTR;
+
+        QPair<float,float> freqs = tNetworkData.getFrequencyRange();
+        QString sItemName = QString("%1").arg(tNetworkData.getConnectivityMethod()).arg(QString::number(freqs.first)).arg(QString::number(freqs.second));
+
+        //Add network estimation data as child
+        QList<QStandardItem*> lItems = this->findChildren(sItemName);
+
+        if(lItems.isEmpty()) {
+            pReturnItem = new NetworkTreeItem(p3DEntityParent);
+
+            pReturnItem->setText(sItemName);
 
             QList<QStandardItem*> list;
-            list << m_pNetworkTreeItem;
-            list << new QStandardItem(m_pNetworkTreeItem->toolTip());
+            list << pReturnItem;
+            list << new QStandardItem(pReturnItem->toolTip());
             this->appendRow(list);
 
-            m_pNetworkTreeItem->addData(tNetworkData);
+            pReturnItem->addData(tNetworkData);
         } else {
-            if(m_pNetworkTreeItem) {
-                m_pNetworkTreeItem->addData(tNetworkData);
+            if(lItems.first()) {
+                if(pReturnItem = dynamic_cast<NetworkTreeItem*>(lItems.first())) {
+                    pReturnItem->addData(tNetworkData);
+                }
             }
         }
 
-        return m_pNetworkTreeItem;
+        return pReturnItem;
     } else {
         qDebug() << "MeasurementTreeItem::addData - network data is empty";
     }

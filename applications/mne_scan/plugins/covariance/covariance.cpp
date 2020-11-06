@@ -1,90 +1,91 @@
 //=============================================================================================================
 /**
-* @file     covariance.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     February, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Contains the implementation of the Covariance class.
-*
-*/
+ * @file     covariance.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     February, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Christoph Dinh, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the Covariance class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "covariance.h"
+
 #include "FormFiles/covariancesetupwidget.h"
-#include "FormFiles/covariancesettingswidget.h"
 
+#include <disp/viewers/covariancesettingsview.h>
 
-//*************************************************************************************************************
+#include <scMeas/realtimemultisamplearray.h>
+#include <scMeas/realtimecov.h>
+#include <rtprocessing/rtcov.h>
+
+#include <fiff/fiff_info.h>
+#include <fiff/fiff_cov.h>
+
+//=============================================================================================================
+// EIGEN INCLUDES
+//=============================================================================================================
+
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
 #include <QtCore/QtPlugin>
 #include <QDebug>
+#include <QtWidgets>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace CovariancePlugin;
+using namespace COVARIANCEPLUGIN;
+using namespace DISPLIB;
 using namespace SCSHAREDLIB;
 using namespace SCMEASLIB;
+using namespace UTILSLIB;
+using namespace RTPROCESSINGLIB;
+using namespace FIFFLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
 Covariance::Covariance()
-: m_bIsRunning(false)
-, m_bProcessData(false)
-, m_pCovarianceInput(NULL)
-, m_pCovarianceOutput(NULL)
-, m_pCovarianceBuffer(CircularMatrixBuffer<double>::SPtr())
-, m_iEstimationSamples(5000)
+: m_iEstimationSamples(2000)
+, m_pCircularBuffer(CircularBuffer_Matrix_double::SPtr::create(40))
 {
-    m_pActionShowAdjustment = new QAction(QIcon(":/images/covadjustments.png"), tr("Covariance Adjustments"),this);
-//    m_pActionSetupProject->setShortcut(tr("F12"));
-    m_pActionShowAdjustment->setStatusTip(tr("Covariance Adjustments"));
-    connect(m_pActionShowAdjustment, &QAction::triggered, this, &Covariance::showCovarianceWidget);
-    addPluginAction(m_pActionShowAdjustment);
-//    m_pActionShowAdjustment->setVisible(false);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Covariance::~Covariance()
 {
@@ -92,115 +93,109 @@ Covariance::~Covariance()
         stop();
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-QSharedPointer<IPlugin> Covariance::clone() const
+QSharedPointer<AbstractPlugin> Covariance::clone() const
 {
     QSharedPointer<Covariance> pCovarianceClone(new Covariance);
     return pCovarianceClone;
 }
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// Creating required display instances and set configurations
 //=============================================================================================================
 
 void Covariance::init()
 {
-    //
     // Load Settings
-    //
-    QSettings settings;
-    m_iEstimationSamples = settings.value(QString("Plugin/%1/estimationSamples").arg(this->getName()), 5000).toInt();
+    QSettings settings("MNECPP");
+    m_iEstimationSamples = settings.value(QString("MNESCAN/%1/estimationSamples").arg(this->getName()), 5000).toInt();
 
     // Input
-    m_pCovarianceInput = PluginInputData<NewRealTimeMultiSampleArray>::create(this, "CovarianceIn", "Covariance input data");
-    connect(m_pCovarianceInput.data(), &PluginInputConnector::notify, this, &Covariance::update, Qt::DirectConnection);
+    m_pCovarianceInput = PluginInputData<RealTimeMultiSampleArray>::create(this, "CovarianceIn", "Covariance input data");
+    connect(m_pCovarianceInput.data(), &PluginInputConnector::notify,
+            this, &Covariance::update, Qt::DirectConnection);
     m_inputConnectors.append(m_pCovarianceInput);
 
     // Output
     m_pCovarianceOutput = PluginOutputData<RealTimeCov>::create(this, "CovarianceOut", "Covariance output data");
+    m_pCovarianceOutput->data()->setName(this->getName());//Provide name to auto store widget settings
     m_outputConnectors.append(m_pCovarianceOutput);
-
-    //Delete Buffer - will be initailzed with first incoming data
-    if(!m_pCovarianceBuffer.isNull())
-        m_pCovarianceBuffer = CircularMatrixBuffer<double>::SPtr();
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+void Covariance::initPluginControlWidgets()
+{
+    if(m_pFiffInfo) {
+        QList<QWidget*> plControlWidgets;
+
+        CovarianceSettingsView* pCovarianceWidget = new CovarianceSettingsView(QString("MNESCAN/%1").arg(this->getName()));
+        connect(this, &Covariance::guiModeChanged,
+                pCovarianceWidget, &CovarianceSettingsView::setGuiMode);
+        connect(pCovarianceWidget, &CovarianceSettingsView::samplesChanged,
+                this, &Covariance::changeSamples);
+        pCovarianceWidget->setMinSamples(m_pFiffInfo->sfreq);
+        pCovarianceWidget->setCurrentSamples(m_iEstimationSamples);
+        pCovarianceWidget->setObjectName("group_Settings");
+        plControlWidgets.append(pCovarianceWidget);
+
+        emit pluginControlWidgetsChanged(plControlWidgets, this->getName());
+
+        m_bPluginControlWidgetsInit = true;
+    }
+}
+
+//=============================================================================================================
 
 void Covariance::unload()
 {
-    //
-    // Store Settings
-    //
-    QSettings settings;
-    settings.setValue(QString("Plugin/%1/estimationSamples").arg(this->getName()), m_iEstimationSamples);
+    // Save Settings
+    QSettings settings("MNECPP");
+    settings.setValue(QString("MNESCAN/%1/estimationSamples").arg(this->getName()), m_iEstimationSamples);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Covariance::start()
 {
-    //Check if the thread is already or still running. This can happen if the start button is pressed immediately after the stop button was pressed. In this case the stopping process is not finished yet but the start process is initiated.
-    if(this->isRunning())
-        QThread::wait();
-
-    m_bIsRunning = true;
-
-    // Start threads
+    // Start thread
     QThread::start();
 
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Covariance::stop()
 {
-    //Wait until this thread is stopped
-    m_bIsRunning = false;
+    requestInterruption();
+    wait(500);
 
-    //In case the semaphore blocks the thread -> Release the QSemaphore and let it exit from the pop function (acquire statement)
-    m_pCovarianceBuffer->releaseFromPop();
-
-    m_pCovarianceBuffer->clear();
+    m_bPluginControlWidgetsInit = false;
 
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-IPlugin::PluginType Covariance::getType() const
+AbstractPlugin::PluginType Covariance::getType() const
 {
     return _IAlgorithm;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QString Covariance::getName() const
 {
     return "Covariance";
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Covariance::showCovarianceWidget()
 {
-    m_pCovarianceWidget = CovarianceSettingsWidget::SPtr(new CovarianceSettingsWidget(this));
-    m_pCovarianceWidget->show();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QWidget* Covariance::setupWidget()
 {
@@ -208,115 +203,75 @@ QWidget* Covariance::setupWidget()
     return setupWidget;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-void Covariance::update(SCMEASLIB::NewMeasurement::SPtr pMeasurement)
+void Covariance::update(SCMEASLIB::Measurement::SPtr pMeasurement)
 {
-    QSharedPointer<NewRealTimeMultiSampleArray> pRTMSA = pMeasurement.dynamicCast<NewRealTimeMultiSampleArray>();
-
-    if(pRTMSA)
-    {
-        //Check if buffer initialized
-        if(!m_pCovarianceBuffer)
-            m_pCovarianceBuffer = CircularMatrixBuffer<double>::SPtr(new CircularMatrixBuffer<double>(64, pRTMSA->getNumChannels(), pRTMSA->getMultiSampleArray()[0].cols()));
-
+    if(QSharedPointer<RealTimeMultiSampleArray> pRTMSA = pMeasurement.dynamicCast<RealTimeMultiSampleArray>()) {
         //Fiff information
-        if(!m_pFiffInfo)
-        {
+        if(!m_pFiffInfo) {
             m_pFiffInfo = pRTMSA->info();
-            emit fiffInfoAvailable();
+
+            m_pCovarianceOutput->data()->setFiffInfo(m_pFiffInfo);
         }
 
+        if(!m_bPluginControlWidgetsInit) {
+            initPluginControlWidgets();
+        }
 
-        if(m_bProcessData)
-        {
-            MatrixXd t_mat;
-
-            for(qint32 i = 0; i < pRTMSA->getMultiArraySize(); ++i)
-            {
-                t_mat = pRTMSA->getMultiSampleArray()[i];
-                m_pCovarianceBuffer->push(&t_mat);
+        for(qint32 i = 0; i < pRTMSA->getMultiArraySize(); ++i) {
+            // Please note that we do not need a copy here since this function will block until
+            // the buffer accepts new data again. Hence, the data is not deleted in the actual
+            // Measurement function after it emitted the notify signal.
+            while(!m_pCircularBuffer->push(pRTMSA->getMultiSampleArray()[i])) {
+                //Do nothing until the circular buffer is ready to accept new data again
             }
         }
     }
 }
 
-
-//*************************************************************************************************************
-
-void Covariance::appendCovariance(FiffCov::SPtr p_pCovariance)
-{
-    mutex.lock();
-    m_qVecCovData.push_back(p_pCovariance);
-    mutex.unlock();
-}
-
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Covariance::changeSamples(qint32 samples)
 {
     m_iEstimationSamples = samples;
-    if(m_pRtCov)
-        m_pRtCov->setSamples(m_iEstimationSamples);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Covariance::run()
 {
-    //
-    // Read Fiff Info
-    //
-    while(!m_pFiffInfo)
-        msleep(10);// Wait for fiff Info
+    // Wait for fiff info
+    while(true) {
+        m_mutex.lock();
+        if(m_pFiffInfo) {
+            m_mutex.unlock();
+            break;
+        }
+        m_mutex.unlock();
+        msleep(100);
+    }
 
-    //Set m_iEstimationSamples so that we alwyas wait for 5 secs
-    m_iEstimationSamples = m_pFiffInfo->sfreq * 5;
+    MatrixXd matData;
+    FiffCov fiffCov;
+    m_mutex.lock();
+    int iEstimationSamples = m_iEstimationSamples;
+    m_mutex.unlock();
+    RTPROCESSINGLIB::RtCov rtCov(m_pFiffInfo);
 
-//    m_pActionShowAdjustment->setVisible(true);
+    // Start processing data
+    while(!isInterruptionRequested()) {
+        // Get the current data
+        if(m_pCircularBuffer->pop(matData)) {
+            m_mutex.lock();
+            iEstimationSamples = m_iEstimationSamples;
+            m_mutex.unlock();
 
-    //
-    // Init Real-Time Covariance estimator
-    //
-    m_pRtCov = RtCov::SPtr(new RtCov(m_iEstimationSamples, m_pFiffInfo));
-    connect(m_pRtCov.data(), &RtCov::covCalculated, this, &Covariance::appendCovariance);
-
-    //
-    // Start the rt helpers
-    //
-    m_pRtCov->start();
-
-    //
-    // start processing data
-    //
-    m_bProcessData = true;
-
-    while (m_bIsRunning)
-    {
-        if(m_bProcessData)
-        {
-            /* Dispatch the inputs */
-            MatrixXd t_mat = m_pCovarianceBuffer->pop();
-
-            //Add to covariance estimation
-            m_pRtCov->append(t_mat);
-
-            if(m_qVecCovData.size() > 0)
-            {
-                mutex.lock();
-                m_pCovarianceOutput->data()->setValue(*m_qVecCovData[0]);
-
-                m_qVecCovData.pop_front();
-                mutex.unlock();
+            fiffCov = rtCov.estimateCovariance(matData, iEstimationSamples);
+            if(!fiffCov.names.isEmpty()) {
+                m_pCovarianceOutput->data()->setValue(fiffCov);
             }
         }
     }
-
-//    m_pActionShowAdjustment->setVisible(false);
-
-    m_pRtCov->stop();
 }
 

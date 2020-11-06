@@ -1,42 +1,42 @@
 //=============================================================================================================
 /**
-* @file     fiff_tag.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-* 
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    FiffTag class declaration, which provides fiff tag I/O and processing methods.
-*
-*/
+ * @file     fiff_tag.h
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    FiffTag class declaration, which provides fiff tag I/O and processing methods.
+ *
+ */
 
 #ifndef FIFF_TAG_H
 #define FIFF_TAG_H
 
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINES
 //=============================================================================================================
@@ -66,6 +66,8 @@
 #endif
 #endif
 
+#define NATIVE_ENDIAN    FIFFV_LITTLE_ENDIAN
+
 #ifdef  INTEL_X86_ARCH
 #define NATIVE_ENDIAN    FIFFV_LITTLE_ENDIAN
 #endif
@@ -74,8 +76,6 @@
 #define NATIVE_ENDIAN    FIFFV_BIG_ENDIAN
 #endif
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -94,17 +94,13 @@
 
 #include <iostream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -115,8 +111,6 @@
 #include <QSharedPointer>
 #include <QVector>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE NAMESPACE FIFFLIB
 //=============================================================================================================
@@ -127,16 +121,6 @@ namespace FIFFLIB
 class FiffStream;
 class FiffDirNode;
 
-//*************************************************************************************************************
-//=============================================================================================================
-// USED NAMESPACES
-//=============================================================================================================
-
-//using namespace SOURCELAB;
-using namespace Eigen;
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
@@ -157,75 +141,77 @@ using namespace Eigen;
 
 //=============================================================================================================
 /**
-* Tags are used in front of data items to tell what they are.
-*
-* @brief FIFF data tag
-*/
-class FIFFSHARED_EXPORT FiffTag : public QByteArray {
+ * Tags are used in front of data items to tell what they are.
+ *
+ * @brief FIFF data tag
+ */
+class FIFFSHARED_EXPORT FiffTag : public QByteArray
+{
+
 public:
     typedef QSharedPointer<FiffTag> SPtr;            /**< Shared pointer type for FiffTag. */
     typedef QSharedPointer<const FiffTag> ConstSPtr; /**< Const shared pointer type for FiffTag. */
 
     //=========================================================================================================
     /**
-    * ctor //ToDo add FiffStream to constructor and remove static implementations --> make them members
-    */
+     * ctor //ToDo add FiffStream to constructor and remove static implementations --> make them members
+     */
     FiffTag();
 
     //=========================================================================================================
     /**
-    * copy ctor //ToDo add FiffStream to constructor and remove static implementations --> make them members
-    */
+     * copy ctor //ToDo add FiffStream to constructor and remove static implementations --> make them members
+     */
     FiffTag(const FiffTag* p_pFiffTag);
 
     //=========================================================================================================
     /**
-    * Destroys the FiffTag.
-    */
+     * Destroys the FiffTag.
+     */
     virtual ~FiffTag();
 
     //=========================================================================================================
     /**
-    * Provides information about matrix coding
-    *
-    * @return Matrix coding
-    */
+     * Provides information about matrix coding
+     *
+     * @return Matrix coding
+     */
     fiff_int_t getMatrixCoding() const;
 
     //=========================================================================================================
     /**
-    * Provides information if tag contains a matrix
-    *
-    * @return true if tag contains a matrix
-    */
+     * Provides information if tag contains a matrix
+     *
+     * @return true if tag contains a matrix
+     */
     bool isMatrix() const;
 
     //=========================================================================================================
     /**
-    * Returns matrix dimensions
-    * Refactors: fiff_get_matrix_dims (fiff_matrix.c)
-    *
-    * @param[out] p_ndim    number of dimensions
-    * @param[out] p_Dims    vector containing the size of each dimension
-    *
-    * @return true if dimensions are available
-    */
+     * Returns matrix dimensions
+     * Refactors: fiff_get_matrix_dims (fiff_matrix.c)
+     *
+     * @param[out] p_ndim    number of dimensions
+     * @param[out] p_Dims    vector containing the size of each dimension
+     *
+     * @return true if dimensions are available
+     */
     bool getMatrixDimensions(qint32& p_ndim, QVector<qint32>& p_Dims) const;
 
     //=========================================================================================================
     /**
-    * Provides the tag type information
-    *
-    * @return the tag type
-    */
+     * Provides the tag type information
+     *
+     * @return the tag type
+     */
     fiff_int_t getType() const;
 
     //=========================================================================================================
     /**
-    * Type information as a string
-    *
-    * @return the tag type information
-    */
+     * Type information as a string
+     *
+     * @return the tag type information
+     */
     QString getInfo() const;
 
     //
@@ -233,48 +219,57 @@ public:
     //
     //=========================================================================================================
     /**
-    * to Byte
-    * Fast access; Data are deleted if tag gets deleted, and wise versa
-    *
-    * @return type cast of the tag data pointer
-    */
+     * to Byte
+     * Fast access; Data are deleted if tag gets deleted, and wise versa
+     *
+     * @return type cast of the tag data pointer
+     */
     inline quint8* toByte() const;
 
     //=========================================================================================================
     /**
-    * to unsigned Short
-    * Fast access; Data are deleted if tag gets deleted, and wise versa
-    *
-    * @return type cast of the tag data pointer
-    */
+     * to unsigned Short
+     * Fast access; Data are deleted if tag gets deleted, and wise versa
+     *
+     * @return type cast of the tag data pointer
+     */
     inline quint16* toUnsignedShort() const;
 
     //=========================================================================================================
     /**
-    * to Short
-    * Fast access; Data are deleted if tag gets deleted, and wise versa
-    *
-    * @return type cast of the tag data pointer
-    */
+     * to Short
+     * Fast access; Data are deleted if tag gets deleted, and wise versa
+     *
+     * @return type cast of the tag data pointer
+     */
     inline qint16* toShort() const;
 
     //=========================================================================================================
     /**
-    * to Int
-    * Fast access; Data are deleted if tag gets deleted, and wise versa
-    *
-    * @return type cast of the tag data pointer
-    */
+     * to Int
+     * Fast access; Data are deleted if tag gets deleted, and wise versa
+     *
+     * @return type cast of the tag data pointer
+     */
     inline quint32* toUnsignedInt() const;
 
     //=========================================================================================================
     /**
-    * to Int
+     * to Int
+     * Fast access; Data are deleted if tag gets deleted, and wise versa
+     *
+     * @return type cast of the tag data pointer
+     */
+    inline qint32* toInt() const;
+
+    //=========================================================================================================
+    /**
+    * to Julian
     * Fast access; Data are deleted if tag gets deleted, and wise versa
     *
     * @return type cast of the tag data pointer
     */
-    inline qint32* toInt() const;
+    inline qint32* toJulian() const;
 
     //=========================================================================================================
     /**
@@ -287,46 +282,46 @@ public:
 
     //=========================================================================================================
     /**
-    * to Double
-    * Fast access; Data are deleted if tag gets deleted, and wise versa
-    *
-    * @return type cast of the tag data pointer
-    */
+     * to Double
+     * Fast access; Data are deleted if tag gets deleted, and wise versa
+     *
+     * @return type cast of the tag data pointer
+     */
     inline double* toDouble() const;
 
     //=========================================================================================================
     /**
-    * to String
-    *
-    * @return converts data to a string
-    */
+     * to String
+     *
+     * @return converts data to a string
+     */
     inline QString toString() const;
 
     //=========================================================================================================
     /**
-    * to DauPack16
-    * Fast access; Data are deleted if tag gets deleted, and wise versa
-    *
-    * @return type cast of the tag data pointer
-    */
+     * to DauPack16
+     * Fast access; Data are deleted if tag gets deleted, and wise versa
+     *
+     * @return type cast of the tag data pointer
+     */
     inline qint16* toDauPack16() const;
 
     //=========================================================================================================
     /**
-    * to complex float
-    * Allocates new memory - pointer has to be deleted ater use
-    *
-    * @return complex float array
-    */
+     * to complex float
+     * Allocates new memory - pointer has to be deleted ater use
+     *
+     * @return complex float array
+     */
 //    inline std::complex<float>* toComplexFloat();
 
     //=========================================================================================================
     /**
-    * to complex double
-    * Allocates new memory - pointer has to be deleted ater use
-    *
-    * @return complex double array
-    */
+     * to complex double
+     * Allocates new memory - pointer has to be deleted ater use
+     *
+     * @return complex double array
+     */
 //    inline std::complex<double>* toComplexDouble();
 
     //
@@ -334,36 +329,35 @@ public:
     //
     //=========================================================================================================
     /**
-    * to fiff ID
-    *
-    * @return Fiff universially unique identifier
-    */
+     * to fiff ID
+     *
+     * @return Fiff universially unique identifier
+     */
     inline FiffId toFiffID() const;
 
     //=========================================================================================================
     /**
-    * to fiff DIG POINT
-    *
-    * @return Fiff point descriptor
-    */
+     * to fiff DIG POINT
+     *
+     * @return Fiff point descriptor
+     */
     inline FiffDigPoint toDigPoint() const;
 
     //=========================================================================================================
     /**
-    * to fiff COORD TRANS
-    *
-    * @return Fiff coordinate transformation descriptor
-    */
+     * to fiff COORD TRANS
+     *
+     * @return Fiff coordinate transformation descriptor
+     */
     inline FiffCoordTrans toCoordTrans() const;
 
     //=========================================================================================================
     /**
-    * to fiff CH INFO
-    *
-    * @return Fiff channel info descriptor.
-    */
+     * to fiff CH INFO
+     *
+     * @return Fiff channel info descriptor.
+     */
     inline FiffChInfo toChInfo() const;
-
 
 //    //=========================================================================================================
 //    /**
@@ -373,43 +367,42 @@ public:
 
     //=========================================================================================================
     /**
-    * to fiff DIR ENTRY
-    *
-    * @return List of directory entry descriptors
-    */
+     * to fiff DIR ENTRY
+     *
+     * @return List of directory entry descriptors
+     */
     inline QList< QSharedPointer<FiffDirEntry> > toDirEntry() const;
-
 
     //
     // MATRIX
     //
     //=========================================================================================================
     /**
-    * to fiff FIFFT INT MATRIX
-    *
-    * @return Integer matrix
-    */
-    inline MatrixXi toIntMatrix() const;
+     * to fiff FIFFT INT MATRIX
+     *
+     * @return Integer matrix
+     */
+    inline Eigen::MatrixXi toIntMatrix() const;
 
     //=========================================================================================================
     /**
-    * to fiff FIFFT FLOAT MATRIX
-    *
-    * parses a fiff float matrix
-    *
-    * @return the parsed float matrix
-    */
-    inline MatrixXf toFloatMatrix() const;
+     * to fiff FIFFT FLOAT MATRIX
+     *
+     * parses a fiff float matrix
+     *
+     * @return the parsed float matrix
+     */
+    inline Eigen::MatrixXf toFloatMatrix() const;
 
     //=========================================================================================================
     /**
-    * to sparse fiff FIFFT FLOAT MATRIX
-    *
-    * parses a sparse fiff float matrix and returns a double sparse matrix to make sure only double is used
-    *
-    * @return a sparse double matrix wich is newly created from the parsed float
-    */
-    inline SparseMatrix<double> toSparseFloatMatrix() const;
+     * to sparse fiff FIFFT FLOAT MATRIX
+     *
+     * parses a sparse fiff float matrix and returns a double sparse matrix to make sure only double is used
+     *
+     * @return a sparse double matrix wich is newly created from the parsed float
+     */
+    inline Eigen::SparseMatrix<double> toSparseFloatMatrix() const;
 
     //
     //from fiff_combat.c
@@ -417,18 +410,18 @@ public:
 
     //=========================================================================================================
     /**
-    * Convert coil position descriptor
-    *
-    * @param[in, out] pos    coil position descriptor to convert
-    */
+     * Convert coil position descriptor
+     *
+     * @param[in, out] pos    coil position descriptor to convert
+     */
     static void convert_ch_pos(FiffChPos* pos);
 
     //TODO: Check if this is of interest
 //    static void fiff_convert_tag_info(FiffTag*& tag);
 
     /*
-    * Data type conversions for the little endian systems.
-    */
+     * Data type conversions for the little endian systems.
+     */
     /*! Machine dependent data type conversions (tag info only)
      *
      * from_endian defines the byte order of the input
@@ -442,18 +435,18 @@ public:
 
     //=========================================================================================================
     /**
-    * Convert matrix data read from a file inside a fiff tag
-    *
-    * @param[in, out] tag    matrix data to convert
-    */
+     * Convert matrix data read from a file inside a fiff tag
+     *
+     * @param[in, out] tag    matrix data to convert
+     */
     static void convert_matrix_from_file_data(FiffTag::SPtr tag);
 
     //=========================================================================================================
     /**
-    * Convert matrix data before writing to a file inside a fiff tag
-    *
-    * @param[in, out] tag    matrix data to convert
-    */
+     * Convert matrix data before writing to a file inside a fiff tag
+     *
+     * @param[in, out] tag    matrix data to convert
+     */
     static void convert_matrix_to_file_data(FiffTag::SPtr tag);
 
     //
@@ -461,18 +454,18 @@ public:
     //
     //=========================================================================================================
     /**
-    * Machine dependent data type conversions (tag info only)
-    *
-    * from_endian defines the byte order of the input
-    * to_endian   defines the byte order of the output
-    *
-    * Either of these may be specified as FIFFV_LITTLE_ENDIAN, FIFFV_BIG_ENDIAN, or FIFFV_NATIVE_ENDIAN.
-    * The last choice means that the native byte order value will be substituted here before proceeding
-    *
-    * @param[in, out] tag       matrix data to convert
-    * @param[in] from_endian    from endian encoding
-    * @param[in] to_endian      to endian encoding
-    */
+     * Machine dependent data type conversions (tag info only)
+     *
+     * from_endian defines the byte order of the input
+     * to_endian   defines the byte order of the output
+     *
+     * Either of these may be specified as FIFFV_LITTLE_ENDIAN, FIFFV_BIG_ENDIAN, or FIFFV_NATIVE_ENDIAN.
+     * The last choice means that the native byte order value will be substituted here before proceeding
+     *
+     * @param[in, out] tag       matrix data to convert
+     * @param[in] from_endian    from endian encoding
+     * @param[in] to_endian      to endian encoding
+     */
     static void convert_tag_data(FiffTag::SPtr tag, int from_endian, int to_endian);
 
     //
@@ -480,28 +473,27 @@ public:
     //
     //=========================================================================================================
     /**
-    * These return information about a fiff type.
-    *
-    * @return fiff type
-    */
+     * These return information about a fiff type.
+     *
+     * @return fiff type
+     */
     static fiff_int_t fiff_type_fundamental(fiff_int_t type);
 
     //=========================================================================================================
     /**
-    * These return information about fiff type base.
-    *
-    * @return fiff type
-    */
+     * These return information about fiff type base.
+     *
+     * @return fiff type
+     */
     static fiff_int_t fiff_type_base(fiff_int_t type);
 
     //=========================================================================================================
     /**
-    * These return information about the matrix coding.
-    *
-    * @return matrix coding
-    */
+     * These return information about the matrix coding.
+     *
+     * @return matrix coding
+     */
     static fiff_int_t fiff_type_matrix_coding(fiff_int_t type);
-
 
 public:
     fiff_int_t  kind;       /**< Tag number.
@@ -522,15 +514,28 @@ private:
 
 //    std::complex<double>* m_pComplexDoubleData;
 
+// ### OLD STRUCT ###
+//typedef struct _fiffTagRec {
+//    fiff_int_t  kind;		/**< Tag number.
+//                 *   This defines the meaning of the item */
+//    fiff_int_t  type;		/**< Data type.
+//                 *   This defines the reperentation of the data. */
+//    fiff_int_t  size;		/**< Size of the data.
+//                 *   The size is given in bytes and defines the
+//                 *   total size of the data. */
+//    fiff_int_t  next;		/**< Pointer to the next object.
+//                 *   Zero if the object follows
+//                 *   sequentially in file.
+//                 *   Negative at the end of file */
+//    fiff_data_t *data;		/**< Pointer to the data.
+//                 *   This point to the data read or to be written. */
+//} *fiffTag,fiffTagRec;   /**< FIFF data tag */
 };
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // Simple types
 //=============================================================================================================
@@ -543,8 +548,7 @@ inline quint8* FiffTag::toByte() const
         return (quint8*)this->data();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline quint16* FiffTag::toUnsignedShort() const
 {
@@ -554,8 +558,7 @@ inline quint16* FiffTag::toUnsignedShort() const
         return (quint16*)this->data();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline qint16* FiffTag::toShort() const
 {
@@ -565,8 +568,7 @@ inline qint16* FiffTag::toShort() const
         return (qint16*)this->data();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline quint32* FiffTag::toUnsignedInt() const
 {
@@ -576,8 +578,7 @@ inline quint32* FiffTag::toUnsignedInt() const
         return (quint32*)this->data();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline qint32* FiffTag::toInt() const
 {
@@ -589,8 +590,19 @@ inline qint32* FiffTag::toInt() const
         return (qint32*)this->data();
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+inline qint32* FiffTag::toJulian() const
+{
+    if(this->isMatrix() || this->getType() != FIFFT_JULIAN) {
+        printf("Expected a julian tag : %d (found data type %d instead)\n",this->kind,this->getType());
+        return NULL;
+    }
+    else
+        return (qint32*)this->data();
+}
+
+//=============================================================================================================
 
 inline float* FiffTag::toFloat() const
 {
@@ -600,8 +612,7 @@ inline float* FiffTag::toFloat() const
         return (float*)this->data();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline double* FiffTag::toDouble() const
 {
@@ -611,8 +622,7 @@ inline double* FiffTag::toDouble() const
         return (double*)this->data();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline QString FiffTag::toString() const
 {
@@ -622,8 +632,7 @@ inline QString FiffTag::toString() const
         return *this;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline qint16* FiffTag::toDauPack16() const
 {
@@ -633,8 +642,7 @@ inline qint16* FiffTag::toDauPack16() const
         return (qint16*)this->data();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 //inline std::complex<float>* FiffTag::toComplexFloat()
 //{
@@ -650,8 +658,7 @@ inline qint16* FiffTag::toDauPack16() const
 //    return m_pComplexFloatData;
 //}
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 //inline std::complex<double>* FiffTag::toComplexDouble()
 //{
@@ -667,7 +674,6 @@ inline qint16* FiffTag::toDauPack16() const
 //    return m_pComplexDoubleData;
 //}
 
-//*************************************************************************************************************
 //=============================================================================================================
 // Structures
 //=============================================================================================================
@@ -691,8 +697,7 @@ inline FiffId FiffTag::toFiffID() const
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline FiffDigPoint FiffTag::toDigPoint() const
 {
@@ -718,8 +723,7 @@ inline FiffDigPoint FiffTag::toDigPoint() const
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline FiffCoordTrans FiffTag::toCoordTrans() const
 {
@@ -759,11 +763,10 @@ inline FiffCoordTrans FiffTag::toCoordTrans() const
     }
 }
 
-
 //=========================================================================================================
 /**
-* to fiff CH INFO STRUCT
-*/
+ * to fiff CH INFO STRUCT
+ */
 inline FiffChInfo FiffTag::toChInfo() const
 {
     FiffChInfo p_FiffChInfo;
@@ -848,7 +851,6 @@ inline FiffChInfo FiffTag::toChInfo() const
     }
 }
 
-
 //    //=========================================================================================================
 //    /**
 //    * to fiff OLD PACK
@@ -856,12 +858,9 @@ inline FiffChInfo FiffTag::toChInfo() const
 //    inline fiff_coord_trans_t toCoordTrans() const
 //    {
 
-
 //    }
 
-
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline QList< QSharedPointer<FiffDirEntry> > FiffTag::toDirEntry() const
 {
@@ -886,18 +885,16 @@ inline QList< QSharedPointer<FiffDirEntry> > FiffTag::toDirEntry() const
     return p_ListFiffDir;
 }
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // MATRIX
 //=============================================================================================================
 
-//*************************************************************************************************************
+//=============================================================================================================
 
-inline MatrixXi FiffTag::toIntMatrix() const
+inline Eigen::MatrixXi FiffTag::toIntMatrix() const
 {
     if(!this->isMatrix() || this->getType() != FIFFT_INT || this->data() == NULL)
-        return MatrixXi();
+        return Eigen::MatrixXi();
 
     qint32 ndim;
     QVector<qint32> dims;
@@ -906,28 +903,27 @@ inline MatrixXi FiffTag::toIntMatrix() const
     if (ndim != 2)
     {
         printf("Only two-dimensional matrices are supported at this time");
-        return MatrixXi();
+        return Eigen::MatrixXi();
     }
 
     //MatrixXd p_Matrix = Map<MatrixXd>( (float*)this->data,p_dims[0], p_dims[1]);
     // --> Use copy constructor instead --> slower performance but higher memory management reliability
-    MatrixXi p_Matrix(Map<MatrixXi>( (int*)this->data(),dims[0], dims[1]));
+    Eigen::MatrixXi p_Matrix(Eigen::Map<Eigen::MatrixXi>( (int*)this->data(),dims[0], dims[1]));
 
     return p_Matrix;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-inline MatrixXf FiffTag::toFloatMatrix() const
+inline Eigen::MatrixXf FiffTag::toFloatMatrix() const
 {
     if(!this->isMatrix() || this->getType() != FIFFT_FLOAT || this->data() == NULL)
-        return MatrixXf();//NULL;
+        return Eigen::MatrixXf();//NULL;
 
     if (fiff_type_matrix_coding(this->type) != FIFFTS_MC_DENSE)
     {
         printf("Error in FiffTag::toFloatMatrix(): Matrix is not dense!\n");
-        return MatrixXf();//NULL;
+        return Eigen::MatrixXf();//NULL;
     }
 
     qint32 ndim;
@@ -937,28 +933,26 @@ inline MatrixXf FiffTag::toFloatMatrix() const
     if (ndim != 2)
     {
         printf("Only two-dimensional matrices are supported at this time");
-        return MatrixXf();//NULL;
+        return Eigen::MatrixXf();//NULL;
     }
 
     // --> Use copy constructor instead --> slower performance but higher memory management reliability
-    MatrixXf p_Matrix((Map<MatrixXf>( (float*)this->data(),dims[0], dims[1])));
+    Eigen::MatrixXf p_Matrix((Eigen::Map<Eigen::MatrixXf>( (float*)this->data(),dims[0], dims[1])));
 
     return p_Matrix;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-
-inline SparseMatrix<double> FiffTag::toSparseFloatMatrix() const
+inline Eigen::SparseMatrix<double> FiffTag::toSparseFloatMatrix() const
 {
     if(!this->isMatrix() || this->getType() != FIFFT_FLOAT || this->data() == NULL)
-        return SparseMatrix<double>();//NULL;
+        return Eigen::SparseMatrix<double>();//NULL;
 
     if (fiff_type_matrix_coding(this->type) != FIFFTS_MC_CCS && fiff_type_matrix_coding(this->type) != FIFFTS_MC_RCS)
     {
         printf("Error in FiffTag::toSparseFloatMatrix(): Matrix is not sparse!\n");
-        return SparseMatrix<double>();//NULL;
+        return Eigen::SparseMatrix<double>();//NULL;
     }
 
     qint32 ndim;
@@ -968,7 +962,7 @@ inline SparseMatrix<double> FiffTag::toSparseFloatMatrix() const
     if (ndim != 2)
     {
         printf("Only two-dimensional matrices are supported at this time");
-        return SparseMatrix<double>();//NULL;
+        return Eigen::SparseMatrix<double>();//NULL;
     }
 
     qint32 nnz = dims[0];
@@ -1022,12 +1016,11 @@ inline SparseMatrix<double> FiffTag::toSparseFloatMatrix() const
 //    for(qint32 i = 0; i < 10; ++i)
 //        std::cout << std::endl << tripletList[offsetTest + i].row() << " " << tripletList[offsetTest + i].col() << " " << tripletList[offsetTest + i].value();
 
-    SparseMatrix<double> p_Matrix(nrow, ncol);
+    Eigen::SparseMatrix<double> p_Matrix(nrow, ncol);
     p_Matrix.setFromTriplets(tripletList.begin(), tripletList.end());
 
     return p_Matrix;
 }
-
 } // NAMESPACE
 
 #endif // FIFF_TAG_H

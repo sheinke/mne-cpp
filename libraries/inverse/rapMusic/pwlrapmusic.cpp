@@ -1,38 +1,38 @@
 //=============================================================================================================
 /**
-* @file     pwlrapmusic.cpp
-* @author   Christoph Dinh <christoph.dinh@tu-ilmenau.de>
-* @version  1.0
-* @date     July, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Christoph Dinh. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the PwlRapMusic Algorithm Class.
-*
-*/
+ * @file     pwlrapmusic.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Lorenz Esch, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the PwlRapMusic Algorithm Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,16 +43,14 @@
 #include <omp.h>
 #endif
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace INVERSELIB;
+using namespace MNELIB;
+using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -62,8 +60,7 @@ PwlRapMusic::PwlRapMusic()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 PwlRapMusic::PwlRapMusic(MNEForwardSolution& p_pFwd, bool p_bSparsed, int p_iN, double p_dThr)
 : RapMusic(p_pFwd, p_bSparsed, p_iN, p_dThr)
@@ -72,40 +69,34 @@ PwlRapMusic::PwlRapMusic(MNEForwardSolution& p_pFwd, bool p_bSparsed, int p_iN, 
     init(p_pFwd, p_bSparsed, p_iN, p_dThr);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 PwlRapMusic::~PwlRapMusic()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const char* PwlRapMusic::getName() const
 {
     return "Powell RAP MUSIC";
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate PwlRapMusic::calculateInverse(const FiffEvoked &p_fiffEvoked, bool pick_normal)
 {
     return RapMusic::calculateInverse(p_fiffEvoked, pick_normal);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate PwlRapMusic::calculateInverse(const MatrixXd &data, float tmin, float tstep) const
 {
     return RapMusic::calculateInverse(data, tmin, tstep);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate PwlRapMusic::calculateInverse(const MatrixXd& p_matMeasurement, QList< DipolePair<double> > &p_RapDipoles) const
 {
@@ -283,7 +274,6 @@ MNESourceEstimate PwlRapMusic::calculateInverse(const MatrixXd& p_matMeasurement
                 t_iIdx2 = m_ppPairIdxCombinations[t_iMaxIdx]->x2;
             }
 
-
             //set new index
             if(t_iIdx1 == t_iCurrentRow)
                 t_iCurrentRow = t_iIdx2;
@@ -298,7 +288,6 @@ MNESourceEstimate PwlRapMusic::calculateInverse(const MatrixXd& p_matMeasurement
 
         float t_fSubcorrElapsedTime = ( (float)(end_subcorr-start_subcorr) / (float)CLOCKS_PER_SEC ) * 1000.0f;
         std::cout << "Time Elapsed: " << t_fSubcorrElapsedTime << " ms" << std::endl;
-
 
         // (Idx+1) because of MATLAB positions -> starting with 1 not with 0
         std::cout << "Iteration: " << r+1 << " of " << t_iMaxSearch
@@ -352,18 +341,15 @@ MNESourceEstimate PwlRapMusic::calculateInverse(const MatrixXd& p_matMeasurement
     return p_SourceEstimate;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int PwlRapMusic::PowellOffset(int p_iRow, int p_iNumPoints)
 {
 
     return p_iRow*p_iNumPoints - (( (p_iRow-1)*p_iRow) / 2); //triangular series 1 3 6 10 ... = (num_pairs*(num_pairs+1))/2
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PwlRapMusic::PowellIdxVec(int p_iRow, int p_iNumPoints, Eigen::VectorXi& p_pVecElements)
 {
@@ -373,11 +359,9 @@ void PwlRapMusic::PowellIdxVec(int p_iRow, int p_iNumPoints, Eigen::VectorXi& p_
     //
     //     p_pVecElements = new int(p_iNumPoints);
 
-
     //col combination index
     for(int i = 0; i <= p_iRow; ++i)//=p_iNumPoints-1
         p_pVecElements(i) = PwlRapMusic::PowellOffset(i+1,p_iNumPoints)-(p_iNumPoints-p_iRow);
-
 
     //row combination index
     int off = PwlRapMusic::PowellOffset(p_iRow,p_iNumPoints);

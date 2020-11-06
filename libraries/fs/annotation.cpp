@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     annotation.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-*           Bruce Fischl
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the Annotation class.
-*
-*/
+ * @file     annotation.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the Annotation class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,18 +42,10 @@
 #include "label.h"
 #include "surface.h"
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
-
 #include <iostream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QDebug>
@@ -62,16 +53,13 @@
 #include <QDataStream>
 #include <QFileInfo>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace FSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -81,22 +69,19 @@ Annotation::Annotation()
 , m_sFileName("")
 , m_iHemi(-1)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Annotation::Annotation(const QString& p_sFileName)
 : m_sFileName(p_sFileName)
 {
     Annotation t_Annotation;
     Annotation::read(m_sFileName, t_Annotation);
-    *this = t_Annotation;
+     *this = t_Annotation;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Annotation::Annotation(const QString &subject_id, qint32 hemi, const QString &atlas, const QString &subjects_dir)
 : m_sFilePath("")
@@ -106,8 +91,7 @@ Annotation::Annotation(const QString &subject_id, qint32 hemi, const QString &at
     Annotation::read(subject_id, hemi, atlas, subjects_dir, *this);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Annotation::Annotation(const QString &path, qint32 hemi, const QString &atlas)
 : m_sFilePath("")
@@ -117,16 +101,13 @@ Annotation::Annotation(const QString &path, qint32 hemi, const QString &atlas)
     Annotation::read(path, hemi, atlas, *this);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Annotation::~Annotation()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Annotation::clear()
 {
@@ -136,8 +117,7 @@ void Annotation::clear()
     m_Colortable.clear();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Annotation::read(const QString &subject_id, qint32 hemi, const QString &atlas, const QString &subjects_dir, Annotation &p_Annotation)
 {
@@ -149,8 +129,7 @@ bool Annotation::read(const QString &subject_id, qint32 hemi, const QString &atl
     return read(p_sFile, p_Annotation);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Annotation::read(const QString &path, qint32 hemi, const QString &atlas, Annotation &p_Annotation)
 {
@@ -162,8 +141,7 @@ bool Annotation::read(const QString &path, qint32 hemi, const QString &atlas, An
     return read(p_sFile, p_Annotation);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Annotation::read(const QString& p_sFileName, Annotation &p_Annotation)
 {
@@ -311,10 +289,12 @@ bool Annotation::read(const QString& p_sFileName, Annotation &p_Annotation)
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool Annotation::toLabels(const Surface &p_surf, QList<Label> &p_qListLabels, QList<RowVector4i> &p_qListLabelRGBAs) const
+bool Annotation::toLabels(const Surface &p_surf,
+                          QList<Label> &p_qListLabels,
+                          QList<RowVector4i> &p_qListLabelRGBAs,
+                          const QStringList& lLabelPicks) const
 {
     if(this->m_iHemi != p_surf.hemi())
     {
@@ -379,13 +359,18 @@ bool Annotation::toLabels(const Surface &p_surf, QList<Label> &p_qListLabels, QL
         name = QString("%1-%2").arg(label_names[i]).arg(this->m_iHemi == 0 ? "lh" : "rh");
 
         // put it all together
-        //t_tris
-        p_qListLabels.append(Label(vertices, pos, values, this->m_iHemi, name, label_id));
-
-        // store the color
-        p_qListLabelRGBAs.append(label_rgba);
+        if(lLabelPicks.isEmpty()) {
+            //t_tris
+            p_qListLabels.append(Label(vertices, pos, values, this->m_iHemi, name, label_id));
+            // store the color
+            p_qListLabelRGBAs.append(label_rgba);
+        } else if (lLabelPicks.indexOf(name) != -1) {
+            //t_tris
+            p_qListLabels.append(Label(vertices, pos, values, this->m_iHemi, name, label_id));
+            // store the color
+            p_qListLabelRGBAs.append(label_rgba);
+        }
     }
-
 
 //    for label_id, label_name, label_rgba in
 //            zip(label_ids, label_names, label_rgbas):
@@ -413,7 +398,6 @@ bool Annotation::toLabels(const Surface &p_surf, QList<Label> &p_qListLabels, QL
 //# convert tuples to lists
 //labels = list(labels)
 //label_colors = list(label_colors)
-
 
     printf("[done]\n");
 

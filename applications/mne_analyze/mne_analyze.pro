@@ -1,14 +1,15 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     mne_analyze.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @author   Robert Dicamillo <rd521@nmr.mgh.harvard.edu>;
+#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>
+# @since    0.1.0
 # @date     February, 2017
 #
 # @section  LICENSE
 #
-# Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2017, Robert Dicamillo, Christoph Dinh, Lorenz Esch. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,7 +32,7 @@
 #
 # @brief    This project file builds the MNE Analyze project.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../mne-cpp.pri)
 
@@ -39,7 +40,9 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     libs \
+    plugins \
     mne_analyze \
-    extensions
 
-CONFIG += ordered
+libs.depends =
+plugins.depends = libs
+mne_analyze.depends = libs plugins

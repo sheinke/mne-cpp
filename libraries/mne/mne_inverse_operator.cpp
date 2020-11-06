@@ -1,39 +1,40 @@
 //=============================================================================================================
 /**
-* @file     mne_inverse_operator.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MNEInverseOperator Class.
-*
-*/
+ * @file     mne_inverse_operator.cpp
+ * @author   Gabriel B Motta <gabrielbenmotta@gmail.com>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Gabriel B Motta, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MNEInverseOperator Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -41,42 +42,31 @@
 #include "mne_inverse_operator.h"
 #include <fs/label.h>
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
-
 #include <iostream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QFuture>
 #include <QtConcurrent>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/SVD>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace UTILSLIB;
 using namespace MNELIB;
+using namespace FIFFLIB;
+using namespace FSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -97,26 +87,35 @@ MNEInverseOperator::MNEInverseOperator()
 , fmri_prior(new FiffCov)
 , nave(-1)
 {
+    qRegisterMetaType<QSharedPointer<MNELIB::MNEInverseOperator> >("QSharedPointer<MNELIB::MNEInverseOperator>");
+    qRegisterMetaType<MNELIB::MNEInverseOperator>("MNELIB::MNEInverseOperator");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEInverseOperator::MNEInverseOperator(QIODevice& p_IODevice)
 {
     MNEInverseOperator::read_inverse_operator(p_IODevice, *this);
+    qRegisterMetaType<QSharedPointer<MNELIB::MNEInverseOperator> >("QSharedPointer<MNELIB::MNEInverseOperator>");
+    qRegisterMetaType<MNELIB::MNEInverseOperator>("MNELIB::MNEInverseOperator");
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MNEInverseOperator::MNEInverseOperator(const FiffInfo &info, const MNEForwardSolution& forward, const FiffCov& p_noise_cov, float loose, float depth, bool fixed, bool limit_depth_chs)
+MNEInverseOperator::MNEInverseOperator(const FiffInfo &info,
+                                       const MNEForwardSolution& forward,
+                                       const FiffCov& p_noise_cov,
+                                       float loose,
+                                       float depth,
+                                       bool fixed,
+                                       bool limit_depth_chs)
 {
-    *this = MNEInverseOperator::make_inverse_operator(info, forward, p_noise_cov, loose, depth, fixed, limit_depth_chs);
+     *this = MNEInverseOperator::make_inverse_operator(info, forward, p_noise_cov, loose, depth, fixed, limit_depth_chs);
+    qRegisterMetaType<QSharedPointer<MNELIB::MNEInverseOperator> >("QSharedPointer<MNELIB::MNEInverseOperator>");
+    qRegisterMetaType<MNELIB::MNEInverseOperator>("MNELIB::MNEInverseOperator");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEInverseOperator::MNEInverseOperator(const MNEInverseOperator &p_MNEInverseOperator)
 : info(p_MNEInverseOperator.info)
@@ -144,21 +143,24 @@ MNEInverseOperator::MNEInverseOperator(const MNEInverseOperator &p_MNEInverseOpe
 , reginv(p_MNEInverseOperator.reginv)
 , noisenorm(p_MNEInverseOperator.noisenorm)
 {
-
+    qRegisterMetaType<QSharedPointer<MNELIB::MNEInverseOperator> >("QSharedPointer<MNELIB::MNEInverseOperator>");
+    qRegisterMetaType<MNELIB::MNEInverseOperator>("MNELIB::MNEInverseOperator");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEInverseOperator::~MNEInverseOperator()
 {
-
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool MNEInverseOperator::assemble_kernel(const Label &label, QString method, bool pick_normal, MatrixXd &K, SparseMatrix<double> &noise_norm, QList<VectorXi> &vertno)
+bool MNEInverseOperator::assemble_kernel(const Label &label,
+                                         QString method,
+                                         bool pick_normal,
+                                         MatrixXd &K,
+                                         SparseMatrix<double> &noise_norm,
+                                         QList<VectorXi> &vertno)
 {
     MatrixXd t_eigen_leads = this->eigen_leads->data;
     MatrixXd t_source_cov = this->source_cov->data;
@@ -211,7 +213,6 @@ bool MNEInverseOperator::assemble_kernel(const Label &label, QString method, boo
             }
             src_sel = src_sel_new;
         }
-
 
         for(qint32 i = 0; i < src_sel.size(); ++i)
         {
@@ -272,7 +273,7 @@ bool MNEInverseOperator::assemble_kernel(const Label &label, QString method, boo
         //
         //     R^0.5 has been already factored in
         //
-        printf("(eigenleads already weighted)...");
+        printf("(eigenleads already weighted)...\n");
         K = t_eigen_leads*trans;
     }
     else
@@ -280,7 +281,7 @@ bool MNEInverseOperator::assemble_kernel(const Label &label, QString method, boo
         //
         //     R^0.5 has to factored in
         //
-       printf("(eigenleads need to be weighted)...");
+       printf("(eigenleads need to be weighted)...\n");
 
        std::vector<T> tripletList2;
        tripletList2.reserve(t_source_cov.rows());
@@ -301,8 +302,7 @@ bool MNEInverseOperator::assemble_kernel(const Label &label, QString method, boo
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNEInverseOperator::check_ch_names(const FiffInfo &info) const
 {
@@ -347,8 +347,7 @@ bool MNEInverseOperator::check_ch_names(const FiffInfo &info) const
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MatrixXd MNEInverseOperator::cluster_kernel(const AnnotationSet &p_AnnotationSet, qint32 p_iClusterSize, MatrixXd& p_D, QString p_sMethod) const
 {
@@ -390,8 +389,6 @@ MatrixXd MNEInverseOperator::cluster_kernel(const AnnotationSet &p_AnnotationSet
 //        t_G_Whitened = p_outWhitener*t_G_Whitened;
 //        t_bUseWhitened = true;
 //    }
-
-
 
     //
     // Assemble input data
@@ -438,7 +435,7 @@ MatrixXd MNEInverseOperator::cluster_kernel(const AnnotationSet &p_AnnotationSet
             if (label_ids[i] != 0)
             {
                 QString curr_name = t_CurrentColorTable.struct_names[i];//obj.label2AtlasName(label(i));
-                printf("\tCluster %d / %lld %s...", i+1, label_ids.rows(), curr_name.toUtf8().constData());
+                printf("\tCluster %d / %ld %s...", i+1, label_ids.rows(), curr_name.toUtf8().constData());
 
                 //
                 // Get source space indeces
@@ -497,7 +494,6 @@ MatrixXd MNEInverseOperator::cluster_kernel(const AnnotationSet &p_AnnotationSet
                 }
             }
         }
-
 
         //
         // Calculate clusters
@@ -563,7 +559,6 @@ MatrixXd MNEInverseOperator::cluster_kernel(const AnnotationSet &p_AnnotationSet
 
             }
 
-
             //
             // Assign partial G to new LeadField
             //
@@ -612,7 +607,6 @@ MatrixXd MNEInverseOperator::cluster_kernel(const AnnotationSet &p_AnnotationSet
         printf("[done]\n");
     }
 
-
     //
     // Cluster operator D (sources x clusters)
     //
@@ -646,8 +640,6 @@ MatrixXd MNEInverseOperator::cluster_kernel(const AnnotationSet &p_AnnotationSet
             idx_sel.array() += hemiOffset;
 
 //            std::cout << "idx_sel]:\n" << idx_sel << std::endl;
-
-
 
             double selectWeight = 1.0/idx_sel.size();
             if(this->isFixedOrient())
@@ -683,10 +675,15 @@ MatrixXd MNEInverseOperator::cluster_kernel(const AnnotationSet &p_AnnotationSet
     return p_outMT;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MNEInverseOperator MNEInverseOperator::make_inverse_operator(const FiffInfo &info, MNEForwardSolution forward, const FiffCov &p_noise_cov, float loose, float depth, bool fixed, bool limit_depth_chs)
+MNEInverseOperator MNEInverseOperator::make_inverse_operator(const FiffInfo &info,
+                                                             MNEForwardSolution forward,
+                                                             const FiffCov &p_noise_cov,
+                                                             float loose,
+                                                             float depth,
+                                                             bool fixed,
+                                                             bool limit_depth_chs)
 {
     bool is_fixed_ori = forward.isFixedOrient();
     MNEInverseOperator p_MNEInverseOperator;
@@ -922,8 +919,7 @@ MNEInverseOperator MNEInverseOperator::make_inverse_operator(const FiffInfo &inf
     return p_MNEInverseOperator;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEInverseOperator MNEInverseOperator::prepare_inverse_operator(qint32 nave ,float lambda2, bool dSPM, bool sLORETA) const
 {
@@ -1097,8 +1093,7 @@ MNEInverseOperator MNEInverseOperator::prepare_inverse_operator(qint32 nave ,flo
     return inv;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNEInverseOperator::read_inverse_operator(QIODevice& p_IODevice, MNEInverseOperator& inv)
 {
@@ -1343,8 +1338,7 @@ bool MNEInverseOperator::read_inverse_operator(QIODevice& p_IODevice, MNEInverse
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNEInverseOperator::write(QIODevice &p_IODevice)
 {
@@ -1356,10 +1350,10 @@ void MNEInverseOperator::write(QIODevice &p_IODevice)
     FiffStream::SPtr t_pStream = FiffStream::start_file(p_IODevice);
     printf("Write inverse operator decomposition in %s...", t_pStream->streamName().toUtf8().constData());
     this->writeToStream(t_pStream.data());
+    t_pStream->end_file();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNEInverseOperator::writeToStream(FiffStream* p_pStream)
 {
@@ -1439,5 +1433,4 @@ void MNEInverseOperator::writeToStream(FiffStream* p_pStream)
     //   Done!
     //
     p_pStream->end_block(FIFFB_MNE_INVERSE_SOLUTION);
-    p_pStream->end_file();
 }

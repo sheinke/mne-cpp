@@ -1,59 +1,54 @@
 //=============================================================================================================
 /**
-* @file     fiff_types.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-* 
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Old fiff_type declarations - replace them.
-*
-*/
+ * @file     fiff_types.h
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Old fiff_type declarations - replace them.
+ *
+ */
 
 #ifndef FIFF_TYPES_H
 #define FIFF_TYPES_H
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "fiff_constants.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -63,8 +58,6 @@
 #include <QPair>
 #include <QVariant>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE NAMESPACE FIFFLIB
 //=============================================================================================================
@@ -78,12 +71,11 @@ const static Eigen::MatrixXd defaultConstMatrixXd(0,0);
 const static Eigen::MatrixXi defaultMatrixXi(0,0);
 const static Eigen::VectorXi defaultVectorXi;
 const static Eigen::RowVectorXi defaultRowVectorXi;
-const static QPair<QVariant,QVariant> defaultVariantPair;
+const static QPair<float,float> defaultFloatPair = qMakePair(-1.0f, -1.0f);
 
 typedef Eigen::Matrix<qint16, Eigen::Dynamic, Eigen::Dynamic> MatrixDau16;
+typedef Eigen::Matrix<short, Eigen::Dynamic, Eigen::Dynamic> MatrixShort;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // TYPEDEFS Primitive building blocks:
 //=============================================================================================================
@@ -104,8 +96,6 @@ typedef qint16               fiff_dau_pack16_t;
 typedef qint32               fiff_julian_t;
 typedef char                 fiff_data_t; //unsig char instead of void -> avoid void in C++ cause of its undefined behaviour using delete -> this can happen during lots of casting
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // TYPEDEFS Structured types:
 //=============================================================================================================
@@ -116,7 +106,6 @@ typedef struct _fiffTimeRec {
  fiff_int_t secs;           /**< GMT time in seconds since epoch */
  fiff_int_t usecs;          /**< Fraction of seconds in microseconds */
 } *fiffTime, fiffTimeRec;   /**< Accurate time stamps used in FIFF files.*/
-
 
 /** Structure representing digitized strings. */
 
@@ -129,10 +118,9 @@ typedef struct _fiffTimeRec {
 
 //typedef fiffDigStringRec fiff_dig_string_t;
 
-
 /*
-* The layered sphere model
-*/
+ * The layered sphere model
+ */
 
 /** Layer descriptor for a layered sphere model */
 
@@ -141,8 +129,6 @@ typedef struct _fiffTimeRec {
 // fiff_float_t rad;		/**< Radius of this layer (m) */
 //} *fiffLayer, fiffLayerRec;      /**< Layer descriptor for a layered sphere model */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // TYPEDEF Following types are used by the fiff library. They are not used within the files.:
 //=============================================================================================================
@@ -170,7 +156,6 @@ typedef struct _fiffTimeRec {
 // fiff_int_t to_state;          /**< to state */
 //} *fiffEventBits, fiffEventBitsRec;
 
-
 /** Structure for hpi coil */
 
 //typedef struct _fiff_hpi_coil {
@@ -195,19 +180,16 @@ typedef struct _fiff_data_ref {
     fiff_long_t     offset;     /**< Offset to the data in the external file  */
 } *fiffDataRef,fiffDataRefRec;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 /// Outdated STUFF!!!!!!!!!!!!!!!!!!!!! ToDo Remove
 //=============================================================================================================
 
-
 /// ToDo Old implementation use new fiff_tag.h instead
 /**
-* FIFF data tag
-*
-* Tags are used in front of data items to tell what they are.
-*/
+ * FIFF data tag
+ *
+ * Tags are used in front of data items to tell what they are.
+ */
 
 typedef struct _fiffTagRec {
  fiff_int_t  kind;		/**< Tag number.
@@ -227,11 +209,11 @@ typedef struct _fiffTagRec {
 
 /// ToDo Old implementation use new fiff_id.h instead
 /**
-* A file ID.
-*
-* These universially unique identifiers are also
-* used to identify blocks within fthe files.
-*/
+ * A file ID.
+ *
+ * These universially unique identifiers are also
+ * used to identify blocks within fthe files.
+ */
 
 typedef struct _fiffIdRec {
  fiff_int_t version;	   /**< File version */
@@ -240,9 +222,6 @@ typedef struct _fiffIdRec {
 } *fiffId,fiffIdRec;	   /**< This is the file identifier */
 
 typedef fiffIdRec fiff_id_t;
-
-
-
 
 /// ToDo Old implementation use new fiff_dir_entry.h instead
 /** Directories are composed of these structures. */
@@ -260,8 +239,6 @@ typedef struct _fiffDirEntryRec {
 
 typedef fiffDirEntryRec fiff_dir_entry_t;
 
-
-
 /// ToDo Old implementation
 /** Digitization point description */
 
@@ -273,22 +250,17 @@ typedef struct _fiffDigPointRec {
  fiff_float_t r[3];		 /**< Point location */
 } *fiffDigPoint,fiffDigPointRec; /**< Digitization point description */
 
-
 /** Structure representing digitized strings. */
-
 
 //typedef fiffDigPointRec  fiff_dig_point_t;
 //typedef fiffDigStringRec fiff_dig_string_t;
 
-
-
 /// ToDo Old implementation
 
-
 /*----------------------------------------------------------------------
-* Following types are used by the fiff library. They are not used
-* within the files.
-*---------------------------------------------------------------------*/
+ * Following types are used by the fiff library. They are not used
+ * within the files.
+ *---------------------------------------------------------------------*/
 
 /** Directory tree structure used by the fiff library routines. */
 
@@ -310,7 +282,6 @@ typedef struct _fiffDigPointRec {
 // int                 nchild;	 /**< Number of child nodes */
 //} fiffDirNodeRec,*fiffDirNode; 	 /**< Directory tree structure used by the fiff library routines. */
 
-
 /// ToDo Old implementation
 /** FIFF file handle returned by fiff_open(). */
 
@@ -326,8 +297,6 @@ typedef struct _fiffDigPointRec {
 //  char        *ext_file_name;	/**< Name of the file holding the external data */
 //  FILE        *ext_fd;		/**< The file descriptor of the above file if open  */
 //} *fiffFile,fiffFileRec;	/**< FIFF file handle. fiff_open() returns this. */
-
-
 
 /// ToDo Old implementation use new fiff_coord_trans.h instead
 /** Coordinate transformation descriptor */
@@ -345,40 +314,36 @@ typedef struct _fiffDigPointRec {
 
 /// ToDo Old implementation use new fiff_info.h instead
 
-
 /** Measurement channel position and coil type. */
 
-typedef struct _fiffChPosRec {
-    fiff_int_t   coil_type;     /**< What kind of coil. */
-    fiff_float_t r0[3];         /**< Coil coordinate system origin */
-    fiff_float_t ex[3];         /**< Coil coordinate system x-axis unit vector */
-    fiff_float_t ey[3];         /**< Coil coordinate system y-axis unit vector */
-    fiff_float_t ez[3];         /**< Coil coordinate system z-axis unit vector */
-} fiffChPosRec,*fiffChPos;      /**< Measurement channel position and coil type */
+//typedef struct _fiffChPosRec {
+//    fiff_int_t   coil_type;     /**< What kind of coil. */
+//    fiff_float_t r0[3];         /**< Coil coordinate system origin */
+//    fiff_float_t ex[3];         /**< Coil coordinate system x-axis unit vector */
+//    fiff_float_t ey[3];         /**< Coil coordinate system y-axis unit vector */
+//    fiff_float_t ez[3];         /**< Coil coordinate system z-axis unit vector */
+//} fiffChPosRec,*fiffChPos;      /**< Measurement channel position and coil type */
 
-typedef fiffChPosRec fiff_ch_pos_t;
+//typedef fiffChPosRec fiff_ch_pos_t;
 
+///** Description of one channel */
 
-/** Description of one channel */
+//typedef struct _fiffChInfoRec {
+//    fiff_int_t    scanNo;       /**< Scanning order number */
+//    fiff_int_t    logNo;        /**< Logical channel # */
+//    fiff_int_t    kind;         /**< Kind of channel */
+//    fiff_float_t  range;        /**< Voltmeter range (-1 = auto ranging) */
+//    fiff_float_t  cal;          /**< Calibration from volts to units used */
+//    fiff_ch_pos_t chpos;        /**< Channel location */
+//    fiff_int_t    unit;         /**< Unit of measurement */
+//    fiff_int_t    unit_mul;     /**< Unit multiplier exponent */
+//    fiff_char_t   ch_name[16];  /**< Descriptive name for the channel */
+//} fiffChInfoRec,*fiffChInfo;    /**< Description of one channel */
 
-typedef struct _fiffChInfoRec {
-    fiff_int_t    scanNo;       /**< Scanning order number */
-    fiff_int_t    logNo;        /**< Logical channel # */
-    fiff_int_t    kind;         /**< Kind of channel */
-    fiff_float_t  range;        /**< Voltmeter range (-1 = auto ranging) */
-    fiff_float_t  cal;          /**< Calibration from volts to units used */
-    fiff_ch_pos_t chpos;        /**< Channel location */
-    fiff_int_t    unit;         /**< Unit of measurement */
-    fiff_int_t    unit_mul;     /**< Unit multiplier exponent */
-    fiff_char_t   ch_name[16];  /**< Descriptive name for the channel */
-} fiffChInfoRec,*fiffChInfo;    /**< Description of one channel */
-
-/** Alias for fiffChInfoRec */
-typedef fiffChInfoRec fiff_ch_info_t;
+///** Alias for fiffChInfoRec */
+//typedef fiffChInfoRec fiff_ch_info_t;
 
 #define FIFFM_CHPOS(x) &((x)->chpos)
-
-
 
 }//NAMESPACE
 

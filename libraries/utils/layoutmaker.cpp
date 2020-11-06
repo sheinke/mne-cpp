@@ -1,40 +1,38 @@
 //=============================================================================================================
 /**
-* @file     layoutmaker.cpp
-* @author   Lorenz Esch <lorenz.esch@tu-ilmenau.de>;
-*           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-* @version  1.0
-* @date     September, 2014
-*
-* @section  LICENSE
-*
-* Copyright (C) 2014, Lorenz Esch, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the LayoutMaker class
-*
-*/
+ * @file     layoutmaker.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     September, 2014
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2014, Lorenz Esch, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the LayoutMaker class
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,34 +41,24 @@
 #include "simplex_algorithm.h"
 #include "sphere.h"
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
-
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <iostream>
 
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QTextStream>
 #include <QDebug>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace UTILSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINES
 //=============================================================================================================
@@ -79,8 +67,6 @@ using namespace UTILSLIB;
 #define EPS 1e-6
 #endif
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -89,8 +75,7 @@ LayoutMaker::LayoutMaker()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool LayoutMaker::makeLayout(const QList<QVector<float> > &inputPoints,
                              QList<QVector<float> > &outputPoints,
@@ -105,9 +90,9 @@ bool LayoutMaker::makeLayout(const QList<QVector<float> > &inputPoints,
                              bool mirrorYAxis)
 {
     /*
-    * Automatically make a layout according to the
-    * channel locations in inputPoints
-    */
+     * Automatically make a layout according to the
+     * channel locations in inputPoints
+     */
     VectorXf    r0(3);
     VectorXf    rr(3);
     float       rad,th,phi;
@@ -149,8 +134,8 @@ bool LayoutMaker::makeLayout(const QList<QVector<float> > &inputPoints,
     }
 
     /*
-    * Do the azimuthal equidistant projection
-    */
+     * Do the azimuthal equidistant projection
+     */
     for (k = 0; k < nchan; k++) {
         rr = r0 - static_cast<VectorXf>(rrs.row(k));
         sphere_coord(rr[0],rr[1],rr[2],&rad,&th,&phi);
@@ -159,8 +144,8 @@ bool LayoutMaker::makeLayout(const QList<QVector<float> > &inputPoints,
     }
 
     /*
-    * Find suitable range of viewports
-    */
+     * Find suitable range of viewports
+     */
     xmin = xmax = xx[0];
     ymin = ymax = yy[0];
 
@@ -187,8 +172,8 @@ bool LayoutMaker::makeLayout(const QList<QVector<float> > &inputPoints,
     ymin = ymin - 0.6*h;
 
     /*
-    * Compose the viewports
-    */
+     * Compose the viewports
+     */
     QVector<float> point;
     QTextStream out;
 
@@ -236,8 +221,7 @@ bool LayoutMaker::makeLayout(const QList<QVector<float> > &inputPoints,
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void LayoutMaker::sphere_coord (float x,
                               float y,
@@ -249,14 +233,14 @@ void LayoutMaker::sphere_coord (float x,
   /* Rectangular to spherical coordinates */
   float rxy = sqrt(x*x+y*y);
   if (rxy < EPS) {		/* Let's hope this is reasonable */
-    *r = z;
-    *theta = 0.0;
-    *phi   = 0.0;
+     *r = z;
+     *theta = 0.0;
+     *phi   = 0.0;
   }
   else {
-    *r = sqrt(x*x+y*y+z*z);
-    *theta = acos(z/(*r));
-    *phi = atan2 (y,x);
+     *r = sqrt(x*x+y*y+z*z);
+     *theta = acos(z/(*r));
+     *phi = atan2 (y,x);
     if (*phi < 0.0)
       *phi = *phi + 2.0*M_PI;
   }

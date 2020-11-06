@@ -1,42 +1,40 @@
 //=============================================================================================================
 /**
-* @file     plugingui.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     August, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    PluginGui class declaration
-*
-*/
+ * @file     plugingui.h
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     August, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    PluginGui class declaration
+ *
+ */
 
 #ifndef PLUGINGUI_H
 #define PLUGINGUI_H
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -47,16 +45,13 @@
 #include <scShared/Management/pluginmanager.h>
 #include <scShared/Management/pluginscenemanager.h>
 
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QMainWindow>
 #include <QMap>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
@@ -72,8 +67,6 @@ class QToolButton;
 class QAbstractButton;
 class QGraphicsView;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE NAMESPACE MNESCAN
 //=============================================================================================================
@@ -81,11 +74,12 @@ class QGraphicsView;
 namespace MNESCAN
 {
 
-
 class PluginGui : public QMainWindow
 {
     Q_OBJECT
+
     friend class PluginScene;
+
 public:
     PluginGui(SCSHAREDLIB::PluginManager *pPluginManager, SCSHAREDLIB::PluginSceneManager *pPluginSceneManager);
 
@@ -93,35 +87,36 @@ public:
 
     //=========================================================================================================
     /**
-    * Clear scene
-    */
+     * Clear scene
+     */
     void clearScene();
 
     //=========================================================================================================
     /**
-    * Loads a current plug in configuration from a given file
-    *
-    * @param [in] sPath         The path to the file.
-    * @param [in] sFileName     The file name to load the configuration from.
-    */
-    void loadConfig(const QString& sPath, const QString& sFileName);
+     * Loads a current plug in configuration from a given file
+     *
+     * @param [in] sPath         The path to the file.
+     * @param [in] sFileName     The file name to load the configuration from.
+     */
+    void loadConfig(const QString& sPath,
+                    const QString& sFileName);
 
     //=========================================================================================================
     /**
-    * Saves the current plug in configuration to a given file
-    *
-    * @param [in] sPath         The path to the file.
-    * @param [in] sFileName     The file name to store the configuration to.
-    */
-    void saveConfig(const QString& sPath, const QString& sFileName);
+     * Saves the current plug in configuration to a given file
+     *
+     * @param [in] sPath         The path to the file.
+     * @param [in] sFileName     The file name to store the configuration to.
+     */
+    void saveConfig(const QString& sPath,
+                    const QString& sFileName);
 
-
-    inline SCSHAREDLIB::IPlugin::SPtr getCurrentPlugin();
+    inline SCSHAREDLIB::AbstractPlugin::SPtr getCurrentPlugin();
 
     void uiSetupRunningState(bool state);
 
 signals:
-   void selectedPluginChanged(SCSHAREDLIB::IPlugin::SPtr pPlugin);
+   void selectedPluginChanged(SCSHAREDLIB::AbstractPlugin::SPtr pPlugin);
 
    void selectedConnectionChanged(SCSHAREDLIB::PluginConnectorConnection::SPtr pConnection);
 
@@ -130,7 +125,7 @@ private:
     void pointerGroupClicked(int id);
     void actionGroupTriggered(QAction* action);
 
-    bool removePlugin(SCSHAREDLIB::IPlugin::SPtr pPlugin);
+    bool removePlugin(SCSHAREDLIB::AbstractPlugin::SPtr pPlugin);
 
     void itemInserted(PluginItem *item);
     void newItemSelected();
@@ -148,7 +143,7 @@ private:
     SCSHAREDLIB::PluginManager*          m_pPluginManager;       /**< Corresponding plugin manager. */
     SCSHAREDLIB::PluginSceneManager*     m_pPluginSceneManager;  /**< Corresponding plugin scene manager. */
 
-    SCSHAREDLIB::IPlugin::SPtr                   m_pCurrentPlugin;
+    SCSHAREDLIB::AbstractPlugin::SPtr                   m_pCurrentPlugin;
     SCSHAREDLIB::PluginConnectorConnection::SPtr m_pCurrentConnection;
 
     PluginScene*    m_pPluginScene;         /**< Plugin graph */
@@ -156,7 +151,6 @@ private:
 
     QToolButton*    m_pSensorToolButton;
     QToolButton*    m_pAlgorithmToolButton;
-    QToolButton*    m_pIOToolButton;
     QToolBar*       m_pToolBarPlugins;
     QActionGroup*   m_pActionGroupPlugins;
 
@@ -172,16 +166,14 @@ private:
     QAction*    sendBackAction;
 };
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INLINE DEFINITIONS
 //=============================================================================================================
 
-inline SCSHAREDLIB::IPlugin::SPtr PluginGui::getCurrentPlugin()
+inline SCSHAREDLIB::AbstractPlugin::SPtr PluginGui::getCurrentPlugin()
 {
     return m_pCurrentPlugin;
 }
-
 } //NAMESPACE
 
 #endif // PLUGINGUI_H

@@ -1,42 +1,42 @@
 //=============================================================================================================
 /**
-* @file     types.h
-* @author   Lorenz Esch <lorenz.esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     December, 2015
-*
-* @section  LICENSE
-*
-* Copyright (C) 2015, Lorenz Esch, Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Contains general application specific types
-*
-*/
+ * @file     types.h
+ * @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+ *           Juan Garcia-Prieto <juangpc@gmail.com>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     December, 2015
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2015, Lars Debor, Juan Garcia-Prieto, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Contains general application specific types
+ *
+ */
 
 #ifndef DISP3DLIB_TYPES_H
 #define DISP3DLIB_TYPES_H
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -45,33 +45,21 @@
 #include <inverse/dipoleFit/ecd_set.h>
 #include <fiff/fiff_info.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QStandardItem>
 #include <QByteArray>
 #include <QSharedPointer>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// USED NAMESPACES
-//=============================================================================================================
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE NAMESPACE DISP3DLIB
 //=============================================================================================================
@@ -88,7 +76,7 @@ namespace Data3DTreeModelItemTypes
                     HemisphereItem = QStandardItem::UserType + 2,
                     SurfaceItem = QStandardItem::UserType + 3,
                     AnnotationItem = QStandardItem::UserType + 4,
-                    MNEEstimateItem = QStandardItem::UserType + 5,
+                    MNEDataItem = QStandardItem::UserType + 5,
                     SourceSpaceItem = QStandardItem::UserType + 6,
                     NetworkItem = QStandardItem::UserType + 7,
                     SubjectItem = QStandardItem::UserType + 8,
@@ -176,7 +164,7 @@ namespace Data3DTreeModelItemRoles
     enum ItemRole{SurfaceCurrentColorVert = Qt::UserRole + 100,
                     NumberVertices = Qt::UserRole + 101,
                     SurfaceCurv = Qt::UserRole + 102,
-                    NetworkDataMatrix = Qt::UserRole + 103,
+                    NetworkData = Qt::UserRole + 103,
                     SurfaceHemi = Qt::UserRole + 104,
                     AnnotColors = Qt::UserRole + 105,
                     FileName = Qt::UserRole + 106,
@@ -186,83 +174,87 @@ namespace Data3DTreeModelItemRoles
                     InterpolationBased = Qt::UserRole + 110,
                     AnnotationBased = Qt::UserRole + 111};
 }
-
 } //NAMESPACE DISP3DLIB
 
 // Metatype declaration for correct QVariant usage
 // DO NOT FORGET TO REGISTER THESE TYPES IF YOU WANT TO USE THEM IN SIGNAL SLOT/SLOT SYSTEM (SEE Data3DTreeModel initMetatypes())
-#ifndef DISP3DLIB_metatype_matrixx3i
-#define DISP3DLIB_metatype_matrixx3i
+#ifndef metatype_matrixx3i
+#define metatype_matrixx3i
 Q_DECLARE_METATYPE(Eigen::MatrixX3i);
 #endif
 
-#ifndef DISP3DLIB_metatype_matrixXd
-#define DISP3DLIB_metatype_matrixXd
+#ifndef metatype_matrixXd
+#define metatype_matrixXd
 Q_DECLARE_METATYPE(Eigen::MatrixXd);
 #endif
 
-#ifndef DISP3DLIB_metatype_matrixx3f
-#define DISP3DLIB_metatype_matrixx3f
+#ifndef metatype_matrixx3f
+#define metatype_matrixx3f
 Q_DECLARE_METATYPE(Eigen::MatrixX3f);
 #endif
 
-#ifndef DISP3DLIB_metatype_vectorxf
-#define DISP3DLIB_metatype_vectorxf
+#ifndef metatype_matrixx4f
+#define metatype_matrixx4f
+Q_DECLARE_METATYPE(Eigen::MatrixX4f);
+#endif
+
+#ifndef metatype_vectorxf
+#define metatype_vectorxf
 Q_DECLARE_METATYPE(Eigen::VectorXf);
 #endif
 
-#ifndef DISP3DLIB_metatype_vectorxi
-#define DISP3DLIB_metatype_vectorxi
+#ifndef metatype_vectorxi
+#define metatype_vectorxi
 Q_DECLARE_METATYPE(Eigen::VectorXi);
 #endif
 
-#ifndef DISP3DLIB_metatype_vectorxd
-#define DISP3DLIB_metatype_vectorxd
+#ifndef metatype_vectorxd
+#define metatype_vectorxd
 Q_DECLARE_METATYPE(Eigen::VectorXd);
 #endif
 
-#ifndef DISP3DLIB_metatype_rowvectorxf
-#define DISP3DLIB_metatype_rowvectorxf
+#ifndef metatype_rowvectorxf
+#define metatype_rowvectorxf
 Q_DECLARE_METATYPE(Eigen::RowVectorXf);
 #endif
 
-#ifndef DISP3DLIB_metatype_vector3f
-#define DISP3DLIB_metatype_vector3f
+#ifndef metatype_vector3f
+#define metatype_vector3f
 Q_DECLARE_METATYPE(Eigen::Vector3f);
 #endif
 
-#ifndef DISP3DLIB_metatype_fiffinfo
-#define DISP3DLIB_metatype_fiffinfo
+#ifndef metatype_fiffinfo
+#define metatype_fiffinfo
 Q_DECLARE_METATYPE(FIFFLIB::FiffInfo);
 #endif
 
-#ifndef DISP3DLIB_metatype_qvectorvector3f
-#define DISP3DLIB_metatype_qvectorvector3f
+#ifndef metatype_qvectorvector3f
+#define metatype_qvectorvector3f
 Q_DECLARE_METATYPE(QVector<Eigen::Vector3f>);
 #endif
 
-#ifndef DISP3DLIB_metatype_qvectorvectorint
-#define DISP3DLIB_metatype_qvectorvectorint
+#ifndef metatype_qvectorvectorint
+#define metatype_qvectorvectorint
 Q_DECLARE_METATYPE(QVector<QVector<int> >);
 #endif
 
-#ifndef DISP3DLIB_metatype_qvectorint32
-#define DISP3DLIB_metatype_qvectorint32
-Q_DECLARE_METATYPE(QVector<qint32>);
+#ifndef metatype_qvectorint
+#define metatype_qvectorint
+Q_DECLARE_METATYPE(QVector<int>);
 #endif
 
-#ifndef DISP3DLIB_metatype_sparsematf
-#define DISP3DLIB_metatype_sparsematf
+#ifndef metatype_sparsematf
+#define metatype_sparsematf
 Q_DECLARE_METATYPE(Eigen::SparseMatrix<float>);
 #endif
 
-#ifndef DISP3DLIB_metatype_sharedptrsparsematf
-#define DISP3DLIB_metatype_sharedptrsparsematf
+#ifndef metatype_sharedptrsparsematf
+#define metatype_sharedptrsparsematf
 Q_DECLARE_METATYPE(QSharedPointer<Eigen::SparseMatrix<float> >);
 #endif
 
-#ifndef DISP3DLIB_metatype_listlabel
-#define DISP3DLIB_metatype_listlabel
+#ifndef metatype_listlabel
+#define metatype_listlabel
 Q_DECLARE_METATYPE(QList<FSLIB::Label>);
 #endif
 

@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     minimumnorm.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     February, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MinimumNorm Class.
-*
-*/
+ * @file     minimumnorm.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     February, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MinimumNorm Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,24 +43,14 @@
 #include <mne/mne_sourceestimate.h>
 #include <fiff/fiff_evoked.h>
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
-
 #include <iostream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -68,9 +58,9 @@
 using namespace Eigen;
 using namespace MNELIB;
 using namespace INVERSELIB;
+using namespace UTILSLIB;
+using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -83,7 +73,7 @@ MinimumNorm::MinimumNorm(const MNEInverseOperator &p_inverseOperator, float lamb
     this->setMethod(method);
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 MinimumNorm::MinimumNorm(const MNEInverseOperator &p_inverseOperator, float lambda, bool dSPM, bool sLORETA)
 : m_inverseOperator(p_inverseOperator)
@@ -93,8 +83,7 @@ MinimumNorm::MinimumNorm(const MNEInverseOperator &p_inverseOperator, float lamb
     this->setMethod(dSPM, sLORETA);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate MinimumNorm::calculateInverse(const FiffEvoked &p_fiffEvoked, bool pick_normal)
 {
@@ -103,8 +92,7 @@ MNESourceEstimate MinimumNorm::calculateInverse(const FiffEvoked &p_fiffEvoked, 
     //
     qint32 nave = p_fiffEvoked.nave;
 
-    if(!m_inverseOperator.check_ch_names(p_fiffEvoked.info))
-    {
+    if(!m_inverseOperator.check_ch_names(p_fiffEvoked.info)) {
         qWarning("Channel name check failed.");
         return MNESourceEstimate();
     }
@@ -119,10 +107,10 @@ MNESourceEstimate MinimumNorm::calculateInverse(const FiffEvoked &p_fiffEvoked, 
     printf("Picked %d channels from the data\n",t_fiffEvoked.info.nchan);
 
     //Results
-    float tmin = ((float)t_fiffEvoked.first) / t_fiffEvoked.info.sfreq;
+    float tmin = p_fiffEvoked.times[0];
     float tstep = 1/t_fiffEvoked.info.sfreq;
 
-    return calculateInverse(t_fiffEvoked.data, tmin, tstep);
+    return calculateInverse(t_fiffEvoked.data, tmin, tstep, pick_normal);
 
 //    //
 //    //   Set up the inverse according to the parameters
@@ -190,26 +178,31 @@ MNESourceEstimate MinimumNorm::calculateInverse(const FiffEvoked &p_fiffEvoked, 
 //    return SourceEstimate(sol, t_qListVertices, tmin, tstep);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MNESourceEstimate MinimumNorm::calculateInverse(const MatrixXd &data, float tmin, float tstep) const
+MNESourceEstimate MinimumNorm::calculateInverse(const MatrixXd &data, float tmin, float tstep, bool pick_normal) const
 {
     if(!inverseSetup)
     {
-        qWarning("Inverse not setup -> call doInverseSetup first!");
+        qWarning("MinimumNorm::calculateInverse - Inverse not setup -> call doInverseSetup first!");
+        return MNESourceEstimate();
+    }
+
+    if(K.cols() != data.rows()) {
+        qWarning() << "MinimumNorm::calculateInverse - Dimension mismatch between K.cols() and data.rows() -" << K.cols() << "and" << data.rows();
         return MNESourceEstimate();
     }
 
     MatrixXd sol = K * data; //apply imaging kernel
 
-    if (inv.source_ori == FIFFV_MNE_FREE_ORI)
+    if (inv.source_ori == FIFFV_MNE_FREE_ORI && pick_normal == false)
     {
-        printf("combining the current components...");
+        printf("combining the current components...\n");
+
         MatrixXd sol1(sol.rows()/3,sol.cols());
         for(qint32 i = 0; i < sol.cols(); ++i)
         {
-            VectorXd* tmp = MNEMath::combine_xyz(sol.block(0,i,sol.rows(),1));
+            VectorXd* tmp = MNEMath::combine_xyz(sol.col(i));
             sol1.block(0,i,sol.rows()/3,1) = tmp->cwiseSqrt();
             delete tmp;
         }
@@ -238,11 +231,9 @@ MNESourceEstimate MinimumNorm::calculateInverse(const MatrixXd &data, float tmin
 //        t_qListVertices.push_back(inv.src[h].vertno);
 
     return MNESourceEstimate(sol, p_vecVertices, tmin, tstep);
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MinimumNorm::doInverseSetup(qint32 nave, bool pick_normal)
 {
@@ -251,7 +242,7 @@ void MinimumNorm::doInverseSetup(qint32 nave, bool pick_normal)
     //
     inv = m_inverseOperator.prepare_inverse_operator(nave, m_fLambda, m_bdSPM, m_bsLORETA);
 
-    printf("Computing inverse...");
+    printf("Computing inverse...\n");
     inv.assemble_kernel(label, m_sMethod, pick_normal, K, noise_norm, vertno);
 
     std::cout << "K " << K.rows() << " x " << K.cols() << std::endl;
@@ -259,23 +250,21 @@ void MinimumNorm::doInverseSetup(qint32 nave, bool pick_normal)
     inverseSetup = true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const char* MinimumNorm::getName() const
 {
     return "Minimum Norm Estimate";
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const MNESourceSpace& MinimumNorm::getSourceSpace() const
 {
     return m_inverseOperator.src;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MinimumNorm::setMethod(QString method)
 {
@@ -295,8 +284,7 @@ void MinimumNorm::setMethod(QString method)
     printf("\tSet minimum norm method to %s.\n", method.toUtf8().constData());
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MinimumNorm::setMethod(bool dSPM, bool sLORETA)
 {
@@ -320,8 +308,7 @@ void MinimumNorm::setMethod(bool dSPM, bool sLORETA)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MinimumNorm::setRegularization(float lambda)
 {

@@ -1,39 +1,38 @@
 //=============================================================================================================
 /**
-* @file     pluginscene.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     August, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief     PluginScene class implementation
-*
-*/
+ * @file     pluginscene.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Gabriel B Motta <gabrielbenmotta@gmail.com>
+ * @since    0.1.0
+ * @date     August, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Christoph Dinh, Gabriel B Motta. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief     PluginScene class implementation
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -46,16 +45,12 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QAction>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace MNESCAN;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -73,21 +68,19 @@ PluginScene::PluginScene(QMenu *pMenuPluginItem, PluginGui *pPluginGui)
     m_qColorLine = QColor(65,113,156);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 PluginScene::~PluginScene()
 {
     this->clear();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginScene::insertItem(const QPointF& pos)
 {
     PluginItem *item;
-    SCSHAREDLIB::IPlugin::SPtr pPlugin;
+    SCSHAREDLIB::AbstractPlugin::SPtr pPlugin;
     QString name;
     switch (m_mode) {
         case InsertPluginItem:
@@ -115,15 +108,19 @@ void PluginScene::insertItem(const QPointF& pos)
     }
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
-bool PluginScene::insertPlugin(QAction* pActionPluginItem, SCSHAREDLIB::IPlugin::SPtr &pAddedPlugin)
+bool PluginScene::insertPlugin(QAction* pActionPluginItem, SCSHAREDLIB::AbstractPlugin::SPtr &pAddedPlugin)
 {
     if(pActionPluginItem->isEnabled())
     {
         QString name = pActionPluginItem->text();
         qint32 idx = m_pPluginGui->m_pPluginManager->findByName(name);
-        SCSHAREDLIB::IPlugin* pPlugin = m_pPluginGui->m_pPluginManager->getPlugins()[idx];
+        if(idx < 0) {
+            qDebug() << "Unable to find index";
+            return false;
+        }
+        SCSHAREDLIB::AbstractPlugin* pPlugin = m_pPluginGui->m_pPluginManager->getPlugins()[idx];
 
         if(m_pPluginGui->m_pPluginSceneManager->addPlugin(pPlugin, pAddedPlugin))
         {
@@ -138,8 +135,7 @@ bool PluginScene::insertPlugin(QAction* pActionPluginItem, SCSHAREDLIB::IPlugin:
 //    return true;//DEBUG
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
@@ -151,8 +147,7 @@ void PluginScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     QGraphicsScene::mousePressEvent(mouseEvent);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
@@ -164,8 +159,7 @@ void PluginScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
@@ -202,15 +196,13 @@ void PluginScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
                 arrow->updatePosition();
             }
 
-
         }
     }
     line = 0;
     QGraphicsScene::mouseReleaseEvent(mouseEvent);
 }
 
-
-////*************************************************************************************************************
+////=============================================================================================================
 
 //bool PluginScene::isItemChange(int type)
 //{

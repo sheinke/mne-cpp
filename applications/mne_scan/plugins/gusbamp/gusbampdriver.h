@@ -1,44 +1,42 @@
 //=============================================================================================================
 /**
-* @file     gusbampdriver.h
-* @author   Viktor Klüber <viktor.klueber@tu-ilmenau.de>;
-*           Lorenz Esch <lorenz.esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-* @version  1.0
-* @date     November, 2015
-*
-* @section  LICENSE
-*
-* Copyright (C) 2015, Viktor Klüber, Lorenz Esch and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Contains the declaration of the GUSBAmpdriver class. This class implements the basic communication between MNE-X and a GUSBAmp Refa device
-*
-*/
+ * @file     gusbampdriver.h
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Viktor Klueber <Viktor.Klueber@tu-ilmenau.de>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     November, 2015
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2015, Christoph Dinh, Viktor Klueber, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Contains the declaration of the GUSBAmpdriver class. This class implements the basic communication between MNE Scan and a GUSBAmp Refa device
+ *
+ */
 
 #ifndef GUSBAMPDRIVER_H
 #define GUSBAMPDRIVER_H
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -50,8 +48,6 @@
 #include <Eigen/Core>
 #include "gtec_gUSBamp.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -61,8 +57,6 @@
 #include <QtCore/QCoreApplication>
 #include <QDebug>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE NAMESPACE GUSBAMPPLUGIN
 //=============================================================================================================
@@ -70,27 +64,25 @@
 namespace GUSBAMPPLUGIN
 {
 
-//*************************************************************************************************************
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
 class GUSBAmpProducer;
 
-
 //=============================================================================================================
 /**
-* GUSBAmpDriver
-*
-* @brief The GUSBAmpDriver class provides real time data acquisition of EEG data with a GUSBAmp device.
-*/
+ * GUSBAmpDriver
+ *
+ * @brief The GUSBAmpDriver class provides real time data acquisition of EEG data with a GUSBAmp device.
+ */
 class GUSBAMPSHARED_EXPORT GUSBAmpDriver
 {
 private:
     //=========================================================================================================
     /**
-    * Refreshes the size-values of the ouput Matrix
-    */
+     * Refreshes the size-values of the ouput Matrix
+     */
     void refreshSizeOutputMatrix(void);
 
     //device parameters
@@ -126,116 +118,113 @@ private:
 public:
     //=========================================================================================================
     /**
-    * Constructs a GUSBAmpDriver.
-    *
-    * @param [in]   pGUSBAmpProducer a pointer to the corresponding GUSBAmp Producer class.
-    */
+     * Constructs a GUSBAmpDriver.
+     *
+     * @param [in]   pGUSBAmpProducer a pointer to the corresponding GUSBAmp Producer class.
+     */
     GUSBAmpDriver(GUSBAmpProducer* pGUSBAmpProducer);
 
     //=========================================================================================================
     /**
-    * Destroys the GUSBAmpDriver.
-    */
+     * Destroys the GUSBAmpDriver.
+     */
     ~GUSBAmpDriver();
 
     //=========================================================================================================
     /**
-    * Get sample from the device in form of a mtrix.
-    * @param [in]   MatrixXf    the block sample values in form of a matrix.
-    *
-    * @return                   returns true if sample was successfully written to the input variable, false otherwise.
-    */
+     * Get sample from the device in form of a mtrix.
+     * @param [in]   MatrixXf    the block sample values in form of a matrix.
+     *
+     * @return                   returns true if sample was successfully written to the input variable, false otherwise.
+     */
     bool getSampleMatrixValue(Eigen::MatrixXf& sampleMatrix);
 
     //=========================================================================================================
     /**
-    * Initialise and starts device with the set parameters . After that getSampleMatrixValue() has to be started
-    * immediatly and be executed continously. Otherwise a buffer overrun will occur.
-    *
-    * @return       returns true if succeeded
-    */
+     * Initialise and starts device with the set parameters . After that getSampleMatrixValue() has to be started
+     * immediatly and be executed continously. Otherwise a buffer overrun will occur.
+     *
+     * @return       returns true if succeeded
+     */
     bool initDevice();
 
     //=========================================================================================================
     /**
-    * Uninitialise device.
-    *
-    * @return       returns true if device was successfully uninitialised, false otherwise.
-    */
+     * Uninitialise device.
+     *
+     * @return       returns true if device was successfully uninitialised, false otherwise.
+     */
     bool uninitDevice();
 
     //=========================================================================================================
     /**
-    * Setting the adresses of the master amplifer and the slaves. The selections of the slaves are optional.
-    *
-    * @param[in]    list        list of serial numbers of the devices. Master is first serialnumber in the list
-    *
-    * @return                   true if executed successfully, false otherwise
-    *
-    */
+     * Setting the adresses of the master amplifer and the slaves. The selections of the slaves are optional.
+     *
+     * @param[in]    list        list of serial numbers of the devices. Master is first serialnumber in the list
+     *
+     * @return                   true if executed successfully, false otherwise
+     *
+     */
     bool setSerials(std::vector<QString> &list);
 
     //=========================================================================================================
     /**
-    * Setting the sampling rate of the amplifier and defining the Number of Scans
-    *
-    * @param[in]    samplingRate    sampling rate of the amplifier in [Hz] possible settings for the sample rate are:
-    *                               32, 64, 128, 256, 512, 600, 1200, 2400, 4800, 9600, 19200 and 38400
-    *
-    * @return                       true if executed successfully, false otherwise
-    *
-    */
+     * Setting the sampling rate of the amplifier and defining the Number of Scans
+     *
+     * @param[in]    samplingRate    sampling rate of the amplifier in [Hz] possible settings for the sample rate are:
+     *                               32, 64, 128, 256, 512, 600, 1200, 2400, 4800, 9600, 19200 and 38400
+     *
+     * @return                       true if executed successfully, false otherwise
+     *
+     */
     bool setSampleRate(int sampleRate);
 
     //=========================================================================================================
     /**
-    * Setting the channels and the Number of channels
-    *
-    * @param[in]    channels        Vector which behold the values of Channels as integer. The values have to be
-    *                               ascending and in number must not exceed 16
-    *
-    * @return                       true if executed successfully, false otherwise
-    *
-    */
+     * Setting the channels and the Number of channels
+     *
+     * @param[in]    channels        Vector which behold the values of Channels as integer. The values have to be
+     *                               ascending and in number must not exceed 16
+     *
+     * @return                       true if executed successfully, false otherwise
+     *
+     */
     bool setChannels(std::vector<int> &channels);
 
     //=========================================================================================================
     /**
-    * Setting Flag for Filewriting
-    *
-    * @param[in]    doFileWriting   Boolian, which indicates whether Filewriting should be done or not
-    *
-    * @return                       true if executed successfully, false otherwise
-    *
-    */
+     * Setting Flag for Filewriting
+     *
+     * @param[in]    doFileWriting   Boolian, which indicates whether Filewriting should be done or not
+     *
+     * @return                       true if executed successfully, false otherwise
+     *
+     */
     bool setFileWriting(bool doFileWriting);
 
     //=========================================================================================================
     /**
-    * Setting the path of the file
-    *
-    * @param[in]    QString         QString which beholds the the path of the File in which data will be stored
-    *
-    * @return                       true if executed successfully, false otherwise
-    *
-    */
+     * Setting the path of the file
+     *
+     * @param[in]    QString         QString which beholds the the path of the File in which data will be stored
+     *
+     * @return                       true if executed successfully, false otherwise
+     *
+     */
     bool setFilePath(QString FilePath);
 
     //=========================================================================================================
     /**
-    * Getting the size of the Sample Matrix
-    *
-    * @return                       vector which beholds the size of the matrix. first value refers to columns.
-    *
-    */
+     * Getting the size of the Sample Matrix
+     *
+     * @return                       vector which beholds the size of the matrix. first value refers to columns.
+     *
+     */
     std::vector<int> getSizeOfSampleMatrix(void);
-
 
 protected:
     GUSBAmpProducer*       m_pGUSBAmpProducer;      /**< A pointer to the corresponding GUSBAmpProducer class.*/
-
 };
-
 } // NAMESPACE
 
 #endif // GUSBAMPDRIVER_H

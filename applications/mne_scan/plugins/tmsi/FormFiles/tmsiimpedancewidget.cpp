@@ -1,40 +1,38 @@
 //=============================================================================================================
 /**
-* @file     tmsiimpedancewidget.cpp
-* @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>
-*           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     June, 2014
-*
-* @section  LICENSE
-*
-* Copyright (C) 2014, Lorenz Esch, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Contains the declaration of the TMSIImpedanceWidget class.
-*
-*/
+ * @file     tmsiimpedancewidget.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     June, 2014
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2014, Christoph Dinh, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Contains the declaration of the TMSIImpedanceWidget class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -44,8 +42,6 @@
 
 #include "../tmsi.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -53,16 +49,16 @@
 #include <QFileDialog>
 #include <QString>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
-using namespace TMSIPlugin;
+using namespace TMSIPLUGIN;
+using namespace Eigen;
+using namespace UTILSLIB;
+using namespace DISPLIB;
+using namespace std;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -86,24 +82,29 @@ TMSIImpedanceWidget::TMSIImpedanceWidget(TMSI* pTMSI, QWidget *parent)
     ui->m_pushButton_stop->setEnabled(false);
 
     // Connects of this widget
-    connect(ui->m_pushButton_stop, &QPushButton::released, this, &TMSIImpedanceWidget::stopImpedanceMeasurement);
-    connect(ui->m_pushButton_start, &QPushButton::released, this, &TMSIImpedanceWidget::startImpedanceMeasurement);
-    connect(ui->m_pushButton_takeScreenshot, &QPushButton::released, this, &TMSIImpedanceWidget::takeScreenshot);
-    connect(ui->m_pushButton_loadLayout, &QPushButton::released, this, &TMSIImpedanceWidget::loadLayout);
-    connect(ui->m_pushButton_saveValues, &QPushButton::released, this, &TMSIImpedanceWidget::saveToFile);
-    connect(ui->m_pushButton_Help, &QPushButton::released, this, &TMSIImpedanceWidget::helpDialog);
+    connect(ui->m_pushButton_stop, &QPushButton::released,
+            this, &TMSIImpedanceWidget::stopImpedanceMeasurement);
+    connect(ui->m_pushButton_start, &QPushButton::released,
+            this, &TMSIImpedanceWidget::startImpedanceMeasurement);
+    connect(ui->m_pushButton_takeScreenshot, &QPushButton::released,
+            this, &TMSIImpedanceWidget::takeScreenshot);
+    connect(ui->m_pushButton_loadLayout, &QPushButton::released,
+            this, &TMSIImpedanceWidget::loadLayout);
+    connect(ui->m_pushButton_saveValues, &QPushButton::released,
+            this, &TMSIImpedanceWidget::saveToFile);
+    connect(ui->m_pushButton_Help, &QPushButton::released,
+            this, &TMSIImpedanceWidget::helpDialog);
     //connect(ui->m_verticalSlider_manualImpedanceValue, &QSlider::valueChanged, this, &TMSIImpedanceWidget::setIm);
-
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 TMSIImpedanceWidget::~TMSIImpedanceWidget()
 {
     delete ui;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSIImpedanceWidget::updateGraphicScene(VectorXd matValue)
 {
@@ -149,7 +150,7 @@ void TMSIImpedanceWidget::updateGraphicScene(VectorXd matValue)
     m_qGScene->update(m_qGScene->itemsBoundingRect());
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSIImpedanceWidget::initGraphicScene()
 {
@@ -158,13 +159,16 @@ void TMSIImpedanceWidget::initGraphicScene()
 
     // Load standard layout file
     LayoutLoader *asaObject = new LayoutLoader();
-    QList<QVector<double> > elcLocation3D;
-    QList<QVector<double> > elcLocation2D;
+    QList<QVector<float> > elcLocation3D;
+    QList<QVector<float> > elcLocation2D;
     QString unit;
     QStringList elcChannelNames;
     QString sElcFilePath = QString("./resources/mne_scan/plugins/tmsi/loc_files/standard_waveguard128.elc");
 
-    if(!asaObject->readAsaElcFile(sElcFilePath, elcChannelNames, elcLocation3D, elcLocation2D, unit))
+    if(!asaObject->readAsaElcFile(sElcFilePath,
+                                  elcChannelNames,
+                                  elcLocation3D,
+                                  elcLocation2D, unit))
     {
         qDebug() << "Error: Reading elc file.";
         return;
@@ -184,7 +188,7 @@ void TMSIImpedanceWidget::initGraphicScene()
     ui->m_graphicsView_impedanceView->fitInView(m_qGScene->itemsBoundingRect(), Qt::KeepAspectRatio);
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSIImpedanceWidget::addElectrodeItem(QString electrodeName, QVector2D position)
 {
@@ -193,7 +197,7 @@ void TMSIImpedanceWidget::addElectrodeItem(QString electrodeName, QVector2D posi
     m_qGScene->addItem(item);
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSIImpedanceWidget::startImpedanceMeasurement()
 {
@@ -208,7 +212,7 @@ void TMSIImpedanceWidget::startImpedanceMeasurement()
         m_pTMSI->m_bCheckImpedances = false;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSIImpedanceWidget::stopImpedanceMeasurement()
 {
@@ -223,7 +227,7 @@ void TMSIImpedanceWidget::stopImpedanceMeasurement()
         m_pTMSI->m_bCheckImpedances = true;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSIImpedanceWidget::takeScreenshot()
 {
@@ -263,7 +267,7 @@ void TMSIImpedanceWidget::takeScreenshot()
     }
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSIImpedanceWidget::loadLayout()
 {
@@ -274,12 +278,16 @@ void TMSIImpedanceWidget::loadLayout()
 
     // Load standard layout file
     LayoutLoader *asaObject = new LayoutLoader();
-    QList<QVector<double> > elcLocation3D;
-    QList<QVector<double> > elcLocation2D;
+    QList<QVector<float> > elcLocation3D;
+    QList<QVector<float> > elcLocation2D;
     QString unit;
     QStringList elcChannelNames;
 
-    if(!asaObject->readAsaElcFile(sElcFilePath, elcChannelNames, elcLocation3D, elcLocation2D, unit))
+    if(!asaObject->readAsaElcFile(sElcFilePath,
+                                  elcChannelNames,
+                                  elcLocation3D,
+                                  elcLocation2D,
+                                  unit))
         qDebug() << "Error: Reading elc file.";
     else
         m_qGScene->clear();
@@ -301,18 +309,19 @@ void TMSIImpedanceWidget::loadLayout()
     ui->m_graphicsView_impedanceView->fitInView(m_qGScene->itemsBoundingRect(), Qt::KeepAspectRatio);
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSIImpedanceWidget::closeEvent(QCloseEvent *event)
 {
     Q_UNUSED(event);
 
     // On window close event -> stop impedance measurement
-    if(m_pTMSI->m_bIsRunning)
+    if(m_pTMSI->isRunning()) {
         stopImpedanceMeasurement();
+    }
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 // This function is needed to sort the QList
 bool compareChannelIndex(TMSIElectrodeItem* a, TMSIElectrodeItem* b)
@@ -352,7 +361,7 @@ void TMSIImpedanceWidget::saveToFile()
     outputFileStream.close();
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void TMSIImpedanceWidget::helpDialog()
 {

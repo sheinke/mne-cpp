@@ -1,50 +1,43 @@
 //=============================================================================================================
 /**
-* @file     kmeans.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the KMeans class
-*
-*/
+ * @file     kmeans.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the KMeans class
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "kmeans.h"
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
 
 #include <math.h>
 #include <iostream>
@@ -52,29 +45,29 @@
 #include <vector>
 #include <time.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QDebug>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace UTILSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-KMeans::KMeans(QString distance, QString start, qint32 replicates, QString emptyact, bool online, qint32 maxit)
+KMeans::KMeans(QString distance,
+               QString start,
+               qint32 replicates,
+               QString emptyact,
+               bool online,
+               qint32 maxit)
 : m_sDistance(distance)
 , m_sStart(start)
 , m_iReps(replicates)
@@ -94,10 +87,14 @@ KMeans::KMeans(QString distance, QString start, qint32 replicates, QString empty
         m_iReps = 1;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool KMeans::calculate( MatrixXd X, qint32 kClusters, VectorXi& idx, MatrixXd& C, VectorXd& sumD, MatrixXd& D)
+bool KMeans::calculate(MatrixXd X,
+                       qint32 kClusters,
+                       VectorXi& idx,
+                       MatrixXd& C,
+                       VectorXd& sumD,
+                       MatrixXd& D)
 {
     if (kClusters < 1)
         return false;
@@ -326,8 +323,7 @@ bool KMeans::calculate( MatrixXd X, qint32 kClusters, VectorXi& idx, MatrixXd& C
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool KMeans::batchUpdate(const MatrixXd& X, MatrixXd& C, VectorXi& idx)
 {
@@ -344,7 +340,6 @@ bool KMeans::batchUpdate(const MatrixXd& X, MatrixXd& C, VectorXi& idx)
     previdx = VectorXi::Zero(n);
 
     prevtotsumD = std::numeric_limits<double>::max();//max double
-
 
     MatrixXd D = MatrixXd::Zero(X.rows(), k);
 
@@ -513,9 +508,7 @@ bool KMeans::batchUpdate(const MatrixXd& X, MatrixXd& C, VectorXi& idx)
     return converged;
 } // nested function
 
-
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool KMeans::onlineUpdate(const MatrixXd& X, MatrixXd& C, VectorXi& idx)
 {
@@ -680,7 +673,6 @@ bool KMeans::onlineUpdate(const MatrixXd& X, MatrixXd& C, VectorXi& idx)
 
                 VectorXi sgn = 1 - 2 * mbrs.array(); // -1 for members, 1 for nonmembers
 
-
                 double A = (double)m[i] * normC(i,0);
                 double B = pow(((double)m[i] * normC(i,0)),2);
 
@@ -688,8 +680,6 @@ bool KMeans::onlineUpdate(const MatrixXd& X, MatrixXd& C, VectorXi& idx)
                         (A - (B + 2 * sgn.cast<double>().array() * m[i] * XCi.array() + 1).sqrt());
 
                 std::cout << "Del.col(i)\n" << Del.col(i) << std::endl;
-
-
 
 //                Del(:,i) = 1 + sgn .*...
 //                      (m(i).*normC(i) - sqrt((m(i).*normC(i)).^2 + 2.*sgn.*m(i).*XCi + 1));
@@ -798,7 +788,6 @@ bool KMeans::onlineUpdate(const MatrixXd& X, MatrixXd& C, VectorXi& idx)
         m( nidx[0] ) = m( nidx[0] ) + 1;
         m( oidx ) = m( oidx ) - 1;
 
-
         if (m_sDistance.compare("sqeuclidean") == 0)
         {
             C.row(nidx[0]) = C.row(nidx[0]).array() + (X.row(moved[0]) - C.row(nidx[0])).array() / m[nidx[0]];
@@ -828,7 +817,6 @@ bool KMeans::onlineUpdate(const MatrixXd& X, MatrixXd& C, VectorXi& idx)
                 }
                 for(qint32 j = 0; j < Xsorted.cols(); ++j)
                     std::sort(Xsorted.col(j).data(),Xsorted.col(j).data()+Xsorted.rows());
-
 
                 qint32 nn = floor(0.5*m[i])-1;
                 if ((m[i] % 2) == 0)
@@ -875,11 +863,9 @@ bool KMeans::onlineUpdate(const MatrixXd& X, MatrixXd& C, VectorXi& idx)
     } // phase two
 
     return converged;
-
 } // nested function
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //DISTFUN Calculate point to cluster centroid distances.
 MatrixXd KMeans::distfun(const MatrixXd& X, MatrixXd& C)//, qint32 iter)
 {
@@ -935,8 +921,7 @@ MatrixXd KMeans::distfun(const MatrixXd& X, MatrixXd& C)//, qint32 iter)
     return D;
 } // function
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //GCENTROIDS Centroids and counts stratified by group.
 void KMeans::gcentroids(const MatrixXd& X, const VectorXi& index, const VectorXi& clusts,
                                           MatrixXd& centroids, VectorXi& counts)
@@ -1014,8 +999,7 @@ void KMeans::gcentroids(const MatrixXd& X, const VectorXi& index, const VectorXi
     }
 }// function
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 double KMeans::unifrnd(double a, double b)
 {

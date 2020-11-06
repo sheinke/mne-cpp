@@ -1,40 +1,38 @@
 //=============================================================================================================
 /**
-* @file     main.cpp
-* @author   Ricky Tjen <ricky270@student.sgu.ac.id>;
-*           Lorenz Esch <lorenz.esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-* @version  1.0
-* @date     March, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Ricky Tjen, Lorenz Esch and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Example application of reading raw data and presenting the result in histogram form
-*
-*/
+ * @file     main.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     March, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Christoph Dinh, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Example application of reading raw data and presenting the result in histogram form
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -46,11 +44,14 @@
 #include <cstdlib>
 #include <Eigen/Dense>
 #include <string>
+
 #include <fiff/fiff.h>
 #include <mne/mne.h>
 #include <utils/mnemath.h>
-#include <disp/bar.h>
-#include <disp/spline.h>
+#include <utils/generics/applicationlogger.h>
+
+#include <disp/plots/bar.h>
+#include <disp/plots/spline.h>
 
 //includes for source localization data
 #include <fs/label.h>
@@ -60,8 +61,6 @@
 #include <mne/mne_sourceestimate.h>
 #include <inverse/minimumNorm/minimumnorm.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -77,8 +76,6 @@
 #include <QCommandLineParser>
 #include <QSet>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -90,9 +87,8 @@ using namespace DISPLIB;
 using namespace FSLIB;
 using namespace INVERSELIB;
 using namespace UTILSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // MAIN
 //=============================================================================================================
@@ -119,15 +115,16 @@ Eigen::VectorXd sineWaveGenerator(double amplitude, double xStep, int xNow, int 
 int main(int argc, char *argv[])
 {
     //code to generate source localization data
+    qInstallMessageHandler(ApplicationLogger::customLogWriter);
     QApplication a(argc, argv);
 
     // Command Line Parser
     QCommandLineParser parser;
     parser.setApplicationDescription("Histogram Example");
     parser.addHelpOption();
-    QCommandLineOption sampleFwdFileOption("fwd", "Path to forward solution <file>.", "file", "./MNE-sample-data/MEG/sample/sample_audvis-meg-eeg-oct-6-fwd.fif");
-    QCommandLineOption sampleCovFileOption("cov", "Path to covariance <file>.", "file", "./MNE-sample-data/MEG/sample/sample_audvis-cov.fif");
-    QCommandLineOption sampleEvokedFileOption("ave", "Path to evoked <file>.", "file", "./MNE-sample-data/MEG/sample/sample_audvis-ave.fif");
+    QCommandLineOption sampleFwdFileOption("fwd", "Path to forward solution <file>.", "file", QCoreApplication::applicationDirPath() + "/MNE-sample-data/MEG/sample/sample_audvis-meg-eeg-oct-6-fwd.fif");
+    QCommandLineOption sampleCovFileOption("cov", "Path to covariance <file>.", "file", QCoreApplication::applicationDirPath() + "/MNE-sample-data/MEG/sample/sample_audvis-cov.fif");
+    QCommandLineOption sampleEvokedFileOption("ave", "Path to evoked <file>.", "file", QCoreApplication::applicationDirPath() + "/MNE-sample-data/MEG/sample/sample_audvis-ave.fif");
     QCommandLineOption methodOption("method", "Inverse estimation <method>, i.e., 'MNE', 'dSPM' or 'sLORETA'.", "method", "dSPM");//"MNE" | "dSPM" | "sLORETA"
     QCommandLineOption snrOption("snr", "The SNR value used for computation <snr>.", "snr", "1.0");//3.0;//0.1;//3.0;
     QCommandLineOption stcFileOption("stcOut", "Path to stc <file>, which is to be written.", "file", "");
@@ -159,7 +156,7 @@ int main(int argc, char *argv[])
 
     // Load data
     fiff_int_t setno = 0;
-    QPair<QVariant, QVariant> baseline(QVariant(), 0);
+    QPair<float, float> baseline(-1.0f, -1.0f);
     FiffEvoked evoked(t_fileEvoked, setno, baseline);
     if(evoked.isEmpty())
         return 1;
@@ -170,7 +167,7 @@ int main(int argc, char *argv[])
     if(t_Fwd.isEmpty())
         return 1;
 
-    AnnotationSet t_annotationSet("sample", 2, "aparc.a2009s", "./MNE-sample-data/subjects");
+    AnnotationSet t_annotationSet("sample", 2, "aparc.a2009s", QCoreApplication::applicationDirPath() + "/MNE-sample-data/subjects");
 
     FiffCov noise_cov(t_fileCov);
 
@@ -229,7 +226,7 @@ int main(int argc, char *argv[])
     qDebug()<<"HistCounts timer:"<<myTimerHistCounts.elapsed();
 
     //displayObj can be in either Bar or Spline form; uncomment the preferred one and comment the other
-    Spline* displayObj = new Spline("MNE-CPP Histogram Example (Spline)");
+    Spline* displayObj = new Spline(0, "MNE-CPP Histogram Example (Spline)");
     //Bar* displayObj = new Bar("MNE-CPP Histogram Example (Bar)");
 
     QTime myTimerHistogram;
@@ -247,5 +244,4 @@ int main(int argc, char *argv[])
     return a.exec();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================

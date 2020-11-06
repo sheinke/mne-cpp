@@ -1,14 +1,21 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     applications.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @author   Chiran Doschi <Chiran.Doschi@childrens.harvard.edu>;
+#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+#           Florian Schlembach <Florian.Schlembach@tu-ilmenau.de>;
+#           Daniel Knobl <Daniel.Knobl@tu-ilmenau.de>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>;
+#           Louis Eichhorst <Louis.Eichhorst@tu-ilmenau.de>;
+#           Seok Lew <Seok.Lew@childrens.harvard.edu>;
+#           Tim Kunze <Tim.Kunze@tu-ilmenau.de>
+# @since    0.1.0
 # @date     May, 2013
 #
 # @section  LICENSE
 #
-# Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2013, Chiran Doschi, Christoph Dinh, Florian Schlembach, Daniel Knobl, Lorenz Esch, 
+#                     Louis Eichhorst, Seok Lew, Tim Kunze. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,7 +38,7 @@
 #
 # @brief    This project file builds all applications.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../mne-cpp.pri)
 
@@ -39,24 +46,26 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     mne_rt_server \
-    mne_show_fiff
+    mne_forward_solution \
+    mne_anonymize \
 
-!contains(MNECPP_CONFIG, minimalVersion) {
-    SUBDIRS += \
-        mne_browse \
-        mne_forward_solution \
-        mne_matching_pursuit \
-        mne_sample_set_downloader
-
-        qtHaveModule(charts) {
+    qtHaveModule(charts) {
         SUBDIRS += \
-            mne_analyze \
             mne_dipole_fit \
-            mne_launch \
-            mne_scan
-        } else {
-            message("applications.pro - The Qt Charts module is missing. Please install to build the complete set of MNE-CPP features.")
-        }
-}
+            mne_scan \
+            mne_analyze
+    } else {
+        message("applications.pro - The Qt Charts module is missing. Please install to build the complete set of MNE-CPP features.")
+    }
 
-CONFIG += ordered
+# Overwrite SUBDIRS if wasm flag was defined
+contains(MNECPP_CONFIG, wasm) {
+    SUBDIRS = mne_analyze \
+              mne_anonymize
+
+    qtHaveModule(charts) {
+        #SUBDIRS += # needs qt3D which is not yet wasm supported
+    } else {
+        message("applications.pro - The Qt Charts module is missing. Please install to build the complete set of MNE-CPP features.")
+    }
+}

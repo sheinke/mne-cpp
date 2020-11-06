@@ -1,63 +1,56 @@
 //=============================================================================================================
 /**
-* @file     fwd_eeg_sphere_model_set.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     December, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FwdEegSphereModelSet Class.
-*
-*/
+ * @file     fwd_eeg_sphere_model_set.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     December, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FwdEegSphereModelSet Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "fwd_eeg_sphere_model_set.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QString>
 #include <QFile>
 
-
 #include <Eigen/Core>
-
 
 using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // STATIC DEFINITIONS
 //=============================================================================================================
@@ -71,8 +64,6 @@ using namespace Eigen;
 
 #define MAXLINE 500
 
-
-
 #ifndef FAIL
 #define FAIL -1
 #endif
@@ -81,26 +72,18 @@ using namespace Eigen;
 #define OK 0
 #endif
 
-
-
 #define SEP ":\n\r"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace FWDLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -109,8 +92,7 @@ FwdEegSphereModelSet::FwdEegSphereModelSet()
 {
 }
 
-
-////*************************************************************************************************************
+////=============================================================================================================
 
 //FwdEegSphereModelSet::FwdEegSphereModelSet(const FwdEegSphereModelSet &p_FwdEegSphereModelSet)
 //: m_qListModels(p_FwdEegSphereModelSet.m_qListModels)
@@ -118,8 +100,7 @@ FwdEegSphereModelSet::FwdEegSphereModelSet()
 
 //}
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdEegSphereModelSet::~FwdEegSphereModelSet()
 {
@@ -127,8 +108,7 @@ FwdEegSphereModelSet::~FwdEegSphereModelSet()
         delete this->models[k];
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 //void FwdEegSphereModelSet::fwd_free_eeg_sphere_model_set(FwdEegSphereModelSet* s)
 
@@ -136,12 +116,10 @@ FwdEegSphereModelSet::~FwdEegSphereModelSet()
 //    if (!s)
 //        return;
 
-
 //    return;
 //}
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 //FwdEegSphereModelSet* FwdEegSphereModelSet::fwd_new_eeg_sphere_model_set()
 //{
@@ -150,8 +128,7 @@ FwdEegSphereModelSet::~FwdEegSphereModelSet()
 //    return s;
 //}
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdEegSphereModelSet* FwdEegSphereModelSet::fwd_add_to_eeg_sphere_model_set(FwdEegSphereModelSet* s, FwdEegSphereModel* m)
 {
@@ -162,8 +139,7 @@ FwdEegSphereModelSet* FwdEegSphereModelSet::fwd_add_to_eeg_sphere_model_set(FwdE
     return s;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //fwd_eeg_sphere_models.c
 FwdEegSphereModelSet* FwdEegSphereModelSet::fwd_add_default_eeg_sphere_model(FwdEegSphereModelSet* s)
 {
@@ -177,8 +153,7 @@ FwdEegSphereModelSet* FwdEegSphereModelSet::fwd_add_default_eeg_sphere_model(Fwd
                                                                          def_nlayer,def_unit_rads,def_sigmas));
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //fwd_eeg_sphere_models.c
 FwdEegSphereModelSet* FwdEegSphereModelSet::fwd_load_eeg_sphere_models(const QString& filename, FwdEegSphereModelSet* now)
 {
@@ -200,7 +175,6 @@ FwdEegSphereModelSet* FwdEegSphereModelSet::fwd_load_eeg_sphere_models(const QSt
     QFile t_file(filename);
     if (!t_file.isReadable())	/* Never mind about an unaccesible file */
         return now;
-
 
     if ((fp = fopen(filename.toUtf8().data(),"r")) == NULL) {
         printf(filename.toUtf8().data());
@@ -255,8 +229,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //fwd_eeg_sphere_models.c
 FwdEegSphereModel* FwdEegSphereModelSet::fwd_select_eeg_sphere_model(const QString& p_sName)
 {
@@ -282,8 +255,7 @@ FwdEegSphereModel* FwdEegSphereModelSet::fwd_select_eeg_sphere_model(const QStri
     return NULL;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //dipole_fit_setup.c
 void FwdEegSphereModelSet::fwd_list_eeg_sphere_models(FILE *f)
 {
@@ -302,20 +274,14 @@ void FwdEegSphereModelSet::fwd_list_eeg_sphere_models(FILE *f)
     }
 }
 
-
-
-
-
-
-////*************************************************************************************************************
+////=============================================================================================================
 
 //void FwdEegSphereModelSet::addFwdEegSphereModel(const FwdEegSphereModel &p_FwdEegSphereModel)
 //{
 //    m_qListModels.append(p_FwdEegSphereModel);
 //}
 
-
-////*************************************************************************************************************
+////=============================================================================================================
 
 //const FwdEegSphereModel& FwdEegSphereModelSet::operator[] (qint32 idx) const
 //{
@@ -327,8 +293,7 @@ void FwdEegSphereModelSet::fwd_list_eeg_sphere_models(FILE *f)
 //    return m_qListModels[idx];
 //}
 
-
-////*************************************************************************************************************
+////=============================================================================================================
 
 //FwdEegSphereModel& FwdEegSphereModelSet::operator[] (qint32 idx)
 //{
@@ -340,8 +305,7 @@ void FwdEegSphereModelSet::fwd_list_eeg_sphere_models(FILE *f)
 //    return m_qListModels[idx];
 //}
 
-
-////*************************************************************************************************************
+////=============================================================================================================
 
 //FwdEegSphereModelSet &FwdEegSphereModelSet::operator<<(const FwdEegSphereModel &p_FwdEegSphereModel)
 //{

@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_rt_server.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief     implementation of the MNERTServer Class.
-*
-*/
+ * @file     mne_rt_server.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Christoph Dinh, Lorenz Esch, Matti Hamalainen. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief     Definition of the MNERTServer Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -42,17 +42,9 @@
 
 #include "IConnector.h"
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
-
 #include <stdio.h>
 #include <stdlib.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -60,19 +52,15 @@
 #include <QtNetwork>
 #include <QDebug>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace RTSERVER;
-
+using namespace COMMUNICATIONLIB;
 
 const char* connectorDir = "/mne_rt_server_plugins";        /**< holds directory to connectors.*/
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -82,7 +70,7 @@ MNERTServer::MNERTServer()
 , m_commandServer(this)
 , m_connectorManager(&m_fiffStreamServer, this)
 {
-    qRegisterMetaType<MatrixXf>("MatrixXf");
+    qRegisterMetaType<Eigen::MatrixXf>("MatrixXf");
     qRegisterMetaType<QSharedPointer<Eigen::MatrixXf> >("QSharedPointer<Eigen::MatrixXf>");
 
     //
@@ -155,24 +143,21 @@ MNERTServer::MNERTServer()
     printf("mne_rt_server is running on\n\tIP:\t\t%s\n\tcommand port:\t%d\n\tfiff data port:\t%d\n\n",ipAddress.toUtf8().constData(), m_commandServer.serverPort(), m_fiffStreamServer.serverPort());
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNERTServer::~MNERTServer()
 {
     qDebug() << "MNERTServer destructed";
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNERTServer::comClose()
 {
     emit closeServer();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNERTServer::comHelp(Command p_command)
 {
@@ -180,7 +165,7 @@ void MNERTServer::comHelp(Command p_command)
     //
     // Generate help
     //
-    Subject::t_Observers::Iterator itObservers;
+    UTILSLIB::Subject::t_Observers::Iterator itObservers;
 
     //Map to store all commands & merging multi occurence
     QMap<QString, Command> t_qMapCommands;
@@ -213,7 +198,6 @@ void MNERTServer::comHelp(Command p_command)
     QJsonObject t_qJsonObjectRoot;
     t_qJsonObjectRoot.insert("commands", t_qJsonObjectCommands);
     QJsonDocument p_qJsonDocument(t_qJsonObjectRoot);
-
 
     if(!t_bCommandIsJson)
     {
@@ -280,8 +264,7 @@ void MNERTServer::comHelp(Command p_command)
         m_commandManager["help"].reply(p_qJsonDocument.toJson());
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNERTServer::init()
 {

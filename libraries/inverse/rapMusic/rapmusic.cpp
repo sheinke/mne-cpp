@@ -1,38 +1,38 @@
 //=============================================================================================================
 /**
-* @file     rapmusic.cpp
-* @author   Christoph Dinh <christoph.dinh@tu-ilmenau.de>
-* @version  1.0
-* @date     July, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Christoph Dinh. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the RapMusic Algorithm Class.
-*
-*/
+ * @file     rapmusic.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Lorenz Esch, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the RapMusic Algorithm Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -45,16 +45,15 @@
 #include <omp.h>
 #endif
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace INVERSELIB;
+using namespace MNELIB;
+using namespace FIFFLIB;
+using namespace UTILSLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -73,8 +72,7 @@ RapMusic::RapMusic()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 RapMusic::RapMusic(MNEForwardSolution& p_pFwd, bool p_bSparsed, int p_iN, double p_dThr)
 : m_iN(0)
@@ -92,8 +90,7 @@ RapMusic::RapMusic(MNEForwardSolution& p_pFwd, bool p_bSparsed, int p_iN, double
     init(p_pFwd, p_bSparsed, p_iN, p_dThr);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 RapMusic::~RapMusic()
 {
@@ -101,8 +98,7 @@ RapMusic::~RapMusic()
         free(m_ppPairIdxCombinations);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool RapMusic::init(MNEForwardSolution& p_pFwd, bool p_bSparsed, int p_iN, double p_dThr)
 {
@@ -133,7 +129,6 @@ bool RapMusic::init(MNEForwardSolution& p_pFwd, bool p_bSparsed, int p_iN, doubl
 //    }
 
 //    m_pMatGrid = p_pMatGrid;
-
 
     //Lead Field check
     if ( p_pFwd.sol->data.cols() % 3 != 0 )
@@ -186,24 +181,21 @@ bool RapMusic::init(MNEForwardSolution& p_pFwd, bool p_bSparsed, int p_iN, doubl
     return m_bIsInit;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const char* RapMusic::getName() const
 {
     return "RAP MUSIC";
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const MNESourceSpace& RapMusic::getSourceSpace() const
 {
     return m_ForwardSolution.src;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate RapMusic::calculateInverse(const FiffEvoked &p_fiffEvoked, bool pick_normal)
 {
@@ -284,7 +276,6 @@ MNESourceEstimate RapMusic::calculateInverse(const FiffEvoked &p_fiffEvoked, boo
             else
                 data = p_fiffEvoked.data.block(0, curSample, t_iNumSensors, m_iSamplesStcWindow);
 
-
             curSample += (m_iSamplesStcWindow - t_iSamplesOverlap);
             if(first)
                 curSample -= t_iSamplesDiscard; //shift on start t_iSamplesDiscard backwards
@@ -321,15 +312,15 @@ MNESourceEstimate RapMusic::calculateInverse(const FiffEvoked &p_fiffEvoked, boo
         }
     }
 
-
     return p_sourceEstimate;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MNESourceEstimate RapMusic::calculateInverse(const MatrixXd &data, float tmin, float tstep) const
+MNESourceEstimate RapMusic::calculateInverse(const MatrixXd &data, float tmin, float tstep, bool pick_normal) const
 {
+    Q_UNUSED(pick_normal);
+
     MNESourceEstimate p_sourceEstimate;
 
     if(data.rows() != m_iNumChannels)
@@ -379,8 +370,7 @@ MNESourceEstimate RapMusic::calculateInverse(const MatrixXd &data, float tmin, f
     return p_sourceEstimate;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate RapMusic::calculateInverse(const MatrixXd& p_matMeasurement, QList< DipolePair<double> > &p_RapDipoles) const
 {
@@ -501,7 +491,6 @@ MNESourceEstimate RapMusic::calculateInverse(const MatrixXd& p_matMeasurement, Q
             }
         }
 
-
 //         if(r==0)
 //         {
 //             std::fstream filestr;
@@ -587,8 +576,7 @@ MNESourceEstimate RapMusic::calculateInverse(const MatrixXd& p_matMeasurement, Q
     return p_SourceEstimate;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int RapMusic::calcPhi_s(const MatrixXT& p_matMeasurement, MatrixXT* &p_pMatPhi_s) const
 {
@@ -617,8 +605,7 @@ int RapMusic::calcPhi_s(const MatrixXT& p_matMeasurement, MatrixXT* &p_pMatPhi_s
     return t_r;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 double RapMusic::subcorr(MatrixX6T& p_matProj_G, const MatrixXT& p_matU_B)
 {
@@ -673,8 +660,7 @@ double RapMusic::subcorr(MatrixX6T& p_matProj_G, const MatrixXT& p_matU_B)
     return t_dRetSigma_C;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 double RapMusic::subcorr(MatrixX6T& p_matProj_G, const MatrixXT& p_matU_B, Vector6T& p_vec_phi_k_1)
 {
@@ -698,7 +684,6 @@ double RapMusic::subcorr(MatrixX6T& p_matProj_G, const MatrixXT& p_matU_B, Vecto
 
     //Step 2: compute the subspace correlation
     t_matCor = U_A_T*p_matU_B;//lt. Mosher 1998: C = U_A^T * U_B
-
 
     VectorXT sigma_C;
 
@@ -750,8 +735,7 @@ double RapMusic::subcorr(MatrixX6T& p_matProj_G, const MatrixXT& p_matU_B, Vecto
     return ret_sigma_C;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void RapMusic::calcA_k_1(   const MatrixX6T& p_matG_k_1,
                             const Vector6T& p_matPhi_k_1,
@@ -766,8 +750,7 @@ void RapMusic::calcA_k_1(   const MatrixX6T& p_matG_k_1,
     p_matA_k_1.block(0,p_iIdxk_1,p_matA_k_1.rows(),1) = t_vec_a_theta_k_1;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void RapMusic::calcOrthProj(const MatrixXT& p_matA_k_1, MatrixXT& p_matOrthProj) const
 {
@@ -775,7 +758,6 @@ void RapMusic::calcOrthProj(const MatrixXT& p_matA_k_1, MatrixXT& p_matOrthProj)
 
     MatrixXT t_matA_k_1_tmp(p_matA_k_1.cols(), p_matA_k_1.cols());
     t_matA_k_1_tmp = p_matA_k_1.adjoint()*p_matA_k_1;//A_k_1'*A_k_1 = A_k_1_tmp -> A_k_1' has to be adjoint for complex
-
 
     int t_size = t_matA_k_1_tmp.cols();
 
@@ -789,16 +771,13 @@ void RapMusic::calcOrthProj(const MatrixXT& p_matA_k_1, MatrixXT& p_matOrthProj)
 
     t_matA_k_1_tmp_inv.block(0,0,t_size,t_size) = t_matA_k_1_tmp.block(0,0,t_size,t_size).inverse();//(A_k_1_tmp)^-1 = A_k_1_tmp_inv
 
-
     t_matA_k_1_tmp = MatrixXT::Zero(p_matA_k_1.rows(), p_matA_k_1.cols());
 
     t_matA_k_1_tmp = p_matA_k_1*t_matA_k_1_tmp_inv;//(A_k_1*A_k_1_tmp_inv) = A_k_1_tmp
 
-
     MatrixXT t_matA_k_1_tmp2(p_matA_k_1.rows(), p_matA_k_1.rows());
 
     t_matA_k_1_tmp2 = t_matA_k_1_tmp*p_matA_k_1.adjoint();//(A_k_1_tmp)*A_k_1' -> here A_k_1' is only transposed - it has to be adjoint
-
 
     MatrixXT I(m_iNumChannels,m_iNumChannels);
     I.setIdentity();
@@ -809,8 +788,7 @@ void RapMusic::calcOrthProj(const MatrixXT& p_matA_k_1, MatrixXT& p_matOrthProj)
     //ToDo
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void RapMusic::calcPairCombinations(    const int p_iNumPoints,
                                         const int p_iNumCombinations,
@@ -840,8 +818,7 @@ void RapMusic::calcPairCombinations(    const int p_iNumPoints,
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void RapMusic::getPointPair(const int p_iPoints, const int p_iCurIdx, int &p_iIdx1, int &p_iIdx2)
 {
@@ -853,8 +830,7 @@ void RapMusic::getPointPair(const int p_iPoints, const int p_iCurIdx, int &p_iId
     p_iIdx2 = (p_iCurIdx-p_iPoints*(p_iPoints+1)/2 + (K+1)*(K+2)/2)+p_iIdx1;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //ToDo don't make a real copy
 void RapMusic::getGainMatrixPair(   const MatrixXT& p_matGainMarix,
                                     MatrixX6T& p_matGainMarix_Pair,
@@ -865,8 +841,7 @@ void RapMusic::getGainMatrixPair(   const MatrixXT& p_matGainMarix,
     p_matGainMarix_Pair.block(0,3,p_matGainMarix.rows(),3) = p_matGainMarix.block(0, p_iIdx2*3, p_matGainMarix.rows(), 3);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void RapMusic::insertSource(    int p_iDipoleIdx1, int p_iDipoleIdx2,
                                 const Vector6T &p_vec_phi_k_1,
@@ -899,8 +874,7 @@ void RapMusic::insertSource(    int p_iDipoleIdx1, int p_iDipoleIdx2,
     p_RapDipoles.append(t_pRapDipolePair);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void RapMusic::setStcAttr(int p_iSampStcWin, float p_fStcOverlap)
 {

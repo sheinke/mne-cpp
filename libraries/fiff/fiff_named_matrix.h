@@ -1,42 +1,42 @@
 //=============================================================================================================
 /**
-* @file     fiff_named_matrix.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-* 
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    FiffNamedMatrix class declaration.
-*
-*/
+ * @file     fiff_named_matrix.h
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    FiffNamedMatrix class declaration.
+ *
+ */
 
 #ifndef FIFF_NAMED_MATRIX_H
 #define FIFF_NAMED_MATRIX_H
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -45,16 +45,12 @@
 #include "fiff_constants.h"
 #include "fiff_types.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -64,8 +60,6 @@
 #include <QSharedDataPointer>
 #include <QSharedPointer>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE NAMESPACE FIFFLIB
 //=============================================================================================================
@@ -73,21 +67,12 @@
 namespace FIFFLIB
 {
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// USED NAMESPACES
-//=============================================================================================================
-
-using namespace Eigen;
-
-
 //=============================================================================================================
 /**
-* Matrix specification with named rows and cols.
-*
-* @brief A named matrix
-*/
+ * Matrix specification with named rows and cols.
+ *
+ * @brief A named matrix
+ */
 class FIFFSHARED_EXPORT FiffNamedMatrix : public QSharedData
 {
 public:
@@ -97,61 +82,61 @@ public:
 
     //=========================================================================================================
     /**
-    * Default constructor.
-    */
+     * Default constructor.
+     */
     FiffNamedMatrix();
 
     //=========================================================================================================
     /**
-    * Constructs named matrix with given parameters. (No plausibility check is performed)
-    *
-    * @param[in] p_nrow         Number of rows
-    * @param[in] p_ncol         Number of cols
-    * @param[in] p_row_names    Row names
-    * @param[in] p_col_names    Column names
-    * @param[in] p_data         Data of the named matrix
-    */
-    explicit FiffNamedMatrix(   fiff_int_t p_nrow,
-                                fiff_int_t p_ncol,
-                                const QStringList& p_row_names,
-                                const QStringList& p_col_names,
-                                const MatrixXd& p_data);
+     * Constructs named matrix with given parameters. (No plausibility check is performed)
+     *
+     * @param[in] p_nrow         Number of rows
+     * @param[in] p_ncol         Number of cols
+     * @param[in] p_row_names    Row names
+     * @param[in] p_col_names    Column names
+     * @param[in] p_data         Data of the named matrix
+     */
+    explicit FiffNamedMatrix(fiff_int_t p_nrow,
+                             fiff_int_t p_ncol,
+                             const QStringList& p_row_names,
+                             const QStringList& p_col_names,
+                             const Eigen::MatrixXd& p_data);
 
     //=========================================================================================================
     /**
-    * Copy constructor.
-    *
-    * @param[in] p_FiffNamedMatrix  Named matrix which should be copied
-    */
+     * Copy constructor.
+     *
+     * @param[in] p_FiffNamedMatrix  Named matrix which should be copied
+     */
     FiffNamedMatrix(const FiffNamedMatrix& p_FiffNamedMatrix);
 
     //=========================================================================================================
     /**
-    * Destroys the named matrix.
-    */
+     * Destroys the named matrix.
+     */
     ~FiffNamedMatrix();
 
     //=========================================================================================================
     /**
-    * Initializes the named matrix.
-    */
+     * Initializes the named matrix.
+     */
     void clear();
 
     //=========================================================================================================
     /**
-    * Returns true if named matrix contains no data.
-    *
-    * @return true if named matrix is empty.
-    */
+     * Returns true if named matrix contains no data.
+     *
+     * @return true if named matrix is empty.
+     */
     inline bool isEmpty() const;
 
     //ToDo return the transposed matrix instead of applying it to its members
     //=========================================================================================================
     /**
-    * ### MNE toolbox root function ###: Implementation of the mne_transpose_named_matrix function
-    *
-    * Transpose a named matrix (FiffNamedMatrix)
-    */
+     * ### MNE toolbox root function ###: Definition of the mne_transpose_named_matrix function
+     *
+     * Transpose a named matrix (FiffNamedMatrix)
+     */
     void transpose_named_matrix();
 
 //    //=========================================================================================================
@@ -164,21 +149,30 @@ public:
 
     //=========================================================================================================
     /**
-    * overloading the stream out operator<<
-    *
-    * @param[in] out                The stream to which the fiff projector should be assigned to.
-    * @param[in] p_FiffNamedMatrix  Fiff named matrix which should be assigned to the stream.
-    *
-    * @return the stream with the attached fiff named matrix
-    */
+     * overloading the stream out operator<<
+     *
+     * @param[in] out                The stream to which the fiff projector should be assigned to.
+     * @param[in] p_FiffNamedMatrix  Fiff named matrix which should be assigned to the stream.
+     *
+     * @return the stream with the attached fiff named matrix
+     */
     friend std::ostream& operator<<(std::ostream& out, const FIFFLIB::FiffNamedMatrix &p_FiffNamedMatrix);
+
+    /**
+     * Overloaded == operator to compare an object to this instance.
+     *
+     * @param[in] object    The object which should be compared to.
+     *
+     * @return true if equal, false otherwise
+     */
+    friend bool operator== (const FiffNamedMatrix &a, const FiffNamedMatrix &b);
 
 public:
     fiff_int_t nrow;        /**< Number of rows */
     fiff_int_t  ncol;       /**< Number of columns */
     QStringList row_names;  /**< Row names */
     QStringList col_names;  /**< Column names */
-    MatrixXd data;          /**< Matrix data */
+    Eigen::MatrixXd data;   /**< Matrix data */
 
 // ### OLD STRUCT ###
 //typedef struct {            /* Matrix specification with a channel list */
@@ -190,8 +184,6 @@ public:
 //} *mneNamedMatrix,mneNamedMatrixRec;
 };
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INLINE DEFINITIONS
 //=============================================================================================================
@@ -211,14 +203,12 @@ public:
 //    return *this;
 //}
 
-
 inline bool FiffNamedMatrix::isEmpty() const
 {
     return !(this->data.size() > 0);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 inline std::ostream& operator<<(std::ostream& out, const FIFFLIB::FiffNamedMatrix &p_FiffNamedMatrix)
 {
@@ -227,7 +217,7 @@ inline std::ostream& operator<<(std::ostream& out, const FIFFLIB::FiffNamedMatri
     out << "\tnrow: " << p_FiffNamedMatrix.nrow << std::endl;
     out << "\tncol: " << p_FiffNamedMatrix.ncol << std::endl;
 
-    MatrixXd data;          /**< Matrix data */
+    Eigen::MatrixXd data;          /**< Matrix data */
 
     out << "\trow_names " << p_FiffNamedMatrix.row_names.size() << ":\n\t";
     if(t_bIsShort)
@@ -298,6 +288,16 @@ inline std::ostream& operator<<(std::ostream& out, const FIFFLIB::FiffNamedMatri
     return out;
 }
 
+//=============================================================================================================
+
+inline bool operator== (const FiffNamedMatrix &a, const FiffNamedMatrix &b)
+{
+    return (a.nrow == b.nrow &&
+            a.ncol == b.ncol &&
+            a.row_names == b.row_names &&
+            a.col_names == b.col_names &&
+            a.data.isApprox(b.data, 0.0001));
+}
 } // NAMESPACE
 
 #endif // FIFF_SOLUTION_H

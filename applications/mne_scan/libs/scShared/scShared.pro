@@ -1,14 +1,14 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     scShared.pro
 # @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+#           Lorenz Esch <lesch@mgh.harvard.edu>
+# @since    0.1.0
 # @date     March, 2012
 #
 # @section  LICENSE
 #
-# Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2012, Christoph Dinh, Lorenz Esch. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,51 +31,61 @@
 #
 # @brief    This project file builds the mne_x library.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../../../mne-cpp.pri)
 
 TEMPLATE = lib
 
-QT += widgets svg
+QT += widgets svg network
+
+CONFIG += skip_target_version_ext
 
 DEFINES += SCSHARED_LIBRARY
+
+DESTDIR = $${MNE_LIBRARY_DIR}
 
 TARGET = scShared
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
 
+contains(MNECPP_CONFIG, static) {
+    CONFIG += staticlib
+    DEFINES += STATICBUILD
+} else {
+    CONFIG += shared
+}
+
 LIBS += -L$${MNE_LIBRARY_DIR}
 CONFIG(debug, debug|release) {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utilsd \
-            -lMNE$${MNE_LIB_VERSION}Fsd \
-            -lMNE$${MNE_LIB_VERSION}Fiffd \
-            -lMNE$${MNE_LIB_VERSION}Dispd \
+    LIBS += -lscDispd \
             -lscMeasd \
-            -lscDispd
-}
-else {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
-            -lMNE$${MNE_LIB_VERSION}Fs \
-            -lMNE$${MNE_LIB_VERSION}Fiff \
-            -lMNE$${MNE_LIB_VERSION}Disp \
+            -lmnecppDisp3Dd \
+            -lmnecppDispd \
+            -lmnecppRtProcessingd \
+            -lmnecppConnectivityd \
+            -lmnecppInversed \
+            -lmnecppFwdd \
+            -lmnecppMned \
+            -lmnecppCommunicationd \
+            -lmnecppFiffd \
+            -lmnecppFsd \
+            -lmnecppUtilsd \
+} else {
+    LIBS += -lscDisp \
             -lscMeas \
-            -lscDisp
-}
-
-DESTDIR = $${MNE_LIBRARY_DIR}
-
-#
-# win32: copy dll's to bin dir
-# unix: add lib folder to LD_LIBRARY_PATH
-#
-win32 {
-    FILE = $${DESTDIR}/$${TARGET}.dll
-    BINDIR = $${DESTDIR}/../bin
-    FILE ~= s,/,\\,g
-    BINDIR ~= s,/,\\,g
-    QMAKE_POST_LINK += $${QMAKE_COPY} $$quote($${FILE}) $$quote($${BINDIR}) $$escape_expand(\\n\\t)
+            -lmnecppDisp3D \
+            -lmnecppDisp \
+            -lmnecppRtProcessing \
+            -lmnecppConnectivity \
+            -lmnecppInverse \
+            -lmnecppFwd \
+            -lmnecppMne \
+            -lmnecppCommunication \
+            -lmnecppFiff \
+            -lmnecppFs \
+            -lmnecppUtils \
 }
 
 SOURCES += \
@@ -92,10 +102,9 @@ SOURCES += \
 
 HEADERS += \
     scshared_global.h \
-    Interfaces/IPlugin.h \
-    Interfaces/ISensor.h \
-    Interfaces/IAlgorithm.h \
-    Interfaces/IIO.h \
+    Plugins/abstractplugin.h \
+    Plugins/abstractsensor.h \
+    Plugins/abstractalgorithm.h \
     Management/pluginmanager.h \
     Management/pluginconnector.h \
     Management/plugininputconnector.h \
@@ -107,50 +116,41 @@ HEADERS += \
     Management/pluginscenemanager.h \
     Management/displaymanager.h
 
-
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_SCAN_INCLUDE_DIR}
 
 # Install headers to include directory
-header_files.files = ./*.h
-header_files.path = $${MNE_SCAN_INCLUDE_DIR}/scShared
-
-header_files_interfaces.files = ./Interfaces/*.h
-header_files_interfaces.path = $${MNE_SCAN_INCLUDE_DIR}/scShared/Interfaces
-
-header_files_management.files = ./Interfaces/*.h
-header_files_management.path = $${MNE_SCAN_INCLUDE_DIR}/scShared/Management
+header_files.files = $${HEADERS}
+header_files.path = $${MNE_INSTALL_INCLUDE_DIR}/scShared
 
 INSTALLS += header_files
-INSTALLS += header_files_interfaces
-INSTALLS += header_files_management
 
-
-unix:!macx {
-    QMAKE_CXXFLAGS += -std=c++0x
-    QMAKE_CXXFLAGS += -Wno-attributes
+win32:!contains(MNECPP_CONFIG, static) {
+    QMAKE_POST_LINK += $$QMAKE_COPY $$shell_path($${MNE_LIBRARY_DIR}/$${TARGET}.dll) $${MNE_BINARY_DIR}
 }
+
 macx {
-    QMAKE_CXXFLAGS = -mmacosx-version-min=10.7 -std=gnu0x -stdlib=libc++
-    CONFIG +=c++11
+    QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
 }
 
+# Activate FFTW backend in Eigen for non-static builds only
+contains(MNECPP_CONFIG, useFFTW):!contains(MNECPP_CONFIG, static) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
 
-# Deploy Qt Dependencies
-win32 {
-    isEmpty(TARGET_EXT) {
-        TARGET_CUSTOM_EXT = .dll
-    } else {
-        TARGET_CUSTOM_EXT = $${TARGET_EXT}
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
     }
 
-    DEPLOY_COMMAND = windeployqt
-
-    DEPLOY_TARGET = $$shell_quote($$shell_path($${MNE_BINARY_DIR}/$${TARGET}$${TARGET_CUSTOM_EXT}))
-
-    #  # Uncomment the following line to help debug the deploy command when running qmake
-    #  warning($${DEPLOY_COMMAND} $${DEPLOY_TARGET})
-    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
 }
 

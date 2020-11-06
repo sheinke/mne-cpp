@@ -1,39 +1,38 @@
 //=============================================================================================================
 /**
-* @file     sphere.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     April, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the Sphere Class.
-*
-*/
+ * @file     sphere.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     April, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lorenz Esch, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the Sphere Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -41,24 +40,16 @@
 #include "sphere.h"
 #include "simplex_algorithm.h"
 
+#include <QDebug>
 
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Dense>
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
-
 #include <iostream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -66,8 +57,6 @@
 using namespace UTILSLIB;
 using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -78,8 +67,7 @@ Sphere::Sphere(const Vector3f& center, float radius)
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Sphere Sphere::fit_sphere(const MatrixX3f& points)
 {
@@ -119,20 +107,20 @@ Sphere Sphere::fit_sphere(const MatrixX3f& points)
     return Sphere(center, r);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Sphere Sphere::fit_sphere_simplex(const MatrixX3f& points, double simplex_size)
 {
     VectorXf center;
     float R;
-    fit_sphere_to_points( points, simplex_size, center, R);
+    if(fit_sphere_to_points( points, simplex_size, center, R)) {
+        return Sphere(center, R);
+    }
 
-    return Sphere(center, R);
+    return Sphere(Vector3f(), 0.0f);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Sphere::fit_sphere_to_points(float **rr, int np, float simplex_size, float *r0, float *R)
 {
@@ -146,9 +134,8 @@ bool Sphere::fit_sphere_to_points(float **rr, int np, float simplex_size, float 
         rr_eigen(k, 2) = rr[k][2];
     }
 
-    if(rr_eigen.rows() > 0) {
+    if(rr_eigen.rows() < 0) {
         std::cout << "Sphere::fit_sphere_to_points - No points were passed." << std::endl;
-
         return false;
     }
 
@@ -165,15 +152,15 @@ bool Sphere::fit_sphere_to_points(float **rr, int np, float simplex_size, float 
     return state;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Sphere::fit_sphere_to_points(const MatrixXf &rr, float simplex_size, VectorXf &r0, float &R)
 {
 //    int   np = rr.rows();
 
     /*
-    * Find the optimal sphere origin
-    */
+     * Find the optimal sphere origin
+     */
     fitUserRecNew user;
     float      ftol            = 1e-5f;
     int        max_eval        = 500;
@@ -209,7 +196,9 @@ bool Sphere::fit_sphere_to_points(const MatrixXf &rr, float simplex_size, Vector
                                                     neval,          /* Number of function evaluations */
                                                     report_interval,/* How often to report (-1 = no_reporting) */
                                                     report_func))   /* The function to be called when reporting */
+    {
         return false;
+    }
 
     r0 = init_simplex.row(0);
     R = opt_rad(r0, &user);
@@ -217,14 +206,13 @@ bool Sphere::fit_sphere_to_points(const MatrixXf &rr, float simplex_size, Vector
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool Sphere::report_func(int loop, const VectorXf &fitpar, double fval)
 {
     /*
-    * Report periodically
-    */
+     * Report periodically
+     */
     const VectorXf& r0 = fitpar;
 
     std::cout << "loop: " << loop << "; r0: " << 1000*r0[0] << ", r1: " << 1000*r0[1] << ", r2: " << 1000*r0[2] << "; fval: " << fval << std::endl;
@@ -232,8 +220,7 @@ bool Sphere::report_func(int loop, const VectorXf &fitpar, double fval)
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Sphere::calculate_cm_ave_dist(const MatrixXf &rr, VectorXf &cm, float &avep)
 {
@@ -242,14 +229,13 @@ void Sphere::calculate_cm_ave_dist(const MatrixXf &rr, VectorXf &cm, float &avep
     avep = diff.rowwise().norm().mean();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MatrixXf Sphere::make_initial_simplex(const VectorXf &pars, float size)
 {
     /*
-    * Make the initial tetrahedron
-    */
+     * Make the initial tetrahedron
+     */
     int npar = pars.size();
 
     MatrixXf simplex = MatrixXf::Zero(npar+1,npar);
@@ -263,15 +249,14 @@ MatrixXf Sphere::make_initial_simplex(const VectorXf &pars, float size)
     return simplex;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 float Sphere::fit_eval(const VectorXf &fitpar, const void  *user_data)
 {
     /*
-    * Calculate the cost function value
-    * Optimize for the radius inside here
-    */
+     * Calculate the cost function value
+     * Optimize for the radius inside here
+     */
     const fitUserNew& user = (fitUserNew)user_data;
     const VectorXf& r0 = fitpar;
 
@@ -291,8 +276,7 @@ float Sphere::fit_eval(const VectorXf &fitpar, const void  *user_data)
     return F;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 float Sphere::opt_rad(const VectorXf &r0,const fitUserNew user)
 {

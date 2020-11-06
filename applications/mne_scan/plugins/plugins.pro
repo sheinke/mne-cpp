@@ -1,15 +1,17 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     plugins.pro
 # @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Limin Sun <liminsun@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+#           Lorenz Esch <lesch@mgh.harvard.edu>;
+#           Louis Eichhorst <Louis.Eichhorst@tu-ilmenau.de>;
+#           Simon Heinke <Simon.Heinke@tu-ilmenau.de>;
+#           Viktor Klueber <Viktor.Klueber@tu-ilmenau.de>
+# @since    0.1.0
 # @date     February, 2013
 #
 # @section  LICENSE
 #
-# Copyright (C) 2013, Christoph Dinh, Limin Sun and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2013, Christoph Dinh, Lorenz Esch, Louis Eichhorst, Simon Heinke, Viktor Klueber. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -30,51 +32,48 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# @brief    This project file builds the plugins for MNE Scan project.
+# @brief    This project file builds the plugins for MNE Scan.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../../mne-cpp.pri)
 
 TEMPLATE = subdirs
 
-contains(MNECPP_CONFIG, buildBasicMneScanVersion) {
-    message(Building basic MNE Scan version!)
-    #Sensors
-    SUBDIRS += \
-        babymeg \
-        fiffsimulator \
+#Sensors
+SUBDIRS += \
+    fiffsimulator \
+    ftbuffer \
+    babymeg \
+    natus \
 
-    #Algorithms
-    SUBDIRS += \
-} else {
-    #Sensors
-    SUBDIRS += \
-        ecgsimulator \
-        fiffsimulator \
-        neuromag \
-        babymeg \
-        triggercontrol \
-        # gusbamp \
-        # eegosports \
-        # brainamp \
-        # tmsi \
+    contains(MNECPP_CONFIG, withBrainAmp) {
+        SUBDIRS += brainamp \           # Build guide -> https://mne-cpp.github.io/pages/development/brainamp.html
+    }
+    contains(MNECPP_CONFIG, withEego) {
+        SUBDIRS += eegosports \         # Build guide -> https://mne-cpp.github.io/pages/development/eegosports.html
+    }
+    contains(MNECPP_CONFIG, withGUSBAmp) {
+        SUBDIRS += gusbamp \            # Build guide -> https://mne-cpp.github.io/pages/development/gusbamp.html
+    }
+    contains(MNECPP_CONFIG, withTmsi) {
+        SUBDIRS += tmsi \               # Build guide (Windows only) -> https://mne-cpp.github.io/pages/development/tmsi.html
+    }
+    contains(MNECPP_CONFIG, withBrainFlow) {
+        SUBDIRS += brainflowboard \     # Build guide -> https://mne-cpp.github.io/pages/development/brainflow.html
+    }
+    contains(MNECPP_CONFIG, withLsl) {
+        SUBDIRS += lsladapter \         # Build guide -> https://mne-cpp.github.io/pages/development/lsl.html
+    }
 
-    #Algorithms
-    SUBDIRS += \
-        dummytoolbox \
-        epidetect \
-        mne \
-        rapmusictoolbox \
-        averaging \
-        covariance \
-        noise \
-        # bci \
-        rtsss \
-        rthpi \
-        noisereduction \
-        ssvepbci \
-        neuronalconnectivity \
-        reference
-}
-
+#Algorithms
+SUBDIRS += \
+    #dummytoolbox \
+    rtcmne \
+    averaging \
+    covariance \
+    noisereduction \
+    neuronalconnectivity \
+    writetofile \
+    hpi \
+    rtfwd \

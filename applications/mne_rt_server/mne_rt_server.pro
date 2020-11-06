@@ -1,14 +1,16 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     mne_rt_server.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+# @author   Robert Dicamillo <rd521@nmr.mgh.harvard.edu>;
+#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>;
 #           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @since    0.1.0
 # @date     July, 2012
 #
 # @section  LICENSE
 #
-# Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2012, Robert Dicamillo, Christoph Dinh, Lorenz Esch, Matti Hamalainen. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,14 +33,15 @@
 #
 # @brief    This project file generates the makefile to build the source core app and its connector modules.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../mne-cpp.pri)
 
 TEMPLATE = subdirs
 
 SUBDIRS += \
+    plugins \
     mne_rt_server \
-    connectors
 
-CONFIG += ordered
+plugins.depends = 
+mne_rt_server.depends = plugins

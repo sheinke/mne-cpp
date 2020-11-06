@@ -1,14 +1,15 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
-# @file     disp.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @file     inverse.pro
+# @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+# @since    0.1.0
 # @date     July, 2012
 #
 # @section  LICENSE
 #
-# Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,69 +32,47 @@
 #
 # @brief    This project file builds the inverse library.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../mne-cpp.pri)
 
 TEMPLATE = lib
 
-QT       -= gui
-QT       += concurrent
+CONFIG += skip_target_version_ext
+
+QT -= gui
+QT += concurrent
 
 DEFINES += INVERSE_LIBRARY
 
+DESTDIR = $${MNE_LIBRARY_DIR}
+
 TARGET = Inverse
-TARGET = $$join(TARGET,,MNE$${MNE_LIB_VERSION},)
+TARGET = $$join(TARGET,,mnecpp,)
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
 
+contains(MNECPP_CONFIG, static) {
+    CONFIG += staticlib
+    DEFINES += STATICBUILD
+} else {
+    CONFIG += shared
+}
+
 LIBS += -L$${MNE_LIBRARY_DIR}
 CONFIG(debug, debug|release) {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utilsd \
-            -lMNE$${MNE_LIB_VERSION}Fsd \
-            -lMNE$${MNE_LIB_VERSION}Fiffd \
-            -lMNE$${MNE_LIB_VERSION}Mned \
-            -lMNE$${MNE_LIB_VERSION}Fwdd
-}
-else {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
-            -lMNE$${MNE_LIB_VERSION}Fs \
-            -lMNE$${MNE_LIB_VERSION}Fiff \
-            -lMNE$${MNE_LIB_VERSION}Mne \
-            -lMNE$${MNE_LIB_VERSION}Fwd
-}
-
-# OpenMP
-win32 {
-    QMAKE_CXXFLAGS  +=  -openmp
-    #QMAKE_LFLAGS    +=  -openmp
-}
-unix:!macx {
-    QMAKE_CXXFLAGS  +=  -fopenmp
-    QMAKE_LFLAGS    +=  -fopenmp
-}
-
-DESTDIR = $${MNE_LIBRARY_DIR}
-
-contains(MNECPP_CONFIG, buildStaticLibraries) {
-    CONFIG += staticlib
-    DEFINES += BUILD_STATIC_LIBRARIES
-}
-else {
-    CONFIG += dll
-
-    #
-    # win32: copy dll's to bin dir
-    # unix: add lib folder to LD_LIBRARY_PATH
-    #
-    win32 {
-        FILE = $${DESTDIR}/$${TARGET}.dll
-        BINDIR = $${DESTDIR}/../bin
-        FILE ~= s,/,\\,g
-        BINDIR ~= s,/,\\,g
-        QMAKE_POST_LINK += $${QMAKE_COPY} $$quote($${FILE}) $$quote($${BINDIR}) $$escape_expand(\\n\\t)
-    }
+    LIBS += -lmnecppFwdd \
+            -lmnecppMned \
+            -lmnecppFiffd \
+            -lmnecppFsd \
+            -lmnecppUtilsd \
+} else {
+    LIBS += -lmnecppFwd \
+            -lmnecppMne \
+            -lmnecppFiff \
+            -lmnecppFs \
+            -lmnecppUtils \
 }
 
 SOURCES += \
@@ -113,7 +92,6 @@ SOURCES += \
     c/mne_meas_data_set.cpp \
     hpiFit/hpifit.cpp \
     hpiFit/hpifitdata.cpp
-
 
 HEADERS +=\
     inverse_global.h \
@@ -136,43 +114,56 @@ HEADERS +=\
     hpiFit/hpifit.h \
     hpiFit/hpifitdata.h
 
-
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
 
 # Install headers to include directory
-header_files.files = ./*.h
-header_files.path = $${MNE_INCLUDE_DIR}/inverse
-
-header_files_dipole_fit.files = ./dipoleFit/*.h
-header_files_dipole_fit.path = $${MNE_INCLUDE_DIR}/inverse/dipoleFit
-
-header_files_minimum_norm.files = ./minimumNorm/*.h
-header_files_minimum_norm.path = $${MNE_INCLUDE_DIR}/inverse/minimumNorm
-
-header_files_rap_music.files = ./rapMusic/*.h
-header_files_rap_music.path = $${MNE_INCLUDE_DIR}/inverse/rapMusic
+header_files.files = $${HEADERS}
+header_files.path = $${MNE_INSTALL_INCLUDE_DIR}/inverse
 
 INSTALLS += header_files
-INSTALLS += header_files_dipole_fit
-INSTALLS += header_files_minimum_norm
-INSTALLS += header_files_rap_music
 
-unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
+contains(MNECPP_CONFIG, withCodeCov) {
+    QMAKE_CXXFLAGS += --coverage
+    QMAKE_LFLAGS += --coverage
+}
 
-# Deploy Qt Dependencies
-win32 {
-    isEmpty(TARGET_EXT) {
-        TARGET_CUSTOM_EXT = .dll
-    } else {
-        TARGET_CUSTOM_EXT = $${TARGET_EXT}
+win32:!contains(MNECPP_CONFIG, static) {
+    # OpenMP
+    !contains(MNECPP_CONFIG, wasm) {
+        QMAKE_CXXFLAGS  +=  -openmp
+        #QMAKE_LFLAGS    +=  -openmp
     }
 
-    DEPLOY_COMMAND = windeployqt
-
-    DEPLOY_TARGET = $$shell_quote($$shell_path($${MNE_BINARY_DIR}/$${TARGET}$${TARGET_CUSTOM_EXT}))
-
-    #  # Uncomment the following line to help debug the deploy command when running qmake
-    #  warning($${DEPLOY_COMMAND} $${DEPLOY_TARGET})
-    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+    QMAKE_POST_LINK += $$QMAKE_COPY $$shell_path($${MNE_LIBRARY_DIR}/$${TARGET}.dll) $${MNE_BINARY_DIR}
 }
+
+unix:!macx:!contains(MNECPP_CONFIG, wasm):!contains(MNECPP_CONFIG, static) {
+    QMAKE_CXXFLAGS  +=  -fopenmp
+    QMAKE_LFLAGS    +=  -fopenmp
+}
+
+macx {
+    QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
+}
+
+# Activate FFTW backend in Eigen for non-static builds only
+contains(MNECPP_CONFIG, useFFTW):!contains(MNECPP_CONFIG, static) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
+
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
+    }
+
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
+}
+

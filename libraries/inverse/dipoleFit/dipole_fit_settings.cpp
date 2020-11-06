@@ -2,12 +2,9 @@
 
 #include "dipole_fit_settings.h"
 
-
 using namespace Eigen;
 using namespace INVERSELIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // STATIC DEFINITIONS
 //=============================================================================================================
@@ -18,25 +15,19 @@ using namespace INVERSELIB;
 #define MALLOC(x,t) (t *)malloc((x)*sizeof(t))
 #define REALLOC(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
 
-
 #define X 0
 #define Y 1
 #define Z 2
-
 
 #ifndef PROGRAM_VERSION
 #define PROGRAM_VERSION     "1.00"
 #endif
 
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // STATIC DEFINITIONS ToDo make members
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -46,8 +37,7 @@ DipoleFitSettings::DipoleFitSettings()
     initMembers();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 DipoleFitSettings::DipoleFitSettings(int *argc,char **argv)
 {
@@ -62,16 +52,14 @@ DipoleFitSettings::DipoleFitSettings(int *argc,char **argv)
     checkIntegrity();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 DipoleFitSettings::~DipoleFitSettings()
 {
     //ToDo Garbage collection
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void DipoleFitSettings::initMembers()
 {
@@ -116,7 +104,8 @@ void DipoleFitSettings::initMembers()
     setno        = 1;             
     verbose      = false;
     omit_data_proj = false;
-         
+
+         
     eeg_sphere_rad = 0.09f;      
     scale_eeg_pos  = false;     
     mag_reg      = 0.1f;         
@@ -128,8 +117,7 @@ void DipoleFitSettings::initMembers()
     bool gui    = false;               
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void DipoleFitSettings::checkIntegrity()
 {
@@ -209,8 +197,7 @@ void DipoleFitSettings::checkIntegrity()
     printf("\n");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void DipoleFitSettings::usage(char *name)
 {
@@ -257,7 +244,6 @@ void DipoleFitSettings::usage(char *name)
     printf("\t--magreg amount   Apply regularization to the EEG noise-covariance matrix (axial gradiometers and magnetometers, default = %6.2f).\n",mag_reg);
     printf("\t--eegreg amount   Apply regularization to the EEG noise-covariance matrix (default = %6.2f).\n",eeg_reg);
 
-
     printf("\nForward model:\n\n");
     printf("\t--mri name        take head/MRI coordinate transform from here (Neuromag MRI description file)\n");
     printf("\t--bem  name       BEM model name\n");
@@ -287,8 +273,7 @@ void DipoleFitSettings::usage(char *name)
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool DipoleFitSettings::check_unrecognized_args(int argc, char **argv)
 {
@@ -303,8 +288,7 @@ bool DipoleFitSettings::check_unrecognized_args(int argc, char **argv)
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool DipoleFitSettings::check_args (int *argc,char **argv)
 {

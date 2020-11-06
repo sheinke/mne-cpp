@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fssurfacetreeitem.cpp
-* @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     November, 2015
-*
-* @section  LICENSE
-*
-* Copyright (C) 2015, Lorenz Esch and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    FsSurfaceTreeItem class definition.
-*
-*/
+ * @file     fssurfacetreeitem.cpp
+ * @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+ *           Gabriel B Motta <gabrielbenmotta@gmail.com>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     November, 2015
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2015, Lars Debor, Gabriel B Motta, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    FsSurfaceTreeItem class definition.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -48,22 +48,16 @@
 #include <fs/label.h>
 #include <fs/surface.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -72,8 +66,6 @@ using namespace DISP3DLIB;
 using namespace Eigen;
 using namespace FSLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -85,8 +77,7 @@ FsSurfaceTreeItem::FsSurfaceTreeItem(Qt3DCore::QEntity *p3DEntityParent, int iTy
     initItem();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FsSurfaceTreeItem::initItem()
 {
@@ -127,23 +118,23 @@ void FsSurfaceTreeItem::initItem()
     data.setValue(QColor(125,125,125));
     m_pItemSurfColGyri->setData(data, MetaTreeItemRoles::SurfaceColorGyri);
     m_pItemSurfColGyri->setData(data, Qt::DecorationRole);
+
+    this->setAlpha(1.0f);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FsSurfaceTreeItem::addData(const Surface& tSurface)
 {
     //Create color from curvature information with default gyri and sulcus colors
-    MatrixX3f matCurvatureColor = createCurvatureVertColor(tSurface.curv());
-
+    MatrixX4f matCurvatureColor = createCurvatureVertColor(tSurface.curv());
 
     //Set renderable 3D entity mesh and color data
     m_pCustomMesh->setMeshData(tSurface.rr(),
-                                tSurface.nn(),
-                                tSurface.tris(),
-                                matCurvatureColor,
-                                Qt3DRender::QGeometryRenderer::Triangles);
+                               tSurface.nn(),
+                               tSurface.tris(),
+                               matCurvatureColor,
+                               Qt3DRender::QGeometryRenderer::Triangles);
     this->setPosition(QVector3D(-tSurface.offset()(0), -tSurface.offset()(1), -tSurface.offset()(2)));
 
     //Add data which is held by this FsSurfaceTreeItem
@@ -180,8 +171,7 @@ void FsSurfaceTreeItem::addData(const Surface& tSurface)
 //    itemSurfPath->setData(data, MetaTreeItemRoles::SurfaceFilePath);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FsSurfaceTreeItem::onAnnotationVisibilityChanged(bool isVisible)
 {
@@ -194,14 +184,39 @@ void FsSurfaceTreeItem::onAnnotationVisibilityChanged(bool isVisible)
     onColorInfoOriginOrCurvColorChanged();
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+MatrixX4f FsSurfaceTreeItem::createCurvatureVertColor(const VectorXf& curvature,
+                                                      const QColor& colSulci,
+                                                      const QColor& colGyri)
+{
+    MatrixX4f colors(curvature.rows(), 4);
+
+    for(int i = 0; i < colors.rows(); ++i) {
+        //Color (this is the default color and will be used until the updateVertColor function was called)
+        if(curvature(i) >= 0) {
+            colors(i,0) = colSulci.redF();
+            colors(i,1) = colSulci.greenF();
+            colors(i,2) = colSulci.blueF();
+            colors(i,3) = colSulci.alphaF();
+        } else {
+            colors(i,0) = colGyri.redF();
+            colors(i,1) = colGyri.greenF();
+            colors(i,2) = colGyri.blueF();
+            colors(i,3) = colGyri.alphaF();
+        }
+    }
+
+    return colors;
+}
+
+//=============================================================================================================
 
 void FsSurfaceTreeItem::onColorInfoOriginOrCurvColorChanged()
 {
     if(m_pItemSurfColSulci && m_pItemSurfColGyri) {
         QVariant data;
-        MatrixX3f matNewVertColor;
+        MatrixX4f matNewVertColor;
 
         if(m_sColorInfoOrigin.contains("Color from curvature")) {
             //Create color from curvature information with default gyri and sulcus colors
@@ -221,7 +236,7 @@ void FsSurfaceTreeItem::onColorInfoOriginOrCurvColorChanged()
             //Find the FsAnnotationTreeItem
             for(int i = 0; i < this->QStandardItem::parent()->rowCount(); ++i) {
                 if(this->QStandardItem::parent()->child(i,0)->type() == Data3DTreeModelItemTypes::AnnotationItem) {
-                    matNewVertColor = this->QStandardItem::parent()->child(i,0)->data(Data3DTreeModelItemRoles::AnnotColors).value<MatrixX3f>();
+                    matNewVertColor = this->QStandardItem::parent()->child(i,0)->data(Data3DTreeModelItemRoles::AnnotColors).value<MatrixX4f>();
 
                     //Set renderable 3D entity mesh and color data
                     data.setValue(matNewVertColor);
@@ -235,25 +250,3 @@ void FsSurfaceTreeItem::onColorInfoOriginOrCurvColorChanged()
     }
 }
 
-
-//*************************************************************************************************************
-
-MatrixX3f FsSurfaceTreeItem::createCurvatureVertColor(const VectorXf& curvature, const QColor& colSulci, const QColor& colGyri) const
-{
-    MatrixX3f colors(curvature.rows(), 3);
-
-    for(int i = 0; i < colors.rows(); ++i) {
-        //Color (this is the default color and will be used until the updateVertColor function was called)
-        if(curvature[i] >= 0) {
-            colors(i,0) = colSulci.redF();
-            colors(i,1) = colSulci.greenF();
-            colors(i,2) = colSulci.blueF();
-        } else {
-            colors(i,0) = colGyri.redF();
-            colors(i,1) = colGyri.greenF();
-            colors(i,2) = colGyri.blueF();
-        }
-    }
-
-    return colors;
-}

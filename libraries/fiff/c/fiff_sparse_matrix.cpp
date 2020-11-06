@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fiff_sparse_matrix.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FiffSparseMatrix Class.
-*
-*/
+ * @file     fiff_sparse_matrix.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FiffSparseMatrix Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,15 +42,12 @@
 #include <fiff/fiff_file.h>
 #include <fiff/fiff_types.h>
 
-
 #define MALLOC_18(x,t) (t *)malloc((x)*sizeof(t))
 
 #define REALLOC_18(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
 
 #define FREE_18(x) if ((char *)(x) != NULL) free((char *)(x))
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -59,26 +55,6 @@
 using namespace Eigen;
 using namespace FIFFLIB;
 using namespace FIFFLIB;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //============================= fiff_type_spec.h =============================
 
@@ -91,23 +67,17 @@ fiff_int_t fiff_type_base(fiff_int_t type)
     return type & FIFFTS_BASE_MASK;
 }
 
-
 fiff_int_t fiff_type_fundamental(fiff_int_t type)
 {
     return type & FIFFTS_FS_MASK;
 }
-
 
 fiff_int_t fiff_type_matrix_coding(fiff_int_t type)
 {
     return type & FIFFTS_MC_MASK;
 }
 
-
-
-
 //============================= fiff_matrix.c =============================
-
 
 int *fiff_get_matrix_dims(FiffTag::SPtr& tag)
 /*
@@ -172,11 +142,6 @@ int *fiff_get_matrix_dims(FiffTag::SPtr& tag)
     return res;
 }
 
-
-
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -190,11 +155,9 @@ FiffSparseMatrix::FiffSparseMatrix()
 , inds(NULL)
 , ptrs(NULL)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffSparseMatrix::FiffSparseMatrix(const FiffSparseMatrix &mat)
 {
@@ -223,8 +186,7 @@ FiffSparseMatrix::FiffSparseMatrix(const FiffSparseMatrix &mat)
     memcpy(data,mat.data,size);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffSparseMatrix::~FiffSparseMatrix()
 {
@@ -232,16 +194,14 @@ FiffSparseMatrix::~FiffSparseMatrix()
         FREE_18(data);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_int_t *FiffSparseMatrix::fiff_get_matrix_sparse_dims(FiffTag::SPtr &tag)
 {
     return fiff_get_matrix_dims(tag);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffSparseMatrix *FiffSparseMatrix::fiff_get_float_sparse_matrix(FiffTag::SPtr &tag)
 {
@@ -304,8 +264,7 @@ FiffSparseMatrix *FiffSparseMatrix::fiff_get_float_sparse_matrix(FiffTag::SPtr &
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffSparseMatrix *FiffSparseMatrix::create_sparse_rcs(int nrow, int ncol, int *nnz, int **colindex, float **vals) 	     /* The nonzero elements on each row
                                                                   * If null, the matrix will be all zeroes */
@@ -369,13 +328,12 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffSparseMatrix *FiffSparseMatrix::mne_add_upper_triangle_rcs()
 /*
-    * Fill in upper triangle with the lower triangle values
-    */
+     * Fill in upper triangle with the lower triangle values
+     */
 {
     int *nnz       = NULL;
     int **colindex = NULL;

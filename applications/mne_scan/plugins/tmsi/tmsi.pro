@@ -1,15 +1,14 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     tmsi.pro
-# @author   Lorenz Esch <lorenz.esch@tu-ilmenau.de>;
-#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>
+# @since    0.1.0
 # @date     September, 2013
 #
 # @section  LICENSE
 #
-# Copyright (C) 2013, Lorenz Esch, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2013, Christoph Dinh, Lorenz Esch. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -32,118 +31,95 @@
 #
 # @brief    This project file generates the makefile for the tmsi plug-in.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../../../mne-cpp.pri)
 
 TEMPLATE = lib
 
-CONFIG += plugin
+QT += core widgets svg
+
+CONFIG += skip_target_version_ext plugin
 
 DEFINES += TMSI_LIBRARY
 
-contains(QMAKE_HOST.arch, x86_64) { #Compiling MNE-X FOR a 64bit system
+DESTDIR = $${MNE_BINARY_DIR}/mne_scan_plugins
+
+contains(QMAKE_HOST.arch, x86_64) { #Compiling MNE Scan FOR a 64bit system
     exists(C:/Windows/System32/TMSiSDK.dll) {
         DEFINES += TAKE_TMSISDK_DLL
     }
 }
 else {
-    exists(C:/Windows/SysWOW64/TMSiSDK32bit.dll) { #Compiling MNE-X FOR a 32bit system ON a 64bit system
+    exists(C:/Windows/SysWOW64/TMSiSDK32bit.dll) { #Compiling MNE Scan FOR a 32bit system ON a 64bit system
         DEFINES += TAKE_TMSISDK_32_DLL
     }
     else {
-        exists(C:/Windows/System32/TMSiSDK.dll) { #Compiling MNE-X FOR a 32bit system ON a 32bit system
+        exists(C:/Windows/System32/TMSiSDK.dll) { #Compiling MNE Scan FOR a 32bit system ON a 32bit system
             DEFINES += TAKE_TMSISDK_DLL
-        }
-        else {
-            message(TMSI.pro warning: TMSi Driver DLL not found!)
         }
     }
 }
-
-QT += core widgets svg
 
 TARGET = tmsi
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
 
-LIBS += -L$${MNE_LIBRARY_DIR}
-CONFIG(debug, debug|release) {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utilsd \
-            -lMNE$${MNE_LIB_VERSION}Fiffd \
-            -lMNE$${MNE_LIB_VERSION}Dispd \
-            -lscMeasd \
-            -lscDispd \
-            -lscSharedd
-}
-else {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
-            -lMNE$${MNE_LIB_VERSION}Fiff \
-            -lMNE$${MNE_LIB_VERSION}Disp \
-            -lscMeas \
-            -lscDisp \
-            -lscShared
+contains(MNECPP_CONFIG, static) {
+    CONFIG += staticlib
+    DEFINES += STATICBUILD
+} else {
+    CONFIG += shared
 }
 
-DESTDIR = $${MNE_BINARY_DIR}/mne_scan_plugins
+LIBS += -L$${MNE_LIBRARY_DIR}
+CONFIG(debug, debug|release) {
+    LIBS += -lscSharedd \
+            -lscDispd \
+            -lscMeasd \
+            -lmnecppDispd \
+            -lmnecppFiffd \
+            -lmnecppUtilsd \
+} else {
+    LIBS += -lscShared \
+            -lscDisp \
+            -lscMeas \
+            -lmnecppDisp \
+            -lmnecppFiff \
+            -lmnecppUtils \
+}
 
 SOURCES += \
         tmsi.cpp \
         tmsiproducer.cpp \
         FormFiles/tmsisetupwidget.cpp \
-        FormFiles/tmsiaboutwidget.cpp \
         tmsidriver.cpp \
         FormFiles/tmsimanualannotationwidget.cpp \
         FormFiles/tmsiimpedancewidget.cpp \
         tmsielectrodeitem.cpp \
         tmsiimpedanceview.cpp \
         tmsiimpedancescene.cpp \
-    FormFiles/tmsisetupprojectwidget.cpp
+        FormFiles/tmsisetupprojectwidget.cpp
 
 HEADERS += \
         tmsi.h\
         tmsi_global.h \
         tmsiproducer.h \
         FormFiles/tmsisetupwidget.h \
-        FormFiles/tmsiaboutwidget.h \
         tmsidriver.h \
         FormFiles/tmsimanualannotationwidget.h \
         FormFiles/tmsiimpedancewidget.h \
         tmsielectrodeitem.h \
         tmsiimpedanceview.h \
         tmsiimpedancescene.h \
-    FormFiles/tmsisetupprojectwidget.h
+        FormFiles/tmsisetupprojectwidget.h
 
 FORMS += \
         FormFiles/tmsisetup.ui \
-        FormFiles/tmsiabout.ui \
         FormFiles/tmsimanualannotation.ui \
         FormFiles/tmsiimpedancewidget.ui \
         FormFiles/tmsisetupprojectwidget.ui
-
-RESOURCE_FILES +=\
-    $${ROOT_DIR}/resources/mne_scan/plugins/tmsi/readme.txt \
-    $${ROOT_DIR}/resources/mne_scan/plugins/tmsi/loc_files/Lorenz-Duke128-28-11-2013.elc \
-    $${ROOT_DIR}/resources/mne_scan/plugins/tmsi/loc_files/standard.elc \
-    $${ROOT_DIR}/resources/mne_scan/plugins/tmsi/loc_files/standard_waveguard8.elc \
-    $${ROOT_DIR}/resources/mne_scan/plugins/tmsi/loc_files/standard_waveguard32.elc \
-    $${ROOT_DIR}/resources/mne_scan/plugins/tmsi/loc_files/standard_waveguard64.elc \
-    $${ROOT_DIR}/resources/mne_scan/plugins/tmsi/loc_files/standard_waveguard128.elc \
-    $${ROOT_DIR}/resources/mne_scan/plugins/tmsi/loc_files/standard_waveguard256.elc \
-
-# Copy resource files to bin resource folder
-for(FILE, RESOURCE_FILES) {
-    FILEDIR = $$dirname(FILE)
-    FILEDIR ~= s,/resources,/bin/resources,g
-    FILEDIR = $$shell_path($${FILEDIR})
-    TRGTDIR = $${FILEDIR}
-
-    QMAKE_POST_LINK += $$sprintf($${QMAKE_MKDIR_CMD}, "$${TRGTDIR}") $$escape_expand(\n\t)
-
-    FILE = $$shell_path($${FILE})
-    QMAKE_POST_LINK += $${QMAKE_COPY} $$quote($${FILE}) $$quote($${TRGTDIR}) $$escape_expand(\\n\\t)
-}
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
@@ -151,13 +127,25 @@ INCLUDEPATH += $${MNE_SCAN_INCLUDE_DIR}
 
 OTHER_FILES += tmsi.json
 
-# Put generated form headers into the origin --> cause other src is pointing at them
-UI_DIR = $${PWD}
-
-unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
-
-# suppress visibility warnings
-unix: QMAKE_CXXFLAGS += -Wno-attributes
-
 RESOURCES += \
     tmsi.qrc
+
+# Activate FFTW backend in Eigen for non-static builds only
+contains(MNECPP_CONFIG, useFFTW):!contains(MNECPP_CONFIG, static) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
+
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
+    }
+
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
+}

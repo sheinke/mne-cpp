@@ -1,71 +1,67 @@
 //=============================================================================================================
 /**
-* @file     mnemath.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    MNEMath class declaration.
-*
-*/
+ * @file     mnemath.h
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    MNEMath class declaration.
+ *
+ */
 
 #ifndef MNEMATH_H
 #define MNEMATH_H
 
 //ToDo move this to the new MNE math library
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "utils_global.h"
-#include <cmath>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 #include <Eigen/SVD>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
 #include <QVariant>
 
+//=============================================================================================================
+// FORWARD DECLARATIONS
+//=============================================================================================================
 
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE NAMESPACE UTILSLIB
 //=============================================================================================================
@@ -73,28 +69,17 @@
 namespace UTILSLIB
 {
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// USED NAMESPACES
+// UTILSLIB FORWARD DECLARATIONS
 //=============================================================================================================
-
-using namespace Eigen;
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// FORWARD DECLARATIONS
-//=============================================================================================================
-
 
 //=============================================================================================================
 /**
-* ToDo make this a template class
-* Generalized math methods used by mne methods
-*
-* @brief Math methods
-*/
+ * ToDo make this a template class
+ * Generalized math methods used by mne methods
+ *
+ * @brief Math methods
+ */
 class UTILSSHARED_EXPORT MNEMath
 {
 public:
@@ -102,297 +87,365 @@ public:
 
     //=========================================================================================================
     /**
-    * Destroys the MNEMath object
-    */
+     * Destroys the MNEMath object
+     */
     virtual ~MNEMath()
     { }
 
     //=========================================================================================================
     /**
-    * ToDo make this a template function
-    *
-    * mne_combine_xyz
-    *
-    * ### MNE toolbox root function ###
-    *
-    * Compute the three Cartesian components of a vector together
-    *
-    * @param[in] vec    Input row vector [ x1 y1 z1 ... x_n y_n z_n ]
-    *
-    * @return Output vector [x1^2+y1^2+z1^2 ... x_n^2+y_n^2+z_n^2 ]
-    */
-    static VectorXd* combine_xyz(const VectorXd& vec);
+     * Finds the Greatest Common Divisor (GCD) of two integer values
+     *
+     * @param[in] a    First input integer
+     * @param[in] b    Second input integer
+     *
+     * @return The Greatest Common Divisor (GCD) of a and b
+     */
+    static int gcd(int iA, int iB);
+
+    //=========================================================================================================
+    /**
+     * ToDo make this a template function
+     *
+     * mne_combine_xyz
+     *
+     * ### MNE toolbox root function ###
+     *
+     * Compute the three Cartesian components of a vector together
+     *
+     * @param[in] vec    Input row vector [ x1 y1 z1 ... x_n y_n z_n ]
+     *
+     * @return Output vector [x1^2+y1^2+z1^2 ... x_n^2+y_n^2+z_n^2 ]
+     */
+    static Eigen::VectorXd* combine_xyz(const Eigen::VectorXd& vec);
 
 //    //=========================================================================================================
 //    /**
-//    * ### MNE toolbox root function ###: Implementation of the mne_block_diag function - decoding part
+//    * ### MNE toolbox root function ###: Definition of the mne_block_diag function - decoding part
 //    */
-//    static inline MatrixXd extract_block_diag(MatrixXd& A, qint32 n);
+//    static inline Eigen::MatrixXd extract_block_diag(MatrixXd& A, qint32 n);
 
     //=========================================================================================================
     /**
-    * Returns the condition number of a given matrix.
-    *
-    * @param[in] A      Matrix to compute the condition number from
-    *
-    * @return the condition number
-    */
-    static double getConditionNumber(const MatrixXd& A, VectorXd &s);
+     * Returns the condition number of a given matrix.
+     *
+     * @param[in] A      Matrix to compute the condition number from
+     *
+     * @return the condition number
+     */
+    static double getConditionNumber(const Eigen::MatrixXd& A,
+                                     Eigen::VectorXd &s);
 
     //=========================================================================================================
     /**
-    * Returns the condition slope of a given matrix.
-    *
-    * @param[in] A      Matrix to compute the condition number from
-    *
-    * @return the condition slope
-    */
-    static double getConditionSlope(const MatrixXd& A, VectorXd &s);
+     * Returns the condition slope of a given matrix.
+     *
+     * @param[in] A      Matrix to compute the condition number from
+     *
+     * @return the condition slope
+     */
+    static double getConditionSlope(const Eigen::MatrixXd& A,
+                                    Eigen::VectorXd &s);
 
     //=========================================================================================================
     /**
-    * Returns the whitener of a given matrix.
-    *
-    * @param[in] A      Matrix to compute the whitener from
-    * @param[in] pca    perform a pca
-    *
-    * @return rank of matrix A
-    */
-    static void get_whitener(MatrixXd& A, bool pca, QString ch_type, VectorXd& eig, MatrixXd& eigvec);
+     * Returns the whitener of a given matrix.
+     *
+     * @param[in] A      Matrix to compute the whitener from
+     * @param[in] pca    perform a pca
+     *
+     * @return rank of matrix A
+     */
+    static void get_whitener(Eigen::MatrixXd& A,
+                             bool pca,
+                             QString ch_type,
+                             Eigen::VectorXd& eig,
+                             Eigen::MatrixXd& eigvec);
 
     //=========================================================================================================
     /**
-    * Find the intersection of two vectors
-    *
-    * @param[in] v1         Input vector 1
-    * @param[in] v2         Input vector 2
-    * @param[out] idx_sel   Index of intersection based on v1
-    *
-    * @return the sorted, unique values that are in both of the input arrays.
-    */
-    static VectorXi intersect(const VectorXi &v1, const VectorXi &v2, VectorXi &idx_sel);
+     * Find the intersection of two vectors
+     *
+     * @param[in] v1         Input vector 1
+     * @param[in] v2         Input vector 2
+     * @param[out] idx_sel   Index of intersection based on v1
+     *
+     * @return the sorted, unique values that are in both of the input arrays.
+     */
+    static Eigen::VectorXi intersect(const Eigen::VectorXi &v1,
+                                     const Eigen::VectorXi &v2,
+                                     Eigen::VectorXi &idx_sel);
 
     //=========================================================================================================
     /**
-    * Determines if a given data (stored as vector v) are representing a sparse matrix.
-    * ToDo: status is experimental -> needs to be increased in speed.
-    *
-    * @param[in] v      data to be tested
-    *
-    * @return true if sparse false otherwise;
-    */
-    static bool issparse(VectorXd &v);
+     * Determines if a given data (stored as vector v) are representing a sparse matrix.
+     * ToDo: status is experimental -> needs to be increased in speed.
+     *
+     * @param[in] v      data to be tested
+     *
+     * @return true if sparse false otherwise;
+     */
+    static bool issparse(Eigen::VectorXd &v);
 
     //=========================================================================================================
     /**
-    * LEGENDRE Associated Legendre function.
-    *
-    *   P = LEGENDRE(N,X) computes the associated Legendre functions
-    *   of degree N and order M = 0, 1, ..., N, evaluated for each element
-    *   of X.  N must be a scalar integer and X must contain real values
-    *   between -1 <= X <= 1.
-    *
-    * @return associated Legendre functions
-    */
-    static MatrixXd legendre(qint32 n, const VectorXd &X, QString normalize = QString("unnorm"));
+     * LEGENDRE Associated Legendre function.
+     *
+     *   P = LEGENDRE(N,X) computes the associated Legendre functions
+     *   of degree N and order M = 0, 1, ..., N, evaluated for each element
+     *   of X.  N must be a scalar integer and X must contain real values
+     *   between -1 <= X <= 1.
+     *
+     * @return associated Legendre functions
+     */
+    static Eigen::MatrixXd legendre(qint32 n,
+                                    const Eigen::VectorXd &X,
+                                    QString normalize = QString("unnorm"));
 
     //=========================================================================================================
     /**
-    * ToDo make this a template function
-    *
-    * ### MNE toolbox root function ###: Implementation of the mne_block_diag function - encoding part
-    *
-    * Make a sparse block diagonal matrix
-    *
-    * Returns a sparse block diagonal, diagonalized from the elements in "A". "A" is ma x na, comprising
-    * bdn=(na/"n") blocks of submatrices. Each submatrix is ma x "n", and these submatrices are placed down
-    * the diagonal of the matrix.
-    *
-    * @param[in, out] A Matrix which should be diagonlized
-    * @param[in, out] n Columns of the submatrices
-    *
-    * @return A sparse block diagonal, diagonalized from the elements in "A".
-    */
-    static SparseMatrix<double>* make_block_diag(const MatrixXd &A, qint32 n);
+     * ToDo make this a template function
+     *
+     * ### MNE toolbox root function ###: Definition of the mne_block_diag function - encoding part
+     *
+     * Make a sparse block diagonal matrix
+     *
+     * Returns a sparse block diagonal, diagonalized from the elements in "A". "A" is ma x na, comprising
+     * bdn=(na/"n") blocks of submatrices. Each submatrix is ma x "n", and these submatrices are placed down
+     * the diagonal of the matrix.
+     *
+     * @param[in, out] A Matrix which should be diagonlized
+     * @param[in, out] n Columns of the submatrices
+     *
+     * @return A sparse block diagonal, diagonalized from the elements in "A".
+     */
+    static Eigen::SparseMatrix<double>* make_block_diag(const Eigen::MatrixXd &A,
+                                                        qint32 n);
 
     //=========================================================================================================
     /**
-    * Calculates the combination of n over 2 (nchoosek(n,2))
-    *
-    * @param[in] n  The number of elements which should be combined with each other (n over 2)
-    * @return   The number of combinations
-    */
+     * Calculates the combination of n over 2 (nchoosek(n,2))
+     *
+     * @param[in] n  The number of elements which should be combined with each other (n over 2)
+     * @return   The number of combinations
+     */
     static int nchoose2(int n);
 
     //=========================================================================================================
     /**
-    * ToDo make this a template function
-    *
-    * Returns the rank of a matrix A.
-    *
-    * @param[in] A      Matrix to get the rank from
-    * @param[in] tol    realtive threshold: biggest singualr value multiplied with tol is smallest singular value considered non-zero
-    *
-    * @return rank of matrix A
-    */
-    static qint32 rank(const MatrixXd& A, double tol = 1e-8);
+     * ToDo make this a template function
+     *
+     * Returns the rank of a matrix A.
+     *
+     * @param[in] A      Matrix to get the rank from
+     * @param[in] tol    realtive threshold: biggest singualr value multiplied with tol is smallest singular value considered non-zero
+     *
+     * @return rank of matrix A
+     */
+    static qint32 rank(const Eigen::MatrixXd& A,
+                       double tol = 1e-8);
 
     //=========================================================================================================
     /**
-    * ToDo: Maybe new processing class
-    *
-    * Rescale aka baseline correct data
-    *
-    * @param[in] data           Data Matrix (m x n_time)
-    * @param[in] times          Time instants is seconds.
-    * @param[in] baseline       If baseline is (a, b) the interval is between "a (s)" and "b (s)".
-    *                           If a is invalid the beginning of the data is used and if b is invalid then b is set to the end of the interval.
-    *                           If baseline is equal to (invalid, invalid) all the time interval is used.
-    * @param[in] baseline_usage See description of parameter baseline.
-    * @param[in] mode           Do baseline correction with ratio (power is divided by mean power during baseline) or zscore (power is divided by standard
-    *                           deviatio of power during baseline after substracting the mean, power = [power - mean(power_baseline)] / std(power_baseline)).
-    *                           ("logratio" | "ratio" | "zscore" | "mean" | "percent")
-    *
-    * @return   rescaled data matrix rescaling.
-    */
-    static MatrixXd rescale(const MatrixXd &data, const RowVectorXf &times, QPair<QVariant,QVariant> baseline, QString mode);
+     * ToDo: Maybe new processing class
+     *
+     * Rescale aka baseline correct data
+     *
+     * @param[in] data           Data Matrix (m x n_time)
+     * @param[in] times          Time instants is seconds.
+     * @param[in] baseline       If baseline is (a, b) the interval is between "a (s)" and "b (s)".
+     *                           If a and b are equal use interval between the beginning of the data and the time point 0 (stimulus onset).
+     * @param[in] mode           Do baseline correction with ratio (power is divided by mean power during baseline) or zscore (power is divided by standard
+     *                           deviatio of power during baseline after substracting the mean, power = [power - mean(power_baseline)] / std(power_baseline)).
+     *                           ("logratio" | "ratio" | "zscore" | "mean" | "percent")
+     *
+     * @return   rescaled data matrix rescaling.
+     */
+    static Eigen::MatrixXd rescale(const Eigen::MatrixXd &data,
+                                   const Eigen::RowVectorXf &times,
+                                   const QPair<float, float> &baseline,
+                                   QString mode);
 
     //=========================================================================================================
     /**
-    * Sorts a vector (ascending order) in place and returns the track of the original indeces
-    *
-    * @param[in, out] v     vector to sort; it's sorted in place
-    * @param[in] desc       if true its sorted in a descending order, otherwise ascending (optional, default = true)
-    *
-    * @return Vector of the original indeces in the new order
-    */
+     * Sorts a vector (ascending order) in place and returns the track of the original indeces
+     *
+     * @param[in, out] v     vector to sort; it's sorted in place
+     * @param[in] desc       if true its sorted in a descending order, otherwise ascending (optional, default = true)
+     *
+     * @return Vector of the original indeces in the new order
+     */
     template<typename T>
-    static VectorXi sort(Matrix<T, Dynamic, 1> &v, bool desc = true);
+    static Eigen::VectorXi sort(Eigen::Matrix<T, Eigen::Dynamic, 1> &v,
+                                bool desc = true);
 
     //=========================================================================================================
     /**
-    * Sorts a vector (ascending order) and a corresponding matrix in place and returns the track of the original indeces
-    * The matrix is sorted along the columns using the vector values for comparison.
-    *
-    * @param[in, out] v_prime   vector to sort (sorted in place)
-    * @param[in, out] mat       matrix to sort (sorted in place)
-    * @param[in] desc           if true its sorted in a descending order, otherwise ascending (optional, default = true)
-    *
-    * @return Vector of the original indeces in the new order
-    */
+     * Sorts a vector (ascending order) and a corresponding matrix in place and returns the track of the original indeces
+     * The matrix is sorted along the columns using the vector values for comparison.
+     *
+     * @param[in, out] v_prime   vector to sort (sorted in place)
+     * @param[in, out] mat       matrix to sort (sorted in place)
+     * @param[in] desc           if true its sorted in a descending order, otherwise ascending (optional, default = true)
+     *
+     * @return Vector of the original indeces in the new order
+     */
     template<typename T>
-    static VectorXi sort(Matrix<T, Dynamic, 1> &v_prime, Matrix<T, Dynamic, Dynamic> &mat, bool desc = true);
+    static Eigen::VectorXi sort(Eigen::Matrix<T, Eigen::Dynamic, 1> &v_prime,
+                                Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &mat,
+                                bool desc = true);
 
     //=========================================================================================================
     /**
-    * Sort rows in ascending order
-    *
-    * @param[in] A          triplet vector to sort (sorted in place)
-    * @param[in] column     sorts the triplet vector based on the column specified
-    *
-    * @return Vector of the original indeces in the new order
-    */
+     * Sort rows in ascending order
+     *
+     * @param[in] A          triplet vector to sort (sorted in place)
+     * @param[in] column     sorts the triplet vector based on the column specified
+     *
+     * @return Vector of the original indeces in the new order
+     */
     template<typename T>
-    static std::vector<Triplet<T> > sortrows(const std::vector<Triplet<T> > &A, qint32 column = 0);
+    static std::vector<Eigen::Triplet<T> > sortrows(const std::vector<Eigen::Triplet<T> > &A,
+                                                    qint32 column = 0);
 
     //=========================================================================================================
     /**
-    * Compares two index-value-pairs.
-    *
-    * @param[in] lhs    left hand side of the comparison
-    * @param[in] rhs    right hand side of the comparison
-    *
-    * @return true if value of lhs is bigger than value of rhs
-    */
+     * Compares two index-value-pairs.
+     *
+     * @param[in] lhs    left hand side of the comparison
+     * @param[in] rhs    right hand side of the comparison
+     *
+     * @return true if value of lhs is bigger than value of rhs
+     */
     template<typename T>
-    static inline bool compareIdxValuePairBiggerThan( const std::pair<int,T>& lhs, const std::pair<int,T>& rhs);
+    static inline bool compareIdxValuePairBiggerThan(const std::pair<int,T>& lhs,
+                                                     const std::pair<int,T>& rhs);
 
     //=========================================================================================================
     /**
-    * Compares two index-value-pairs.
-    *
-    * @param[in] lhs    left hand side of the comparison
-    * @param[in] rhs    right hand side of the comparison
-    *
-    * @return true if value of lhs is smaller than value of rhs
-    */
+     * Compares two index-value-pairs.
+     *
+     * @param[in] lhs    left hand side of the comparison
+     * @param[in] rhs    right hand side of the comparison
+     *
+     * @return true if value of lhs is smaller than value of rhs
+     */
     template<typename T>
-    static inline bool compareIdxValuePairSmallerThan( const std::pair<int,T>& lhs, const std::pair<int,T>& rhs);
+    static inline bool compareIdxValuePairSmallerThan(const std::pair<int,T>& lhs,
+                                                      const std::pair<int,T>& rhs);
 
     //=========================================================================================================
     /**
-    * Compares triplet first entry
-    *
-    * @param[in] lhs    left hand side of the comparison
-    * @param[in] rhs    right hand side of the comparison
-    *
-    * @return true if value of lhs is smaller than value of rhs
-    */
+     * Compares triplet first entry
+     *
+     * @param[in] lhs    left hand side of the comparison
+     * @param[in] rhs    right hand side of the comparison
+     *
+     * @return true if value of lhs is smaller than value of rhs
+     */
     template<typename T>
-    static inline bool compareTripletFirstEntry( const Triplet<T>& lhs, const Triplet<T> & rhs);
+    static inline bool compareTripletFirstEntry(const Eigen::Triplet<T>& lhs,
+                                                const Eigen::Triplet<T> & rhs);
 
     //=========================================================================================================
     /**
-    * Compares triplet second entry
-    *
-    * @param[in] lhs    left hand side of the comparison
-    * @param[in] rhs    right hand side of the comparison
-    *
-    * @return true if value of lhs is smaller than value of rhs
-    */
+     * Compares triplet second entry
+     *
+     * @param[in] lhs    left hand side of the comparison
+     * @param[in] rhs    right hand side of the comparison
+     *
+     * @return true if value of lhs is smaller than value of rhs
+     */
     template<typename T>
-    static inline bool compareTripletSecondEntry( const Triplet<T>& lhs, const Triplet<T> & rhs);
+    static inline bool compareTripletSecondEntry(const Eigen::Triplet<T>& lhs,
+                                                 const Eigen::Triplet<T> & rhs);
 
     //=========================================================================================================
     /**
-    * Compute log2 of given number
-    *
-    * @param[in] d  input value
-    *
-    * @return double result of log2 operation
-    */
+     * Compute log2 of given number
+     *
+     * @param[in] d  input value
+     *
+     * @return double result of log2 operation
+     */
     template<typename T>
-    static inline double log2( const T d);
+    static inline double log2(const T d);
 
     //=========================================================================================================
     /**
-    * creates a class and frequency distribution from data matrix
-    *
-    * @param[in]  matRawData             raw data matrix that needs to be analyzed
-    * @param[in]  bMakeSymmetrical       user input to turn the x-axis symmetric
-    * @param[in]  iClassCount            user input to determine the amount of classes in the histogram
-    * @param[in]  dGlobalMin             user input to determine the maximum value allowed in the histogram
-    * @param[in]  dGlobalMax             user input to determine the minimum value allowed in the histogram
-    * @param[out] vecResultClassLimits   the upper limit of each individual class
-    * @param[out] vecResultFrequency     the amount of data that fits in the appropriate class ranges
-    */
+     * creates a class and frequency distribution from data matrix
+     *
+     * @param[in]  matRawData             raw data matrix that needs to be analyzed
+     * @param[in]  bMakeSymmetrical       user input to turn the x-axis symmetric
+     * @param[in]  iClassCount            user input to determine the amount of classes in the histogram
+     * @param[out] vecResultClassLimits   the upper limit of each individual class
+     * @param[out] vecResultFrequency     the amount of data that fits in the appropriate class ranges
+     * @param[in]  dGlobalMin             user input to determine the maximum value allowed in the histogram
+     * @param[in]  dGlobalMax             user input to determine the minimum value allowed in the histogram
+     */
     template<typename T>
-    static void histcounts(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matRawData, bool bMakeSymmetrical, int iClassAmount, Eigen::VectorXd& vecResultClassLimits, Eigen::VectorXi& vecResultFrequency, double dGlobalMin = 0.0, double dGlobalMax= 0.0);
+    static void histcounts(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matRawData,
+                           bool bMakeSymmetrical,
+                           int iClassAmount,
+                           Eigen::VectorXd& vecResultClassLimits,
+                           Eigen::VectorXi& vecResultFrequency,
+                           double dGlobalMin = 0.0,
+                           double dGlobalMax= 0.0);
     template<typename T>
-    static void histcounts(const Eigen::Matrix<T, Eigen::Dynamic, 1>& matRawData, bool bMakeSymmetrical, int iClassAmount, Eigen::VectorXd& vecResultClassLimits, Eigen::VectorXi& vecResultFrequency, double dGlobalMin = 0.0, double dGlobalMax= 0.0);
+    static void histcounts(const Eigen::Matrix<T, Eigen::Dynamic, 1>& matRawData,
+                           bool bMakeSymmetrical,
+                           int iClassAmount,
+                           Eigen::VectorXd& vecResultClassLimits,
+                           Eigen::VectorXi& vecResultFrequency,
+                           double dGlobalMin = 0.0,
+                           double dGlobalMax= 0.0);
     template<typename T>
-    static void histcounts(const Eigen::Matrix<T, 1, Eigen::Dynamic>& matRawData, bool bMakeSymmetrical, int iClassAmount, Eigen::VectorXd& vecResultClassLimits, Eigen::VectorXi& vecResultFrequency, double dGlobalMin = 0.0, double dGlobalMax= 0.0);
+    static void histcounts(const Eigen::Matrix<T, 1, Eigen::Dynamic>& matRawData,
+                           bool bMakeSymmetrical,
+                           int iClassAmount,
+                           Eigen::VectorXd& vecResultClassLimits,
+                           Eigen::VectorXi& vecResultFrequency,
+                           double dGlobalMin = 0.0,
+                           double dGlobalMax= 0.0);
 
     //=========================================================================================================
     /**
-    * Creates the pseudo inverse of a matrix.
-    *
-    * @param[in]  a        raw data matrix that needs to be analyzed.
-    */
+     * Creates the pseudo inverse of a matrix.
+     *
+     * @param[in]  a        raw data matrix that needs to be analyzed.
+     */
     template<typename T>
     static Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> pinv(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& a);
+
+    //=========================================================================================================
+    /**
+     * Compare new head position with current head position and update dev_head_t if big displacement occured
+     *
+     * @param[in] mDevHeadTrans      The device to head transformation matrix to compare to.
+     * @param[in] mDevHeadTransNew   The device to head transformation matrix to be compared.
+     * @param[in] fTreshRot          The threshold for big head rotation in degree
+     * @param[in] fThreshTrans       The threshold for big head movement in m
+     *
+     * @return bState                The status that shows if devHead is updated or not
+     *
+     */
+    static bool compareTransformation(const Eigen::MatrixX4f& mDevHeadT,
+                                      const Eigen::MatrixX4f& mDevHeadTNew,
+                                      const float& fThreshRot,
+                                      const float& fThreshTrans);
+
 };
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INLINE & TEMPLATE DEFINITIONS
 //=============================================================================================================
 
 template< typename T>
-VectorXi MNEMath::sort(Matrix<T, Dynamic, 1> &v, bool desc)
+Eigen::VectorXi MNEMath::sort(Eigen::Matrix<T, Eigen::Dynamic, 1> &v,
+                              bool desc)
 {
     std::vector< std::pair<int,T> > t_vecIdxValue;
-    VectorXi idx(v.size());
+    Eigen::VectorXi idx(v.size());
 
     if(v.size() > 0)
     {
@@ -417,18 +470,19 @@ VectorXi MNEMath::sort(Matrix<T, Dynamic, 1> &v, bool desc)
     return idx;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
-VectorXi MNEMath::sort(Matrix<T, Dynamic, 1> &v_prime, Matrix<T, Dynamic, Dynamic> &mat, bool desc)
+Eigen::VectorXi MNEMath::sort(Eigen::Matrix<T, Eigen::Dynamic, 1> &v_prime,
+                              Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &mat,
+                              bool desc)
 {
-    VectorXi idx = MNEMath::sort<T>(v_prime, desc);
+    Eigen::VectorXi idx = MNEMath::sort<T>(v_prime, desc);
 
     if(v_prime.size() > 0)
     {
         //sort Matrix
-        Matrix<T, Dynamic, Dynamic> newMat(mat.rows(), mat.cols());
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> newMat(mat.rows(), mat.cols());
         for(qint32 i = 0; i < idx.size(); ++i)
             newMat.col(i) = mat.col(idx[i]);
         mat = newMat;
@@ -437,13 +491,13 @@ VectorXi MNEMath::sort(Matrix<T, Dynamic, 1> &v_prime, Matrix<T, Dynamic, Dynami
     return idx;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
-std::vector<Triplet<T> > MNEMath::sortrows(const std::vector<Triplet<T> > &A, qint32 column)
+std::vector<Eigen::Triplet<T> > MNEMath::sortrows(const std::vector<Eigen::Triplet<T> > &A,
+                                                  qint32 column)
 {
-    std::vector<Triplet<T> > p_ASorted;
+    std::vector<Eigen::Triplet<T> > p_ASorted;
 
     for(quint32 i = 0; i < A.size(); ++i)
         p_ASorted.push_back(A[i]);
@@ -456,44 +510,43 @@ std::vector<Triplet<T> > MNEMath::sortrows(const std::vector<Triplet<T> > &A, qi
     return p_ASorted;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
-inline bool MNEMath::compareIdxValuePairBiggerThan( const std::pair<int,T>& lhs, const std::pair<int,T>& rhs)
+inline bool MNEMath::compareIdxValuePairBiggerThan(const std::pair<int,T>& lhs,
+                                                   const std::pair<int,T>& rhs)
 {
     return lhs.second > rhs.second;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
-inline bool MNEMath::compareIdxValuePairSmallerThan( const std::pair<int,T>& lhs, const std::pair<int,T>& rhs)
+inline bool MNEMath::compareIdxValuePairSmallerThan( const std::pair<int,T>& lhs,
+                                                     const std::pair<int,T>& rhs)
 {
     return lhs.second < rhs.second;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
-inline bool MNEMath::compareTripletFirstEntry( const Triplet<T>& lhs, const Triplet<T> & rhs)
+inline bool MNEMath::compareTripletFirstEntry( const Eigen::Triplet<T>& lhs,
+                                               const Eigen::Triplet<T> & rhs)
 {
     return lhs.row() < rhs.row();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
-inline bool MNEMath::compareTripletSecondEntry( const Triplet<T>& lhs, const Triplet<T> & rhs)
+inline bool MNEMath::compareTripletSecondEntry( const Eigen::Triplet<T>& lhs,
+                                                const Eigen::Triplet<T> & rhs)
 {
     return lhs.col() < rhs.col();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
 inline double MNEMath::log2( const T d)
@@ -501,33 +554,48 @@ inline double MNEMath::log2( const T d)
     return log(d)/log(2);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
-void MNEMath::histcounts(const Eigen::Matrix<T, Eigen::Dynamic, 1>& matRawData, bool bMakeSymmetrical, int iClassAmount, Eigen::VectorXd& vecResultClassLimits, Eigen::VectorXi& vecResultFrequency, double dGlobalMin, double dGlobalMax)
+void MNEMath::histcounts(const Eigen::Matrix<T, Eigen::Dynamic, 1>& matRawData,
+                         bool bMakeSymmetrical,
+                         int iClassAmount,
+                         Eigen::VectorXd& vecResultClassLimits,
+                         Eigen::VectorXi& vecResultFrequency,
+                         double dGlobalMin,
+                         double dGlobalMax)
 {
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> matrixName(matRawData.rows(),1);
     matrixName.col(0)= matRawData;
     MNEMath::histcounts(matrixName, bMakeSymmetrical, iClassAmount, vecResultClassLimits, vecResultFrequency, dGlobalMin, dGlobalMax);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
-void MNEMath::histcounts(const Eigen::Matrix<T, 1, Eigen::Dynamic>& matRawData, bool bMakeSymmetrical, int iClassAmount, Eigen::VectorXd& vecResultClassLimits, Eigen::VectorXi& vecResultFrequency, double dGlobalMin, double dGlobalMax)
+void MNEMath::histcounts(const Eigen::Matrix<T, 1, Eigen::Dynamic>& matRawData,
+                         bool bMakeSymmetrical,
+                         int iClassAmount,
+                         Eigen::VectorXd& vecResultClassLimits,
+                         Eigen::VectorXi& vecResultFrequency,
+                         double dGlobalMin,
+                         double dGlobalMax)
 {
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> matrixName(1,matRawData.cols());
     matrixName.row(0)= matRawData;
     MNEMath::histcounts(matrixName, bMakeSymmetrical, iClassAmount, vecResultClassLimits, vecResultFrequency, dGlobalMin, dGlobalMax);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
-void MNEMath::histcounts(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matRawData, bool bMakeSymmetrical, int iClassAmount, Eigen::VectorXd& vecResultClassLimits, Eigen::VectorXi& vecResultFrequency, double dGlobalMin, double dGlobalMax)
+void MNEMath::histcounts(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matRawData,
+                         bool bMakeSymmetrical,
+                         int iClassAmount,
+                         Eigen::VectorXd& vecResultClassLimits,
+                         Eigen::VectorXi& vecResultFrequency,
+                         double dGlobalMin,
+                         double dGlobalMax)
 {
    if(matRawData.rows() == 0 || matRawData.cols() == 0) {
        return;
@@ -603,32 +671,35 @@ void MNEMath::histcounts(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>&
     {
         for (int jr = 0; jr<matRawData.cols(); ++jr)     //iterates through all rows of the data matrix
         {
-            for (int kr = 0; kr < iClassAmount; ++kr)    //starts iteration from 1 to iClassAmount
-            {
-                if (kr == iClassAmount-1)                //used for the final iteration; if the data value is exactly the same as the final upper class limit, it will be included in the histogram
+            if(matRawData(ir,jr) != 0.0) {
+                for (int kr = 0; kr < iClassAmount; ++kr)    //starts iteration from 1 to iClassAmount
                 {
-                    if (matRawData(ir,jr) >= vecResultClassLimits(kr) && matRawData(ir,jr) <= vecResultClassLimits(kr + 1))    //compares value in the matrix with lower and upper limit of each class
+                    if (kr == iClassAmount-1)                //used for the final iteration; if the data value is exactly the same as the final upper class limit, it will be included in the histogram
                     {
-                         vecResultFrequency(kr) = vecResultFrequency(kr) + 1 ;           //if the value fits both arguments, the appropriate class frequency is increased by 1
+                        if (matRawData(ir,jr) >= vecResultClassLimits(kr) && matRawData(ir,jr) <= vecResultClassLimits(kr + 1))    //compares value in the matrix with lower and upper limit of each class
+                        {
+                             vecResultFrequency(kr) = vecResultFrequency(kr) + 1 ;           //if the value fits both arguments, the appropriate class frequency is increased by 1
+                        }
+                    }
+                    else
+                    {
+                        if (matRawData(ir,jr) >= vecResultClassLimits(kr) && matRawData(ir,jr) < vecResultClassLimits(kr + 1))    //compares value in the matrix with lower and upper limit of each class
+                        {
+                            vecResultFrequency(kr) = vecResultFrequency(kr) + 1 ;           //if the value fits both arguments, the appropriate class frequency is increased by 1
+                        }
                     }
                 }
-                else
-                {
-                    if (matRawData(ir,jr) >= vecResultClassLimits(kr) && matRawData(ir,jr) < vecResultClassLimits(kr + 1))    //compares value in the matrix with lower and upper limit of each class
-                    {
-                        vecResultFrequency(kr) = vecResultFrequency(kr) + 1 ;           //if the value fits both arguments, the appropriate class frequency is increased by 1
-                    }
-                }
-             }
-         }
-     }
+            }
+        }
+    }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 template<typename T>
-Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> MNEMath::pinv(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& a)
+Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> MNEMath::pinv(const Eigen::Matrix<T,
+                                                               Eigen::Dynamic,
+                                                               Eigen::Dynamic>& a)
 {
     double epsilon = std::numeric_limits<double>::epsilon();
     Eigen::JacobiSVD< Eigen::MatrixXd > svd(a ,Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -636,8 +707,7 @@ Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> MNEMath::pinv(const Eigen::Matr
     return svd.matrixV() * (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(),0).matrix().asDiagonal() * svd.matrixU().adjoint();
 }
 
-//*************************************************************************************************************
-
+//=============================================================================================================
 } // NAMESPACE
 
 #endif // MNEMATH_H

@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fwd_comp_data.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FwdCompData Class.
-*
-*/
+ * @file     fwd_comp_data.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FwdCompData Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -45,7 +44,6 @@
 #include <fiff/fiff_types.h>
 
 #include <iostream>
-
 
 #ifndef TRUE
 #define TRUE 1
@@ -63,18 +61,13 @@
 #define OK 0
 #endif
 
-
 #define X_60 0
 #define Y_60 1
 #define Z_60 2
 
-
 #define MALLOC_60(x,t) (t *)malloc((x)*sizeof(t))
 
-
 #define ALLOC_CMATRIX_60(x,y) mne_cmatrix_60((x),(y))
-
-
 
 #define FREE_60(x) if ((char *)(x) != NULL) free((char *)(x))
 
@@ -87,7 +80,6 @@ void mne_free_cmatrix_60 (float **m)
         FREE_60(m);
     }
 }
-
 
 static void matrix_error_60 (int kind, int nr, int nc)
 {
@@ -105,7 +97,6 @@ static void matrix_error_60 (int kind, int nr, int nc)
     exit(1);
 }
 
-
 float **mne_cmatrix_60 (int nr,int nc)
 {
     int i;
@@ -122,8 +113,6 @@ float **mne_cmatrix_60 (int nr,int nc)
     return m;
 }
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -133,8 +122,6 @@ using namespace FIFFLIB;
 using namespace MNELIB;
 using namespace FWDLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -150,11 +137,9 @@ FwdCompData::FwdCompData()
 ,work       (NULL)
 ,vec_work   (NULL)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdCompData::~FwdCompData()
 {
@@ -168,11 +153,9 @@ FwdCompData::~FwdCompData()
 
     if (this->client_free && this->client)
         this->client_free(this->client);
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int FwdCompData::fwd_comp_field(float *rd, float *Q, FwdCoilSet *coils, float *res, void *client)
 /*
@@ -211,8 +194,7 @@ int FwdCompData::fwd_comp_field(float *rd, float *Q, FwdCoilSet *coils, float *r
     return MneCTFCompDataSet::mne_apply_ctf_comp(comp->set,TRUE,res,coils->ncoil,comp->work,comp->comp_coils->ncoil);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FwdCompData::fwd_free_comp_data(void *d)
 {
@@ -236,16 +218,17 @@ void FwdCompData::fwd_free_comp_data(void *d)
     return;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-int FwdCompData::fwd_make_ctf_comp_coils(MneCTFCompDataSet *set, FwdCoilSet *coils, FwdCoilSet *comp_coils)   /* The compensation coil set */
+int FwdCompData::fwd_make_ctf_comp_coils(MneCTFCompDataSet *set,
+                                         FwdCoilSet *coils,
+                                         FwdCoilSet *comp_coils)   /* The compensation coil set */
 /*
-* Call mne_make_ctf_comp using the information in the coil sets
-*/
+ * Call mne_make_ctf_comp using the information in the coil sets
+ */
 {
-    fiffChInfo chs     = NULL;
-    fiffChInfo compchs = NULL;
+    QList<FiffChInfo> chs;
+    QList<FiffChInfo> compchs;
     int        nchan   = 0;
     int        ncomp   = 0;
     FwdCoil* coil;
@@ -259,19 +242,19 @@ int FwdCompData::fwd_make_ctf_comp_coils(MneCTFCompDataSet *set, FwdCoilSet *coi
        * Create the fake channel info which contain just enough information
        * for mne_make_ctf_comp
        */
-    chs = MALLOC_60(coils->ncoil,fiffChInfoRec);
     for (k = 0; k < coils->ncoil; k++) {
+        chs.append(FiffChInfo());
         coil = coils->coils[k];
-        strcpy(chs[k].ch_name,coil->chname.toUtf8().constData());
+        chs[k].ch_name = coil->chname;
         chs[k].chpos.coil_type = coil->type;
         chs[k].kind = (coil->coil_class == FWD_COILC_EEG) ? FIFFV_EEG_CH : FIFFV_MEG_CH;
     }
     nchan = coils->ncoil;
     if (comp_coils && comp_coils->ncoil > 0) {
-        compchs = MALLOC_60(comp_coils->ncoil,fiffChInfoRec);
         for (k = 0; k < comp_coils->ncoil; k++) {
+            compchs.append(FiffChInfo());
             coil = comp_coils->coils[k];
-            strcpy(compchs[k].ch_name,coil->chname.toUtf8().constData());
+            compchs[k].ch_name = coil->chname;
             compchs[k].chpos.coil_type = coil->type;
             compchs[k].kind = (coil->coil_class == FWD_COILC_EEG) ? FIFFV_EEG_CH : FIFFV_MEG_CH;
         }
@@ -279,19 +262,22 @@ int FwdCompData::fwd_make_ctf_comp_coils(MneCTFCompDataSet *set, FwdCoilSet *coi
     }
     res = MneCTFCompDataSet::mne_make_ctf_comp(set,chs,nchan,compchs,ncomp);
 
-    FREE_60(chs);
-    FREE_60(compchs);
-
     return res;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-FwdCompData *FwdCompData::fwd_make_comp_data(MneCTFCompDataSet *set, FwdCoilSet *coils, FwdCoilSet *comp_coils, fwdFieldFunc field, fwdVecFieldFunc vec_field, fwdFieldGradFunc field_grad, void *client, fwdUserFreeFunc client_free)
+FwdCompData *FwdCompData::fwd_make_comp_data(MneCTFCompDataSet *set,
+                                             FwdCoilSet *coils,
+                                             FwdCoilSet *comp_coils,
+                                             fwdFieldFunc field,
+                                             fwdVecFieldFunc vec_field,
+                                             fwdFieldGradFunc field_grad,
+                                             void *client,
+                                             fwdUserFreeFunc client_free)
 /*
-* Compose a compensation data set
-*/
+ * Compose a compensation data set
+ */
 {
     FwdCompData* comp = new FwdCompData();
 
@@ -324,8 +310,7 @@ FwdCompData *FwdCompData::fwd_make_comp_data(MneCTFCompDataSet *set, FwdCoilSet 
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int FwdCompData::fwd_comp_field_vec(float *rd, FwdCoilSet *coils, float **res, void *client)
 /*
@@ -369,13 +354,12 @@ int FwdCompData::fwd_comp_field_vec(float *rd, FwdCoilSet *coils, float **res, v
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int FwdCompData::fwd_comp_field_grad(float *rd, float *Q, FwdCoilSet* coils, float *res, float *xgrad, float *ygrad, float *zgrad, void *client)
 /*
-* Calculate the compensated field (one dipole component)
-*/
+ * Calculate the compensated field (one dipole component)
+ */
 {
     FwdCompData* comp = (FwdCompData*)client;
 
@@ -384,30 +368,30 @@ int FwdCompData::fwd_comp_field_grad(float *rd, float *Q, FwdCoilSet* coils, flo
         return FAIL;
     }
     /*
-    * First compute the field in the primary set of coils
-    */
+     * First compute the field in the primary set of coils
+     */
     if (comp->field_grad(rd,Q,coils,res,xgrad,ygrad,zgrad,comp->client) == FAIL)
         return FAIL;
     /*
-    * Compensation needed?
-    */
+     * Compensation needed?
+     */
     if (!comp->comp_coils || comp->comp_coils->ncoil <= 0 || !comp->set || !comp->set->current)
         return OK;
     /*
-    * Workspace needed?
-    */
+     * Workspace needed?
+     */
     if (!comp->work)
         comp->work = MALLOC_60(comp->comp_coils->ncoil,float);
     if (!comp->vec_work)
         comp->vec_work = ALLOC_CMATRIX_60(3,comp->comp_coils->ncoil);
     /*
-    * Compute the field in the compensation coils
-    */
+     * Compute the field in the compensation coils
+     */
     if (comp->field_grad(rd,Q,comp->comp_coils,comp->work,comp->vec_work[0],comp->vec_work[1],comp->vec_work[2],comp->client) == FAIL)
         return FAIL;
     /*
-    * Compute the compensated field
-    */
+     * Compute the compensated field
+     */
     if (MneCTFCompDataSet::mne_apply_ctf_comp(comp->set,TRUE,res,coils->ncoil,comp->work,comp->comp_coils->ncoil) != OK)
         return FAIL;
     if (MneCTFCompDataSet::mne_apply_ctf_comp(comp->set,TRUE,xgrad,coils->ncoil,comp->vec_work[0],comp->comp_coils->ncoil) != OK)

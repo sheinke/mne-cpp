@@ -1,95 +1,87 @@
 //=============================================================================================================
 /**
-* @file     mnemath.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MNEMath Class.
-*
-*/
+ * @file     mnemath.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MNEMath Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "mnemath.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// STL INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-#include <iostream>
-#include <algorithm>    // std::sort
-#include <vector>       // std::vector
-
-//DEBUG fstream
-//#include <fstream>
-
-//*************************************************************************************************************
-//=============================================================================================================
-// Eigen INCLUDES
-//=============================================================================================================
-
-#include <Eigen/SVD>
 #include <Eigen/Eigen>
+#include <Eigen/Geometry>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-#include <QFile>
-#include <QStringList>
 #include <QDebug>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace UTILSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
+//=============================================================================================================
+
+int MNEMath::gcd(int iA, int iB)
+{
+    if (iB == 0) {
+        return iA;
+    }
+
+    return gcd(iB, iA % iB);
+}
+
 //=============================================================================================================
 
 VectorXd* MNEMath::combine_xyz(const VectorXd& vec)
 {
     if (vec.size() % 3 != 0)
     {
-        printf("Input must be a row or a column vector with 3N components");
+        printf("Input must be a row or a column vector with 3N components\n");
         return NULL;
     }
 
@@ -106,10 +98,10 @@ VectorXd* MNEMath::combine_xyz(const VectorXd& vec)
     return comb;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-double MNEMath::getConditionNumber(const MatrixXd& A, VectorXd &s)
+double MNEMath::getConditionNumber(const MatrixXd& A,
+                                   VectorXd &s)
 {
     JacobiSVD<MatrixXd> svd(A);
     s = svd.singularValues();
@@ -119,10 +111,10 @@ double MNEMath::getConditionNumber(const MatrixXd& A, VectorXd &s)
     return c;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-double MNEMath::getConditionSlope(const MatrixXd& A, VectorXd &s)
+double MNEMath::getConditionSlope(const MatrixXd& A,
+                                  VectorXd &s)
 {
     JacobiSVD<MatrixXd> svd(A);
     s = svd.singularValues();
@@ -132,10 +124,13 @@ double MNEMath::getConditionSlope(const MatrixXd& A, VectorXd &s)
     return c;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-void MNEMath::get_whitener(MatrixXd &A, bool pca, QString ch_type, VectorXd &eig, MatrixXd &eigvec)
+void MNEMath::get_whitener(MatrixXd &A,
+                           bool pca,
+                           QString ch_type,
+                           VectorXd &eig,
+                           MatrixXd &eigvec)
 {
     // whitening operator
     SelfAdjointEigenSolver<MatrixXd> t_eigenSolver(A);//Can be used because, covariance matrices are self-adjoint matrices.
@@ -161,10 +156,11 @@ void MNEMath::get_whitener(MatrixXd &A, bool pca, QString ch_type, VectorXd &eig
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-VectorXi MNEMath::intersect(const VectorXi &v1, const VectorXi &v2, VectorXi &idx_sel)
+VectorXi MNEMath::intersect(const VectorXi &v1,
+                            const VectorXi &v2,
+                            VectorXi &idx_sel)
 {
     std::vector<int> tmp;
 
@@ -196,12 +192,10 @@ VectorXi MNEMath::intersect(const VectorXi &v1, const VectorXi &v2, VectorXi &id
     return p_res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 //    static inline MatrixXd extract_block_diag(MatrixXd& A, qint32 n)
 //    {
-
 
 //        //
 //        // Principal Investigators and Developers:
@@ -231,7 +225,6 @@ VectorXi MNEMath::intersect(const VectorXi &v1, const VectorXi &v2, VectorXi &id
 //        //   Matti Hamalainen
 //        //   2006
 
-
 //          [mA,na] = size(A);		% matrix always has na columns
 //          % how many entries in the first column?
 //          bdn = na/n;			% number of blocks
@@ -246,7 +239,6 @@ VectorXi MNEMath::intersect(const VectorXi &v1, const VectorXi &v2, VectorXi &id
 
 //          i = i(:); 			% row indices foreach sparse bd
 
-
 //          j = [0:mA:(mA*(na-1))];
 //          j = j(ones(ma,1),:);
 //          j = j(:);
@@ -258,12 +250,11 @@ VectorXi MNEMath::intersect(const VectorXi &v1, const VectorXi &v2, VectorXi &id
 
 //    }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNEMath::issparse(VectorXd &v)
 {
-    qDebug() << "ToDo: Figure out how to accelerate MNEMath::issparse(VectorXd &v).";
+    //ToDo: Figure out how to accelerate MNEMath::issparse(VectorXd &v)
 
     qint32 c = 0;
     qint32 n = v.rows();
@@ -280,10 +271,11 @@ bool MNEMath::issparse(VectorXd &v)
     return false;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MatrixXd MNEMath::legendre(qint32 n, const VectorXd &X, QString normalize)
+MatrixXd MNEMath::legendre(qint32 n,
+                           const VectorXd &X,
+                           QString normalize)
 {
     MatrixXd y;
 
@@ -298,10 +290,10 @@ MatrixXd MNEMath::legendre(qint32 n, const VectorXd &X, QString normalize)
     return y;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-SparseMatrix<double>* MNEMath::make_block_diag(const MatrixXd &A, qint32 n)
+SparseMatrix<double>* MNEMath::make_block_diag(const MatrixXd &A,
+                                               qint32 n)
 {
 
     qint32 ma = A.rows();
@@ -338,8 +330,7 @@ SparseMatrix<double>* MNEMath::make_block_diag(const MatrixXd &A, qint32 n)
     return bd;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MNEMath::nchoose2(int n)
 {
@@ -351,10 +342,10 @@ int MNEMath::nchoose2(int n)
     return t_iNumOfCombination;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-qint32 MNEMath::rank(const MatrixXd& A, double tol)
+qint32 MNEMath::rank(const MatrixXd& A,
+                     double tol)
 {
     JacobiSVD<MatrixXd> t_svdA(A);//U and V are not computed
     VectorXd s = t_svdA.singularValues();
@@ -366,70 +357,67 @@ qint32 MNEMath::rank(const MatrixXd& A, double tol)
     return sum;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MatrixXd MNEMath::rescale(const MatrixXd &data, const RowVectorXf &times, QPair<QVariant,QVariant> baseline, QString mode)
+MatrixXd MNEMath::rescale(const MatrixXd &data,
+                          const RowVectorXf &times,
+                          const QPair<float,float>& baseline,
+                          QString mode)
 {
     MatrixXd data_out = data;
     QStringList valid_modes;
     valid_modes << "logratio" << "ratio" << "zscore" << "mean" << "percent";
     if(!valid_modes.contains(mode))
     {
-        qWarning() << "\tWarning: mode should be any of : " << valid_modes;
+        qWarning().noquote() << "[MNEMath::rescale] Mode" << mode << "is not supported. Supported modes are:" << valid_modes << "Returning input data.";
         return data_out;
     }
-    printf("\tApplying baseline correction ... (mode: %s)\n", mode.toUtf8().constData());
+
+    qInfo().noquote() << QString("[MNEMath::rescale] Applying baseline correction ... (mode: %1)").arg(mode);
 
     qint32 imin = 0;
     qint32 imax = times.size();
 
-    if(!baseline.first.isValid())
+    if (baseline.second == baseline.first) {
         imin = 0;
-    else
-    {
-        float bmin = baseline.first.toFloat();
-        for(qint32 i = 0; i < times.size(); ++i)
-        {
-            if(times[i] >= bmin)
-            {
+    } else {
+        float bmin = baseline.first;
+        for(qint32 i = 0; i < times.size(); ++i) {
+            if(times[i] >= bmin) {
                 imin = i;
                 break;
             }
         }
     }
-    if (!baseline.second.isValid())
-        imax = times.size();
-    else
-    {
-        float bmax = baseline.second.toFloat();
-        for(qint32 i = times.size()-1; i >= 0; --i)
-        {
-            if(times[i] <= bmax)
-            {
-                imax = i+1;
-                break;
-            }
+
+    float bmax = baseline.second;
+
+    if (baseline.second == baseline.first) {
+        bmax = 0;
+    }
+
+    for(qint32 i = times.size()-1; i >= 0; --i) {
+        if(times[i] <= bmax) {
+            imax = i+1;
+            break;
         }
     }
 
-    VectorXd mean = data_out.block(0, imin,data_out.rows(),imax-imin).rowwise().mean();
-    if(mode.compare("mean") == 0)
-    {
-        data_out -= mean.rowwise().replicate(data.cols());
+    if(imax < imin) {
+        qWarning() << "[MNEMath::rescale] imax < imin. Returning input data.";
+        return data_out;
     }
-    else if(mode.compare("logratio") == 0)
-    {
+
+    VectorXd mean = data_out.block(0, imin,data_out.rows(),imax-imin).rowwise().mean();
+    if(mode.compare("mean") == 0) {
+        data_out -= mean.rowwise().replicate(data.cols());
+    } else if(mode.compare("logratio") == 0) {
         for(qint32 i = 0; i < data_out.rows(); ++i)
             for(qint32 j = 0; j < data_out.cols(); ++j)
                 data_out(i,j) = log10(data_out(i,j)/mean[i]); // a value of 1 means 10 times bigger
-    }
-    else if(mode.compare("ratio") == 0)
-    {
+    } else if(mode.compare("ratio") == 0) {
         data_out = data_out.cwiseQuotient(mean.rowwise().replicate(data_out.cols()));
-    }
-    else if(mode.compare("zscore") == 0)
-    {
+    } else if(mode.compare("zscore") == 0) {
         MatrixXd std_mat = data.block(0, imin, data.rows(), imax-imin) - mean.rowwise().replicate(imax-imin);
         std_mat = std_mat.cwiseProduct(std_mat);
         VectorXd std_v = std_mat.rowwise().mean();
@@ -438,9 +426,7 @@ MatrixXd MNEMath::rescale(const MatrixXd &data, const RowVectorXf &times, QPair<
 
         data_out -= mean.rowwise().replicate(data_out.cols());
         data_out = data_out.cwiseQuotient(std_v.rowwise().replicate(data_out.cols()));
-    }
-    else if(mode.compare("percent") == 0)
-    {
+    } else if(mode.compare("percent") == 0) {
         data_out -= mean.rowwise().replicate(data_out.cols());
         data_out = data_out.cwiseQuotient(mean.rowwise().replicate(data_out.cols()));
     }
@@ -448,4 +434,48 @@ MatrixXd MNEMath::rescale(const MatrixXd &data, const RowVectorXf &times, QPair<
     return data_out;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
+
+bool MNEMath::compareTransformation(const MatrixX4f& mDevHeadT,
+                                    const MatrixX4f& mDevHeadDest,
+                                    const float& fThreshRot,
+                                    const float& fThreshTrans)
+{
+    bool bState = false;
+
+    Matrix3f mRot = mDevHeadT.block(0,0,3,3);
+    Matrix3f mRotDest = mDevHeadDest.block(0,0,3,3);
+
+    VectorXf vTrans = mDevHeadT.block(0,3,3,1);
+    VectorXf vTransDest = mDevHeadDest.block(0,3,3,1);
+
+    Quaternionf quat(mRot);
+    Quaternionf quatNew(mRotDest);
+
+    // Compare Rotation
+    Quaternionf quatCompare;
+    float fAngle;
+
+    // get rotation between both transformations by multiplying with the inverted quaternion
+    quatCompare = quat*quatNew.inverse();
+    fAngle = quat.angularDistance(quatNew);
+    fAngle = fAngle * 180 / M_PI;
+
+    // Compare translation
+    float fMove = (vTrans-vTransDest).norm();
+
+    // compare to thresholds and update
+    if(fMove > fThreshTrans) {
+        qInfo() << "Large movement: " << fMove*1000 << "mm";
+        bState = true;
+
+    } else if (fAngle > fThreshRot) {
+        qInfo() << "Large rotation: " << fAngle << "degree";
+        bState = true;
+
+    } else {
+        bState = false;
+    }
+
+    return bState;
+}

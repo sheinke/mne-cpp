@@ -1,16 +1,23 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     examples.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Lorenz Esch <lorenz.esch@tu-ilmenau.de>;
-#           Florian Schlembach <florian.schlembach@tu-ilmenau.de>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+#           Felix Griesau <Felix.Griesau@tu-ilmenau.de>;
+#           Florian Schlembach <Florian.Schlembach@tu-ilmenau.de>;
+#           Daniel Knobl <Daniel.Knobl@tu-ilmenau.de>;
+#           Jana Kiesel <Jana.Kiesel@tu-ilmenau.de>;
+#           Daniel Strohmeier <Daniel.Strohmeier@tu-ilmenau.de>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>;
+#           Ricky Tjen <ricky270@student.sgu.ac.id>;
+#           Ruben Doerfel <Ruben.Doerfel@tu-ilmenau.de>
+# @since    0.1.0
 # @date     July, 2010
 #
 # @section  LICENSE
 #
-# Copyright (C) 2010, Christoph Dinh, Lorenz Esch, Florian Schlembach and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2010, Lars Debor, Christoph Dinh, Felix Griesau, Florian Schlembach, Daniel Knobl, 
+#                     Jana Kiesel, Daniel Strohmeier, Lorenz Esch, Ricky Tjen, Ruben Doerfel. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -33,14 +40,17 @@
 #
 # @brief    This project file builds all examples of the mne-cpp project.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../mne-cpp.pri)
 
 TEMPLATE = subdirs
 
 SUBDIRS += \
+    ex_averaging \
     ex_cancel_noise \
+    ex_compute_forward \
+    ex_coreg \
     ex_evoked_grad_amp \
     ex_fiff_io \
     ex_find_evoked \
@@ -52,9 +62,8 @@ SUBDIRS += \
     ex_read_evoked \
     ex_read_fwd \
     ex_read_raw \
-    ex_read_write_raw
+    ex_read_write_raw \
 
-!contains(MNECPP_CONFIG, minimalVersion) {
     qtHaveModule(charts) {
         SUBDIRS += \
             ex_clustered_inverse_mne \
@@ -62,10 +71,14 @@ SUBDIRS += \
             ex_clustered_inverse_pwl_rap_music_raw \
             ex_clustered_inverse_rap_music_raw \
             ex_connectivity \
+            ex_connectivity_comparison \
+            ex_connectivity_performance \
             ex_disp \
             ex_disp_3D \
             ex_fs_surface \
+            ex_filtering \
             ex_histogram \
+            ex_hpiFit \
             ex_inverse_mne_raw \
             ex_inverse_pwl_rap_music \
             ex_inverse_rap_music \
@@ -73,15 +86,9 @@ SUBDIRS += \
             ex_roi_clustered_inverse_pwl_rap_music \
             ex_st_clustered_inverse_pwl_rap_music \
             ex_interpolation \
-
-        !isEmpty( CNTK_INCLUDE_DIR ) {
-            SUBDIRS += \
-                ex_deep \
-                ex_deep_eval \
-                ex_deep_model_viewer
-        }
+            ex_spectral \
+            ex_tf_plot \
     }
     else {
         message("examples.pro - The Qt Charts module is missing. Please install to build the complete set of MNE-CPP features.")
     }
-}

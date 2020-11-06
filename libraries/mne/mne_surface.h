@@ -1,15 +1,15 @@
 //=============================================================================================================
 /**
  * @file     mne_surface.h
- * @author   Christof Pieloth <pieloth@labp.htwk-leipzig.de>;
- *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
- *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
- * @version  1.0
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
  * @date     August, 2013
  *
  * @section  LICENSE
  *
- * Copyright (C) 2013, Christof Pieloth, Christoph Dinh and Matti Hamalainen. All rights reserved.
+ * Copyright (C) 2013, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
  * the following conditions are met:
@@ -37,50 +37,37 @@
 #ifndef MNE_SURFACE_H
 #define MNE_SURFACE_H
 
-//*************************************************************************************************************
 //=============================================================================================================
-// MNE INCLUDES
+// INCLUDES
 //=============================================================================================================
 
 #include "mne_global.h"
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// FIFF INCLUDES
-//=============================================================================================================
 
 #include <fiff/fiff_dir_node.h>
 #include <fiff/fiff_stream.h>
 #include <fiff/fiff_types.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QIODevice>
 #include <QList>
 #include <QSharedPointer>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// DEFINE NAMESPACE MNE
+// DEFINE NAMESPACE MNELIB
 //=============================================================================================================
 
 namespace MNELIB
 {
 
-//*************************************************************************************************************
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
@@ -128,7 +115,7 @@ public:
 
     //=========================================================================================================
     /**
-     * ### MNE toolbox root function ###: Implementation of the mne_read_bem_surfaces function
+     * ### MNE toolbox root function ###: Definition of the mne_read_bem_surfaces function
      *
      * Reads a BEM surface from a fif stream
      *
@@ -169,7 +156,6 @@ private:
             const FIFFLIB::FiffDirNode::SPtr& dir,
             const FIFFLIB::fiff_int_t def_coord_frame, MNESurface::SPtr& surf);
 };
-
 } // NAMESPACE
 
 #endif // MNE_SURFACE_H

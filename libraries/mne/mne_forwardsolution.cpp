@@ -1,39 +1,40 @@
 //=============================================================================================================
 /**
-* @file     mne_forwardsolution.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-* 
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief     MNEForwardSolution class implementation
-*
-*/
+ * @file     mne_forwardsolution.cpp
+ * @author   Gabriel B Motta <gabrielbenmotta@gmail.com>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Gabriel B Motta, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief     MNEForwardSolution class implementation
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -42,39 +43,28 @@
 
 #include <utils/ioutils.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/SVD>
 #include <Eigen/Sparse>
 #include <unsupported/Eigen/KroneckerProduct>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // FIFF INCLUDES
 //=============================================================================================================
 
 #include <fs/colortable.h>
 #include <fs/label.h>
+#include <fs/surfaceset.h>
 #include <utils/mnemath.h>
 #include <utils/kmeans.h>
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
 
 #include <iostream>
 #include <QtConcurrent>
 #include <QFuture>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -82,9 +72,9 @@
 using namespace MNELIB;
 using namespace UTILSLIB;
 using namespace FSLIB;
+using namespace Eigen;
+using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -102,11 +92,9 @@ MNEForwardSolution::MNEForwardSolution()
 , source_rr(MatrixX3f::Zero(0,3))
 , source_nn(MatrixX3f::Zero(0,3))
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEForwardSolution::MNEForwardSolution(QIODevice &p_IODevice, bool force_fixed, bool surf_ori, const QStringList& include, const QStringList& exclude, bool bExcludeBads)
 : source_ori(-1)
@@ -128,8 +116,7 @@ MNEForwardSolution::MNEForwardSolution(QIODevice &p_IODevice, bool force_fixed, 
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEForwardSolution::MNEForwardSolution(const MNEForwardSolution &p_MNEForwardSolution)
 : info(p_MNEForwardSolution.info)
@@ -145,19 +132,15 @@ MNEForwardSolution::MNEForwardSolution(const MNEForwardSolution &p_MNEForwardSol
 , source_rr(p_MNEForwardSolution.source_rr)
 , source_nn(p_MNEForwardSolution.source_nn)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEForwardSolution::~MNEForwardSolution()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNEForwardSolution::clear()
 {
@@ -175,10 +158,14 @@ void MNEForwardSolution::clear()
     source_nn = MatrixX3f(0,3);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const AnnotationSet &p_AnnotationSet, qint32 p_iClusterSize, MatrixXd& p_D, const FiffCov &p_pNoise_cov, const FiffInfo &p_pInfo, QString p_sMethod) const
+MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const AnnotationSet &p_AnnotationSet,
+                                                                qint32 p_iClusterSize,
+                                                                MatrixXd& p_D,
+                                                                const FiffCov &p_pNoise_cov,
+                                                                const FiffInfo &p_pInfo,
+                                                                QString p_sMethod) const
 {
     printf("Cluster forward solution using %s.\n", p_sMethod.toUtf8().constData());
 
@@ -233,7 +220,6 @@ MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const Annotation
         t_G_Whitened = p_outWhitener*t_G_Whitened;
         t_bUseWhitened = true;
     }
-
 
     //
     // Assemble input data
@@ -356,7 +342,6 @@ MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const Annotation
             }
         }
 
-
         //
         // Calculate clusters
         //
@@ -420,14 +405,12 @@ MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const Annotation
                 for(qint32 k = 0; k < clusterVertnos.size(); ++k)
                     clusterVertnos(k) = this->src[h].vertno[clusterIdcs(k)];
 
-
                 p_fwdOut.src[h].cluster_info.clusterVertnos.append(clusterVertnos);
                 p_fwdOut.src[h].cluster_info.clusterSource_rr.append(clusterSource_rr);
                 p_fwdOut.src[h].cluster_info.clusterDistances.append(clusterDistance);
                 p_fwdOut.src[h].cluster_info.clusterLabelIds.append(label_ids[itOut->iLabelIdxOut]);
                 p_fwdOut.src[h].cluster_info.clusterLabelNames.append(t_CurrentColorTable.getNames()[itOut->iLabelIdxOut]);
             }
-
 
             //
             // Assign partial G to new LeadField
@@ -472,8 +455,6 @@ MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const Annotation
                     // Option 2 label ID
                     p_fwdOut.src[h].vertno[count] = p_fwdOut.src[h].cluster_info.clusterLabelIds[count];
 
-
-
 //                    //vertices
 //                    std::cout << this->src[h].vertno[sel_idx] << ", ";
 
@@ -493,7 +474,6 @@ MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const Annotation
 
         printf("[done]\n");
     }
-
 
     //
     // Cluster operator D (sources x clusters)
@@ -529,8 +509,6 @@ MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const Annotation
 
 //            std::cout << "idx_sel]:\n" << idx_sel << std::endl;
 
-
-
             double selectWeight = 1.0/idx_sel.size();
             if(this->isFixedOrient())
             {
@@ -556,7 +534,6 @@ MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const Annotation
     }
 
 //    std::cout << "D:\n" << D.row(0) << std::endl << D.row(1) << std::endl << D.row(2) << std::endl << D.row(3) << std::endl << D.row(4) << std::endl << D.row(5) << std::endl;
-
 
 //    //
 //    // get mean and std of original gain matrix
@@ -708,7 +685,6 @@ MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const Annotation
 
 //    std::cout << "Gain matrix offset mapping (magnetometer):\n    mean: " << mean << "\n    var: " << var << std::endl;
 
-
     //
     // Put it all together
     //
@@ -720,8 +696,7 @@ MNEForwardSolution MNEForwardSolution::cluster_forward_solution(const Annotation
     return p_fwdOut;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEForwardSolution MNEForwardSolution::reduce_forward_solution(qint32 p_iNumDipoles, MatrixXd& p_D) const
 {
@@ -756,7 +731,6 @@ MNEForwardSolution MNEForwardSolution::reduce_forward_solution(qint32 p_iNumDipo
             for(qint32 j = 0; j < 3; ++j)
                 p_D((sel[i]*3)+j, (i*3)+j) = 1;
     }
-
 
 //    //find idx of hemi switch
 //    qint32 vertno_size = this->src[0].nuse;
@@ -811,7 +785,6 @@ MNEForwardSolution MNEForwardSolution::reduce_forward_solution(qint32 p_iNumDipo
 
     MatrixX3f nn(p_iNumDipoles,3);
 
-
     for(qint32 i = 0; i < p_iNumDipoles; ++i)
     {
         rr.row(i) = this->source_rr.row(sel(i));
@@ -828,8 +801,7 @@ MNEForwardSolution MNEForwardSolution::reduce_forward_solution(qint32 p_iNumDipo
     return p_fwdOut;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCov MNEForwardSolution::compute_depth_prior(const MatrixXd &Gain, const FiffInfo &gain_info, bool is_fixed_ori, double exp, double limit, const MatrixXd &patch_areas, bool limit_depth_chs)
 {
@@ -938,8 +910,7 @@ FiffCov MNEForwardSolution::compute_depth_prior(const MatrixXd &Gain, const Fiff
     return depth_prior;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCov MNEForwardSolution::compute_orient_prior(float loose)
 {
@@ -948,6 +919,7 @@ FiffCov MNEForwardSolution::compute_orient_prior(float loose)
 
     if (0 <= loose && loose <= 1)
     {
+        qDebug() << "this->surf_ori" << this->surf_ori;
         if(loose < 1 && !this->surf_ori)
         {
             printf("\tForward operator is not oriented in surface coordinates. loose parameter should be None not %f.", loose);//ToDo Throw here
@@ -987,10 +959,10 @@ FiffCov MNEForwardSolution::compute_orient_prior(float loose)
     return orient_prior;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MNEForwardSolution MNEForwardSolution::pick_channels(const QStringList& include, const QStringList& exclude) const
+MNEForwardSolution MNEForwardSolution::pick_channels(const QStringList& include,
+                                                     const QStringList& exclude) const
 {
     MNEForwardSolution fwd(*this);
 
@@ -1051,8 +1023,7 @@ MNEForwardSolution MNEForwardSolution::pick_channels(const QStringList& include,
     return fwd;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEForwardSolution MNEForwardSolution::pick_regions(const QList<Label> &p_qListLabels) const
 {
@@ -1103,8 +1074,7 @@ MNEForwardSolution MNEForwardSolution::pick_regions(const QList<Label> &p_qListL
     return selectedFwd;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNEForwardSolution MNEForwardSolution::pick_types(bool meg, bool eeg, const QStringList& include, const QStringList& exclude) const
 {
@@ -1117,10 +1087,16 @@ MNEForwardSolution MNEForwardSolution::pick_types(bool meg, bool eeg, const QStr
     return this->pick_channels(include_ch_names);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-void MNEForwardSolution::prepare_forward(const FiffInfo &p_info, const FiffCov &p_noise_cov, bool p_pca, FiffInfo &p_outFwdInfo, MatrixXd &gain, FiffCov &p_outNoiseCov, MatrixXd &p_outWhitener, qint32 &p_outNumNonZero) const
+void MNEForwardSolution::prepare_forward(const FiffInfo &p_info,
+                                         const FiffCov &p_noise_cov,
+                                         bool p_pca,
+                                         FiffInfo &p_outFwdInfo,
+                                         MatrixXd &gain,
+                                         FiffCov &p_outNoiseCov,
+                                         MatrixXd &p_outWhitener,
+                                         qint32 &p_outNumNonZero) const
 {
     QStringList fwd_ch_names, ch_names;
     for(qint32 i = 0; i < this->info.chs.size(); ++i)
@@ -1128,9 +1104,10 @@ void MNEForwardSolution::prepare_forward(const FiffInfo &p_info, const FiffCov &
 
     ch_names.clear();
     for(qint32 i = 0; i < p_info.chs.size(); ++i)
-        if(     !p_info.bads.contains(p_info.chs[i].ch_name)
-            &&  !p_noise_cov.bads.contains(p_info.chs[i].ch_name)
-            &&  fwd_ch_names.contains(p_info.chs[i].ch_name))
+        if(!p_info.bads.contains(p_info.chs[i].ch_name)
+            && !p_noise_cov.bads.contains(p_info.chs[i].ch_name)
+            && p_noise_cov.names.contains(p_info.chs[i].ch_name)
+            && fwd_ch_names.contains(p_info.chs[i].ch_name))
             ch_names << p_info.chs[i].ch_name;
 
     qint32 n_chan = ch_names.size();
@@ -1209,10 +1186,15 @@ void MNEForwardSolution::prepare_forward(const FiffInfo &p_info, const FiffCov &
     printf("\tTotal rank is %d\n", p_outNumNonZero);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool MNEForwardSolution::read(QIODevice& p_IODevice, MNEForwardSolution& fwd, bool force_fixed, bool surf_ori, const QStringList& include, const QStringList& exclude, bool bExcludeBads)
+bool MNEForwardSolution::read(QIODevice& p_IODevice,
+                              MNEForwardSolution& fwd,
+                              bool force_fixed,
+                              bool surf_ori,
+                              const QStringList& include,
+                              const QStringList& exclude,
+                              bool bExcludeBads)
 {
     FiffStream::SPtr t_pStream(new FiffStream(&p_IODevice));
 
@@ -1388,7 +1370,6 @@ bool MNEForwardSolution::read(QIODevice& p_IODevice, MNEForwardSolution& fwd, bo
     //
     t_pStream->read_meas_info_base(t_pStream->dirtree(), fwd.info);
 
-
     t_pStream->close();
 
     //
@@ -1407,8 +1388,10 @@ bool MNEForwardSolution::read(QIODevice& p_IODevice, MNEForwardSolution& fwd, bo
     for(qint32 k = 0; k < t_SourceSpace.size(); ++k)
         nuse += t_SourceSpace[k].nuse;
 
-    if (nuse != fwd.nsource)
-        throw("Source spaces do not match the forward solution.\n");
+    if (nuse != fwd.nsource){
+        qDebug() << "Source spaces do not match the forward solution.\n";
+        return false;
+    }
 
     printf("\tSource spaces transformed to the forward solution coordinate frame\n");
     fwd.src = t_SourceSpace; //not new MNESourceSpace(t_SourceSpace); for sake of speed
@@ -1648,7 +1631,6 @@ bool MNEForwardSolution::read(QIODevice& p_IODevice, MNEForwardSolution& fwd, bo
 
 //        QList<FiffChInfo> chs;
 
-
 //        if (!fwd.sol_grad->isEmpty())
 //            t_solGradData.resize(nuse, fwd.sol_grad->data.cols());
 
@@ -1697,10 +1679,11 @@ bool MNEForwardSolution::read(QIODevice& p_IODevice, MNEForwardSolution& fwd, bo
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool MNEForwardSolution::read_one(FiffStream::SPtr& p_pStream, const FiffDirNode::SPtr& p_Node, MNEForwardSolution& one)
+bool MNEForwardSolution::read_one(FiffStream::SPtr& p_pStream,
+                                  const FiffDirNode::SPtr& p_Node,
+                                  MNEForwardSolution& one)
 {
     //
     //   Read all interesting stuff for one forward solution
@@ -1762,7 +1745,6 @@ bool MNEForwardSolution::read_one(FiffStream::SPtr& p_pStream, const FiffDirNode
     else
         one.sol_grad->clear();
 
-
     if (one.sol->data.rows() != one.nchan ||
             (one.sol->data.cols() != one.nsource && one.sol->data.cols() != 3*one.nsource))
     {
@@ -1784,8 +1766,7 @@ bool MNEForwardSolution::read_one(FiffStream::SPtr& p_pStream, const FiffDirNode
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNEForwardSolution::restrict_gain_matrix(MatrixXd &G, const FiffInfo &info)
 {
@@ -1830,8 +1811,7 @@ void MNEForwardSolution::restrict_gain_matrix(MatrixXd &G, const FiffInfo &info)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNEForwardSolution::to_fixed_ori()
 {
@@ -1847,4 +1827,72 @@ void MNEForwardSolution::to_fixed_ori()
     this->sol->ncol = this->sol->ncol / 3;
     this->source_ori = FIFFV_MNE_FIXED_ORI;
     printf("\tConverted the forward solution into the fixed-orientation mode.\n");
+}
+
+//=============================================================================================================
+
+MatrixX3f MNEForwardSolution::getSourcePositionsByLabel(const QList<Label> &lPickedLabels, const SurfaceSet& tSurfSetInflated)
+{
+    MatrixX3f matSourceVertLeft, matSourceVertRight, matSourcePositions;
+
+    if(lPickedLabels.isEmpty()) {
+        qWarning() << "MNEForwardSolution::getSourcePositionsByLabel - picked label list is empty. Returning.";
+        return  matSourcePositions;
+    }
+
+    if(tSurfSetInflated.isEmpty()) {
+        qWarning() << "MNEForwardSolution::getSourcePositionsByLabel - tSurfSetInflated is empty. Returning.";
+        return  matSourcePositions;
+    }
+
+    if(isClustered()) {
+        for(int j = 0; j < this->src[0].vertno.rows(); ++j) {
+            for(int k = 0; k < lPickedLabels.size(); k++) {
+                if(this->src[0].vertno(j) == lPickedLabels.at(k).label_id) {
+                    matSourceVertLeft.conservativeResize(matSourceVertLeft.rows()+1,3);
+                    matSourceVertLeft.row(matSourceVertLeft.rows()-1) = tSurfSetInflated[0].rr().row(this->src[0].cluster_info.centroidVertno.at(j)) - tSurfSetInflated[0].offset().transpose();
+                    break;
+                }
+            }
+        }
+
+        for(int j = 0; j < this->src[1].vertno.rows(); ++j) {
+            for(int k = 0; k < lPickedLabels.size(); k++) {
+                if(this->src[1].vertno(j) == lPickedLabels.at(k).label_id) {
+                    matSourceVertRight.conservativeResize(matSourceVertRight.rows()+1,3);
+                    matSourceVertRight.row(matSourceVertRight.rows()-1) = tSurfSetInflated[1].rr().row(this->src[1].cluster_info.centroidVertno.at(j)) - tSurfSetInflated[1].offset().transpose();
+                    break;
+                }
+            }
+        }
+    } else {
+        for(int j = 0; j < this->src[0].vertno.rows(); ++j) {
+            for(int k = 0; k < lPickedLabels.size(); k++) {
+                for(int l = 0; l < lPickedLabels.at(k).vertices.rows(); l++) {
+                    if(this->src[0].vertno(j) == lPickedLabels.at(k).vertices(l) && lPickedLabels.at(k).hemi == 0) {
+                        matSourceVertLeft.conservativeResize(matSourceVertLeft.rows()+1,3);
+                        matSourceVertLeft.row(matSourceVertLeft.rows()-1) = tSurfSetInflated[0].rr().row(this->src[0].vertno(j)) - tSurfSetInflated[0].offset().transpose();
+                        break;
+                    }
+                }
+            }
+        }
+
+        for(int j = 0; j < this->src[1].vertno.rows(); ++j) {
+            for(int k = 0; k < lPickedLabels.size(); k++) {
+                for(int l = 0; l < lPickedLabels.at(k).vertices.rows(); l++) {
+                    if(this->src[1].vertno(j) == lPickedLabels.at(k).vertices(l) && lPickedLabels.at(k).hemi == 1) {
+                        matSourceVertRight.conservativeResize(matSourceVertRight.rows()+1,3);
+                        matSourceVertRight.row(matSourceVertRight.rows()-1) = tSurfSetInflated[1].rr().row(this->src[1].vertno(j)) - tSurfSetInflated[1].offset().transpose();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    matSourcePositions.resize(matSourceVertLeft.rows()+matSourceVertRight.rows(),3);
+    matSourcePositions << matSourceVertLeft, matSourceVertRight;
+
+    return matSourcePositions;
 }

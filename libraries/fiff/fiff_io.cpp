@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fiff_io.cpp
-* @author   Florian Schlembach <florian.schlembach@tu-ilmenau.de>;
-*           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of a generic Fiff IO interface
-*
-*/
+ * @file     fiff_io.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of a generic Fiff IO interface
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -44,15 +43,17 @@
 #include "fiff_evoked_set.h"
 #include "fiff_stream.h"
 
+#include <rtprocessing/filter.h>
+#include <rtprocessing/helpers/filterkernel.h>
 
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace FIFFLIB;
+using namespace Eigen;
+using namespace RTPROCESSINGLIB;
 
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -61,21 +62,21 @@ FiffIO::FiffIO()
 {
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffIO::~FiffIO()
 {
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
-FiffIO::FiffIO(QIODevice& p_IODevice)
+FiffIO::FiffIO(QIODevice& pIODevice)
 {
     // execute read method
-    FiffIO::read(p_IODevice);
+    FiffIO::read(pIODevice);
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffIO::FiffIO(QList<QIODevice*>& p_qlistIODevices)
 {
@@ -85,12 +86,14 @@ FiffIO::FiffIO(QList<QIODevice*>& p_qlistIODevices)
     }
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
-bool FiffIO::setup_read(QIODevice& p_IODevice, FiffInfo& info, FiffDirNode::SPtr& dirTree)
+bool FiffIO::setup_read(QIODevice& pIODevice,
+                        FiffInfo& info,
+                        FiffDirNode::SPtr& dirTree)
 {
     //Open the file
-    FiffStream::SPtr p_pStream(new FiffStream(&p_IODevice));
+    FiffStream::SPtr p_pStream(new FiffStream(&pIODevice));
     QString t_sFileName = p_pStream->streamName();
 
     printf("Opening fiff data %s...\n",t_sFileName.toUtf8().constData());
@@ -105,30 +108,44 @@ bool FiffIO::setup_read(QIODevice& p_IODevice, FiffInfo& info, FiffDirNode::SPtr
     return true;
 }
 
-//*************************************************************************************************************
-bool FiffIO::read(QIODevice& p_IODevice)
+//=============================================================================================================
+
+bool FiffIO::read(QIODevice& pIODevice)
 {
     //Read dirTree from fiff data (raw,evoked,fwds,cov)
     FiffInfo t_fiffInfo;
     FiffDirNode::SPtr t_dirTree;
-    bool hasRaw=false,hasEvoked=false; // hasFwds=false;
+    bool hasRaw = false;
+    bool hasEvoked = false; // hasFwds=false;
 
-    FiffIO::setup_read(p_IODevice,t_fiffInfo,t_dirTree);
-    p_IODevice.close(); //file can be closed, since IODevice is already read
+    FiffIO::setup_read(pIODevice, t_fiffInfo, t_dirTree);
+    pIODevice.close(); //file can be closed, since IODevice is already read
+
+    if(!t_dirTree) {
+        qWarning() << "[FiffIO::read] Dir tree could not be read";
+        return false;
+    }
 
     //Search dirTree for specific data types
-    if(t_dirTree->has_kind(FIFFB_EVOKED))
+    if(t_dirTree->has_kind(FIFFB_EVOKED)) {
         hasEvoked = true;
-    if(t_dirTree->has_kind(FIFFB_RAW_DATA) || t_dirTree->has_kind(FIFFB_PROCESSED_DATA))
+    }
+
+    if(t_dirTree->has_kind(FIFFB_RAW_DATA) ||
+       t_dirTree->has_kind(FIFFB_PROCESSED_DATA) ||
+       t_dirTree->has_kind(FIFFB_CONTINUOUS_DATA) ||
+       t_dirTree->has_kind(FIFFB_SMSH_RAW_DATA)) {
         hasRaw = true;
+    }
+
    // if(t_Tree.has_kind(FIFFB_MNE_FORWARD_SOLUTION))
    //     hasFwds = true;
 
     //Read all sort of types
     //raw data
     if(hasRaw) {
-        QSharedPointer<FiffRawData> p_fiffRawData(new FiffRawData(p_IODevice));
-        p_IODevice.close();
+        QSharedPointer<FiffRawData> p_fiffRawData(new FiffRawData(pIODevice));
+        pIODevice.close();
 
         //append to corresponding member qlist
         m_qlistRaw.append(p_fiffRawData);
@@ -138,8 +155,8 @@ bool FiffIO::read(QIODevice& p_IODevice)
 
     //evoked data + projections
     if(hasEvoked) {
-        FiffEvokedSet p_fiffEvokedSet(p_IODevice);
-        p_IODevice.close();
+        FiffEvokedSet p_fiffEvokedSet(pIODevice);
+        pIODevice.close();
 
         //append to corresponding member qlist
         for(qint32 i=0; i < p_fiffEvokedSet.evoked.size(); ++i) {
@@ -149,7 +166,7 @@ bool FiffIO::read(QIODevice& p_IODevice)
 
 //    //forward solutions
 //    if(hasFwds) {
-//        MNEForwardSolution p_forwardSolution(p_IODevice);
+//        MNEForwardSolution p_forwardSolution(pIODevice);
 
 //        //append to corresponding member qlist
 //        m_qlistFwd.append(QSharedPointer<MNEForwardSolution>(&p_forwardSolution));
@@ -161,12 +178,14 @@ bool FiffIO::read(QIODevice& p_IODevice)
     return true;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
-bool FiffIO::write(QIODevice& p_IODevice, const fiff_int_t type, const fiff_int_t idx) const {
+bool FiffIO::write(QIODevice& pIODevice,
+                   const fiff_int_t type,
+                   const fiff_int_t idx) const {
     switch(type) {
         case FIFFB_RAW_DATA: {
-            FiffIO::write_raw(p_IODevice,idx);
+            FiffIO::write_raw(pIODevice,idx);
             qDebug() << "Finished writing single raw data with index" << idx << ".";
         }
         case FIFFB_EVOKED:
@@ -175,12 +194,13 @@ bool FiffIO::write(QIODevice& p_IODevice, const fiff_int_t type, const fiff_int_
     }
 
     return true;
-
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
-bool FiffIO::write(QFile& p_QFile, const fiff_int_t type, const fiff_int_t idx) const {
+bool FiffIO::write(QFile& p_QFile,
+                   const fiff_int_t type,
+                   const fiff_int_t idx) const {
     qDebug("------------------------ Writing fiff data ------------------------");
 
     switch(type) {
@@ -213,27 +233,25 @@ bool FiffIO::write(QFile& p_QFile, const fiff_int_t type, const fiff_int_t idx) 
     }
 
     return true;
-
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
-bool FiffIO::write_raw(QIODevice &p_IODevice, const fiff_int_t idx) const {
-
+bool FiffIO::write_raw(QIODevice &pIODevice,
+                       const fiff_int_t idx) const
+{
     RowVectorXd cals;
     SparseMatrix<double> mult;
     RowVectorXi sel;
-
-//    std::cout << "Writing file " << QFile(&p_IODevice).fileName().toUtf8() << std::endl;
-    FiffStream::SPtr outfid = FiffStream::start_writing_raw(p_IODevice,this->m_qlistRaw[idx]->info,cals);
+    FiffStream::SPtr outfid = FiffStream::start_writing_raw(pIODevice, this->m_qlistRaw[idx]->info, cals);
 
     //Setup reading parameters
     fiff_int_t from = m_qlistRaw[idx]->first_samp;
     fiff_int_t to = m_qlistRaw[idx]->last_samp;
-    float quantum_sec = 10.0f;//read and write in 10 sec junks
+    float quantum_sec = 30.0f;//read and write in 30 sec junks
     fiff_int_t quantum = ceil(quantum_sec*m_qlistRaw[idx]->info.sfreq);
 
-    // Uncomment to read the whole file at once. Warning MAtrix may be none-initialisable because its huge
+    // Uncomment to read the whole file at once. Warning Matrix may be none-initialisable because its huge
     //quantum = to - from + 1;
 
     // Read and write all the data
@@ -248,7 +266,7 @@ bool FiffIO::write_raw(QIODevice &p_IODevice, const fiff_int_t idx) const {
         if (last > to)
             last = to;
 
-        if (!m_qlistRaw[idx]->read_raw_segment(data,times,mult,first,last,sel)) {
+        if (!m_qlistRaw[idx]->read_raw_segment(data, times, mult, first, last, sel)) {
             qDebug("error during read_raw_segment\n");
             return false;
         }
@@ -259,7 +277,7 @@ bool FiffIO::write_raw(QIODevice &p_IODevice, const fiff_int_t idx) const {
                outfid->write_int(FIFF_FIRST_SAMPLE,&first);
            first_buffer = false;
         }
-        outfid->write_raw_buffer(data,mult);
+        outfid->write_raw_buffer(data, cals);
         qDebug("[done]\n");
     }
 
@@ -267,5 +285,3 @@ bool FiffIO::write_raw(QIODevice &p_IODevice, const fiff_int_t idx) const {
 
     return true;
 }
-
-//*************************************************************************************************************

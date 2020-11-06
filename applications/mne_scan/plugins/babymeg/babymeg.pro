@@ -1,15 +1,14 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     babymeg.pro
 # @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+#           Lorenz Esch <lesch@mgh.harvard.edu>
+# @since    0.1.0
 # @date     November, 2016
 #
 # @section  LICENSE
 #
-# Copyright (C) 2016, Christoph Dinh, Lorenz Esch and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2016, Christoph Dinh, Lorenz Esch. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -32,66 +31,60 @@
 #
 # @brief    This project file generates the makefile for the babymeg plug-in.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../../../mne-cpp.pri)
 
 TEMPLATE = lib
 
-CONFIG += plugin
-
-DEFINES += BABYMEG_LIBRARY
-
 QT += widgets 3dextras network
+
+CONFIG += skip_target_version_ext plugin
+
+DEFINES += BABYMEG_PLUGIN
+
+DESTDIR = $${MNE_BINARY_DIR}/mne_scan_plugins
 
 TARGET = babymeg
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
 
-LIBS += -L$${MNE_LIBRARY_DIR}
-CONFIG(debug, debug|release) {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utilsd \
-            -lMNE$${MNE_LIB_VERSION}Fsd \
-            -lMNE$${MNE_LIB_VERSION}Fiffd \
-            -lMNE$${MNE_LIB_VERSION}Mned \
-            -lMNE$${MNE_LIB_VERSION}Fwdd \
-            -lMNE$${MNE_LIB_VERSION}Inversed \
-            -lMNE$${MNE_LIB_VERSION}Connectivityd \
-            -lMNE$${MNE_LIB_VERSION}Realtimed \
-            -lMNE$${MNE_LIB_VERSION}Dispd \
-            -lMNE$${MNE_LIB_VERSION}Disp3Dd \
-            -lscMeasd \
-            -lscDispd \
-            -lscSharedd
-}
-else {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
-            -lMNE$${MNE_LIB_VERSION}Fs \
-            -lMNE$${MNE_LIB_VERSION}Fiff \
-            -lMNE$${MNE_LIB_VERSION}Mne \
-            -lMNE$${MNE_LIB_VERSION}Fwd \
-            -lMNE$${MNE_LIB_VERSION}Inverse \
-            -lMNE$${MNE_LIB_VERSION}Connectivity \
-            -lMNE$${MNE_LIB_VERSION}Realtime \
-            -lMNE$${MNE_LIB_VERSION}Disp \
-            -lMNE$${MNE_LIB_VERSION}Disp3D \
-            -lscMeas \
-            -lscDisp \
-            -lscShared
+contains(MNECPP_CONFIG, static) {
+    CONFIG += staticlib
+    DEFINES += STATICBUILD
+} else {
+    CONFIG += shared
 }
 
-DESTDIR = $${MNE_BINARY_DIR}/mne_scan_plugins
+LIBS += -L$${MNE_LIBRARY_DIR}
+CONFIG(debug, debug|release) {
+    LIBS += -lscSharedd \
+            -lscDispd \
+            -lmnecppRtProcessingd \
+            -lscMeasd \
+            -lmnecppCommunicationd \
+            -lmnecppFiffd \
+            -lmnecppFsd \
+            -lmnecppUtilsd \
+} else {
+    LIBS += -lscShared \
+            -lscDisp \
+            -lmnecppRtProcessing \
+            -lscMeas \
+            -lmnecppCommunication \
+            -lmnecppFiff \
+            -lmnecppFs \
+            -lmnecppUtils \
+}
 
 SOURCES += \
     babymeg.cpp \
     babymegclient.cpp \
     babymeginfo.cpp \
     FormFiles/babymegsetupwidget.cpp \
-    FormFiles/babymegaboutwidget.cpp \
     FormFiles/babymegsquidcontroldgl.cpp \
     FormFiles/globalobj.cpp \
-    FormFiles/babymegprojectdialog.cpp \
     FormFiles/plotter.cpp \
 
 HEADERS += \
@@ -100,53 +93,43 @@ HEADERS += \
     babymeginfo.h \
     babymeg_global.h \
     FormFiles/babymegsetupwidget.h \
-    FormFiles/babymegaboutwidget.h \
     FormFiles/babymegsquidcontroldgl.h \
     FormFiles/globalobj.h \
-    FormFiles/babymegprojectdialog.h \
     FormFiles/plotter.h \
 
 FORMS += \
     FormFiles/babymegsetup.ui \
-    FormFiles/babymegabout.ui \
     FormFiles/babymegsquidcontroldgl.ui \
-    FormFiles/babymegprojectdialog.ui \
-
-RESOURCE_FILES +=\
-    $${ROOT_DIR}/resources/mne_scan/plugins/babymeg/both.bad \
-    $${ROOT_DIR}/resources/mne_scan/plugins/babymeg/header.fif \
-    $${ROOT_DIR}/resources/mne_scan/plugins/babymeg/readme.txt \
-
-# Copy resource files to bin resource folder
-for(FILE, RESOURCE_FILES) {
-    FILEDIR = $$dirname(FILE)
-    FILEDIR ~= s,/resources,/bin/resources,g
-    FILEDIR = $$shell_path($${FILEDIR})
-    TRGTDIR = $${FILEDIR}
-
-    QMAKE_POST_LINK += $$sprintf($${QMAKE_MKDIR_CMD}, "$${TRGTDIR}") $$escape_expand(\n\t)
-
-    FILE = $$shell_path($${FILE})
-    QMAKE_POST_LINK += $${QMAKE_COPY} $$quote($${FILE}) $$quote($${TRGTDIR}) $$escape_expand(\\n\\t)
-}
-
-INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
-INCLUDEPATH += $${MNE_INCLUDE_DIR}
-INCLUDEPATH += $${MNE_SCAN_INCLUDE_DIR}
 
 RESOURCES += \
     babymeg.qrc
 
 OTHER_FILES += babymeg.json
 
-# Put generated form headers into the origin --> cause other src is pointing at them
-UI_DIR = $${PWD}
+INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
+INCLUDEPATH += $${MNE_INCLUDE_DIR}
+INCLUDEPATH += $${MNE_SCAN_INCLUDE_DIR}
 
-unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
+unix:!macx {
+    QMAKE_RPATHDIR += $ORIGIN/../../lib
+}
 
-# suppress visibility warnings
-unix: QMAKE_CXXFLAGS += -Wno-attributes
+# Activate FFTW backend in Eigen for non-static builds only
+contains(MNECPP_CONFIG, useFFTW):!contains(MNECPP_CONFIG, static) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
 
-contains(MNECPP_CONFIG, buildBasicMneScanVersion) {
-    DEFINES += BUILD_BASIC_MNESCAN_VERSION
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
+    }
+
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
 }

@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fiff_tag.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-* 
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FiffTag Class.
-*
-*/
+ * @file     fiff_tag.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FiffTag Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -42,25 +41,15 @@
 #include "fiff_tag.h"
 #include <utils/ioutils.h>
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
-
 #include <complex>
 #include <iostream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
 #include <QTcpSocket>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -68,8 +57,6 @@
 using namespace UTILSLIB;
 using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -83,8 +70,7 @@ FiffTag::FiffTag()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffTag::FiffTag(const FiffTag* p_pFiffTag)
 : QByteArray( p_pFiffTag->data(), p_pFiffTag->size())
@@ -103,8 +89,7 @@ FiffTag::FiffTag(const FiffTag* p_pFiffTag)
 //        m_pComplexDoubleData = NULL;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffTag::~FiffTag()
 {
@@ -114,16 +99,14 @@ FiffTag::~FiffTag()
 //        delete this->m_pComplexDoubleData;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_int_t FiffTag::getMatrixCoding() const
 {
    return IS_MATRIX & this->type;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffTag::isMatrix() const
 {
@@ -133,8 +116,7 @@ bool FiffTag::isMatrix() const
         return false;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffTag::getMatrixDimensions(qint32& p_ndim, QVector<qint32>& p_Dims) const
 {
@@ -167,8 +149,7 @@ bool FiffTag::getMatrixDimensions(qint32& p_ndim, QVector<qint32>& p_Dims) const
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_int_t FiffTag::getType() const
 {
@@ -182,8 +163,7 @@ fiff_int_t FiffTag::getType() const
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QString FiffTag::getInfo() const
 {
@@ -283,8 +263,7 @@ QString FiffTag::getInfo() const
     return t_qStringInfo;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 /*---------------------------------------------------------------------------
  *
@@ -295,7 +274,6 @@ QString FiffTag::getInfo() const
  *--------------------------------------------------------------------------*/
 
 //#ifdef BIG_ENDIAN_ARCH
-
 
 //void FiffTag::fiff_convert_tag_info(FiffTag*& tag)
 //{
@@ -320,8 +298,7 @@ QString FiffTag::getInfo() const
 
 //#endif /* INTEL_X86_ARCH */
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffTag::convert_ch_pos(FiffChPos* pos)
 {
@@ -336,8 +313,7 @@ void FiffTag::convert_ch_pos(FiffChPos* pos)
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffTag::convert_matrix_from_file_data(FiffTag::SPtr tag)
 /*
@@ -411,8 +387,7 @@ void FiffTag::convert_matrix_from_file_data(FiffTag::SPtr tag)
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffTag::convert_matrix_to_file_data(FiffTag::SPtr tag)
 /*
@@ -462,8 +437,8 @@ void FiffTag::convert_matrix_to_file_data(FiffTag::SPtr tag)
             IOUtils::swap_intp(dimp+k);
     }
     /*
-    * Now convert data...
-    */
+     * Now convert data...
+     */
     kind = fiff_type_base(tag->type);
     if (kind == FIFFT_INT) {
         for (data = (int *)(tag->data()), k = 0; k < np; k++)
@@ -488,8 +463,7 @@ void FiffTag::convert_matrix_to_file_data(FiffTag::SPtr tag)
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //ToDo remove this function by swapping -> define little endian big endian, QByteArray
 void FiffTag::convert_tag_data(FiffTag::SPtr tag, int from_endian, int to_endian)
 {
@@ -531,8 +505,8 @@ void FiffTag::convert_tag_data(FiffTag::SPtr tag, int from_endian, int to_endian
     switch (tag->type) {
 
     case FIFFT_INT :
-    case FIFFT_JULIAN :
     case FIFFT_UINT :
+    case FIFFT_JULIAN :
         np = tag->size()/sizeof(fiff_int_t);
         for (ithis = (fiff_int_t *)tag->data(), k = 0; k < np; k++, ithis++)
             IOUtils::swap_intp(ithis);
@@ -743,7 +717,7 @@ void FiffTag::convert_tag_data(FiffTag::SPtr tag, int from_endian, int to_endian
     return;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 //fiff_type_spec
 
 fiff_int_t FiffTag::fiff_type_fundamental(fiff_int_t type)
@@ -751,16 +725,14 @@ fiff_int_t FiffTag::fiff_type_fundamental(fiff_int_t type)
     return type & FIFFTS_FS_MASK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_int_t FiffTag::fiff_type_base(fiff_int_t type)
 {
     return type & FIFFTS_BASE_MASK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fiff_int_t FiffTag::fiff_type_matrix_coding(fiff_int_t type)
 {

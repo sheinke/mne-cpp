@@ -1,39 +1,40 @@
 //=============================================================================================================
 /**
-* @file     connectormanager.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief     implementation of the ConnectorManager Class.
-*
-*/
+ * @file     connectormanager.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Felix Arndt <Felix.Arndt@tu-ilmenau.de>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Christoph Dinh, Felix Arndt, Lorenz Esch, Matti Hamalainen. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief     Definition of the ConnectorManager Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -45,18 +46,14 @@
 
 #include "IConnector.h"
 
-#include <realtime/rtCommand/commandmanager.h>
+#include <communication/rtCommand/commandmanager.h>
 
-
-//*************************************************************************************************************
-//=============================================================================================================
-// STL INCLUDES
-//=============================================================================================================
+#ifdef STATICBUILD
+#include <../plugins/fiffsimulator/fiffsimulator.h>
+#endif
 
 #include <iostream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -66,19 +63,16 @@
 #include <QString>
 #include <QStringList>
 #include <QTextStream>
-
+#include <QCoreApplication>
 #include <QDebug>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace RTSERVER;
+using namespace COMMUNICATIONLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -87,11 +81,9 @@ ConnectorManager::ConnectorManager(FiffStreamServer* p_pFiffStreamServer, QObjec
 : QPluginLoader(parent)
 , m_pFiffStreamServer(p_pFiffStreamServer)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 ConnectorManager::~ConnectorManager()
 {
@@ -100,8 +92,7 @@ ConnectorManager::~ConnectorManager()
         delete (*it);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void ConnectorManager::clearConnectorActivation()
 {
@@ -115,8 +106,7 @@ void ConnectorManager::clearConnectorActivation()
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void ConnectorManager::comConlist(Command p_command)
 {
@@ -128,11 +118,9 @@ void ConnectorManager::comConlist(Command p_command)
         t_pMNERTServer->getCommandManager()["conlist"].reply(this->getConnectorList());
     else
         t_pMNERTServer->getCommandManager()["conlist"].reply(this->getConnectorList(true));
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void ConnectorManager::comSelcon(Command p_command)
 {
@@ -153,11 +141,9 @@ void ConnectorManager::comSelcon(Command p_command)
         else
             qobject_cast<MNERTServer*> (this->parent())->getCommandManager()["selcon"].reply(this->getConnectorList(true));
     }
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void ConnectorManager::comStart(Command p_command)//comMeas
 {
@@ -167,8 +153,7 @@ void ConnectorManager::comStart(Command p_command)//comMeas
     Q_UNUSED(p_command);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void ConnectorManager::comStopAll(Command p_command)
 {
@@ -178,8 +163,7 @@ void ConnectorManager::comStopAll(Command p_command)
     Q_UNUSED(p_command);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void ConnectorManager::connectActiveConnector()
 {
@@ -225,8 +209,7 @@ void ConnectorManager::connectActiveConnector()
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void ConnectorManager::disconnectActiveConnector()
 {
@@ -275,8 +258,7 @@ void ConnectorManager::disconnectActiveConnector()
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 IConnector* ConnectorManager::getActiveConnector()
 {
@@ -290,8 +272,7 @@ IConnector* ConnectorManager::getActiveConnector()
     return NULL;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QByteArray ConnectorManager::getConnectorList(bool p_bFlagJSON) const
 {
@@ -343,7 +324,7 @@ QByteArray ConnectorManager::getConnectorList(bool p_bFlagJSON) const
     return t_blockConnectorList;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void ConnectorManager::connectCommands()
 {
@@ -356,13 +337,40 @@ void ConnectorManager::connectCommands()
     QObject::connect(&t_pMNERTServer->getCommandManager()["stop-all"], &Command::executed, this, &ConnectorManager::comStopAll);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void ConnectorManager::loadConnectors(const QString& dir)
 {
     clearConnectorActivation();
 
+#ifdef STATICBUILD
+    Q_UNUSED(dir)
+
+    // In case of a static build we have to load plugins manually.
+    const auto staticInstances = QPluginLoader::staticPlugins();
+    QString sJSONFile;
+
+    for(QStaticPlugin plugin : staticInstances) {
+        // AbstractPlugin
+        if(plugin.instance()) {
+            if(IConnector* t_pIConnector = qobject_cast<IConnector*>(plugin.instance())) {
+                t_pIConnector->setStatus(false);
+
+                //Add the curent plugin meta data
+                QJsonObject t_qJsonObjectMetaData = plugin.metaData().value("MetaData").toObject();
+                t_pIConnector->setMetaData(t_qJsonObjectMetaData);
+                QJsonDocument t_jsonDocumentOrigin(t_qJsonObjectMetaData);
+                t_pIConnector->getCommandManager().insert(t_jsonDocumentOrigin);
+                t_pIConnector->connectCommandManager();
+
+                s_vecConnectors.push_back(t_pIConnector);
+                qInfo() << "[ConnectorManager::loadConnectors] Loading " << t_pIConnector->getName() << "done";
+            } else {
+                qWarning() << "[ConnectorManager::loadConnectors] Loading plugin failed";
+            }
+        }
+    }
+#else
     QDir ConnectorsDir(dir);
 
     printf("Loading connectors in directory... %s\n", ConnectorsDir.path().toUtf8().constData() );
@@ -391,18 +399,20 @@ void ConnectorManager::loadConnectors(const QString& dir)
             t_pIConnector->connectCommandManager();
 
             s_vecConnectors.push_back(t_pIConnector);
-            printf("[done]\n");
+
+            qInfo() << "[ConnectorManager::loadConnectors] Loading " << fileName << "done";
+        } else {
+            qWarning() << "[ConnectorManager::loadConnectors] Loading plugin failed" << fileName << "failed";
         }
-        else
-            printf("failed!\n");
     }
+#endif
 
     //
     // search config for default connector
     //
     qint32 configConnector = -1;
     QString configFileName("plugin.cfg");
-    QFile configFile("/resources/mne_rt_server_plugins/"+configFileName);
+    QFile configFile(QString("%1/resources/mne_rt_server/plugins/"+configFileName).arg(QCoreApplication::applicationDirPath()));
     if(!configFile.open(QIODevice::ReadOnly)) {
         printf("Not able to read config file... %s\n", configFile.fileName().toUtf8().constData());
     }
@@ -454,8 +464,7 @@ void ConnectorManager::loadConnectors(const QString& dir)
     printf("%s", getConnectorList().data());
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QByteArray ConnectorManager::setActiveConnector(qint32 ID)
 {
@@ -503,8 +512,6 @@ QByteArray ConnectorManager::setActiveConnector(qint32 ID)
     return p_blockClientList;
 }
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // STATIC DEFINITIONS
 //=============================================================================================================

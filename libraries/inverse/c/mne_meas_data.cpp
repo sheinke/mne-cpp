@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_meas_data.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MNE Meas Data (MneMeasData) Class.
-*
-*/
+ * @file     mne_meas_data.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MNE Meas Data (MneMeasData) Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -44,6 +43,7 @@
 #include "mne_inverse_operator.h"
 
 #include <mne/c/mne_types.h>
+#include <mne/c/mne_named_matrix.h>
 
 #include <fiff/fiff_types.h>
 
@@ -51,9 +51,6 @@
 
 #include <QFile>
 
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -63,8 +60,6 @@ using namespace FIFFLIB;
 using namespace MNELIB;
 using namespace INVERSELIB;
 
-
-
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -72,7 +67,6 @@ using namespace INVERSELIB;
 #ifndef FALSE
 #define FALSE 0
 #endif
-
 
 #ifndef FAIL
 #define FAIL -1
@@ -82,8 +76,6 @@ using namespace INVERSELIB;
 #define OK 0
 #endif
 
-
-
 #if defined(_WIN32) || defined(_WIN64)
 #define snprintf _snprintf
 #define vsnprintf _vsnprintf
@@ -91,30 +83,17 @@ using namespace INVERSELIB;
 #define strncasecmp _strnicmp
 #endif
 
-
-
-
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
-
-
-
 
 #define MALLOC_9(x,t) (t *)malloc((x)*sizeof(t))
 #define REALLOC_9(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
 
-
-
 #define FREE_9(x) if ((char *)(x) != NULL) free((char *)(x))
-
-
 
 #define ALLOC_CMATRIX_9(x,y) mne_cmatrix_9((x),(y))
 
 #define FREE_CMATRIX_9(m) mne_free_cmatrix_9((m))
-
-
-
 
 void fromFloatEigenMatrix_9(const Eigen::MatrixXf& from_mat, float **& to_mat, const int m, const int n)
 {
@@ -128,8 +107,6 @@ void fromFloatEigenMatrix_9(const Eigen::MatrixXf& from_mat, float **& to_mat)
     fromFloatEigenMatrix_9(from_mat, to_mat, from_mat.rows(), from_mat.cols());
 }
 
-
-
 void mne_free_cmatrix_9 (float **m)
 {
     if (m) {
@@ -137,8 +114,6 @@ void mne_free_cmatrix_9 (float **m)
         FREE_9(m);
     }
 }
-
-
 
 static void matrix_error_9(int kind, int nr, int nc)
 
@@ -157,10 +132,6 @@ static void matrix_error_9(int kind, int nr, int nc)
     exit(1);
 }
 
-
-
-
-
 float **mne_cmatrix_9(int nr,int nc)
 
 {
@@ -178,8 +149,8 @@ float **mne_cmatrix_9(int nr,int nc)
     return m;
 }
 
-
-
+namespace INVERSELIB
+{
 
 typedef struct {
     int   size;		        /* Size of this buffer in floats */
@@ -193,6 +164,7 @@ typedef struct {
     int        next;
 } *ringBuf_9,ringBufRec_9;
 
+}
 
 void mne_free_ring_buffer_9(void *thisp)
 
@@ -210,10 +182,7 @@ void mne_free_ring_buffer_9(void *thisp)
     return;
 }
 
-
-
 //============================= mne_events.c =============================
-
 
 void mne_free_event_9(mneEvent e)
 {
@@ -223,7 +192,6 @@ void mne_free_event_9(mneEvent e)
     FREE_9(e);
     return;
 }
-
 
 void mne_free_event_list_9(mneEventList list)
 
@@ -237,11 +205,6 @@ void mne_free_event_list_9(mneEventList list)
     FREE_9(list);
     return;
 }
-
-
-
-
-
 
 void mne_free_sparse_named_matrix_9(mneSparseNamedMatrix mat)
 /*
@@ -258,11 +221,7 @@ void mne_free_sparse_named_matrix_9(mneSparseNamedMatrix mat)
     return;
 }
 
-
 //============================= mne_raw_routines.c =============================
-
-
-
 
 void mne_ch_selection_free_9(mneChSelection s)
 
@@ -280,29 +239,26 @@ void mne_ch_selection_free_9(mneChSelection s)
     return;
 }
 
-
-
-
 void mne_string_to_name_list_9(const QString& s, QStringList& listp,int &nlistp)
 /*
-* Convert a colon-separated list into a string array
-*/
+ * Convert a colon-separated list into a string array
+ */
 {
     QStringList list;
 
     if (!s.isEmpty() && s.size() > 0) {
-        list = s.split(":");
+        list = FIFFLIB::FiffStream::split_name_list(s);
+        //list = s.split(":");
     }
     listp  = list;
     nlistp = list.size();
     return;
 }
 
-
 QString mne_name_list_to_string_9(const QStringList& list)
 /*
-* Convert a string array to a colon-separated string
-*/
+ * Convert a string array to a colon-separated string
+ */
 {
     int nlist = list.size();
     QString res;
@@ -317,10 +273,11 @@ QString mne_name_list_to_string_9(const QStringList& list)
     return res;
 }
 
-QString mne_channel_names_to_string_9(fiffChInfo chs, int nch)
+QString mne_channel_names_to_string_9(const QList<FIFFLIB::FiffChInfo>& chs,
+                                      int nch)
 /*
-* Make a colon-separated string out of channel names
-*/
+ * Make a colon-separated string out of channel names
+ */
 {
     QStringList names;
     QString res;
@@ -332,20 +289,17 @@ QString mne_channel_names_to_string_9(fiffChInfo chs, int nch)
     return res;
 }
 
-
-void mne_channel_names_to_name_list_9(fiffChInfo chs, int nch,
-                                      QStringList& listp, int &nlistp)
+void mne_channel_names_to_name_list_9(const QList<FIFFLIB::FiffChInfo>& chs,
+                                      int nch,
+                                      QStringList& listp,
+                                      int &nlistp)
 
 {
     QString s = mne_channel_names_to_string_9(chs,nch);
+
     mne_string_to_name_list_9(s,listp,nlistp);
     return;
 }
-
-
-
-
-
 
 //============================= read_ch_info.c =============================
 
@@ -364,8 +318,6 @@ static FiffDirNode::SPtr find_meas_9 (const FiffDirNode::SPtr& node)
     }
     return (tmp_node);
 }
-
-
 
 static FiffDirNode::SPtr find_meas_info_9 (const FiffDirNode::SPtr& node)
 /*
@@ -387,19 +339,14 @@ static FiffDirNode::SPtr find_meas_info_9 (const FiffDirNode::SPtr& node)
     return empty_node;
 }
 
-
-
-
 //============================= mne_read_evoked.c =============================
-
 
 #define MAXDATE 100
 
-
 static FiffDirNode::SPtr find_evoked (const FiffDirNode::SPtr& node)
 /*
-* Find corresponding FIFFB_EVOKED node
-*/
+ * Find corresponding FIFFB_EVOKED node
+ */
 {
     FiffDirNode::SPtr empty_node;
     FiffDirNode::SPtr tmp_node = node;
@@ -410,8 +357,6 @@ static FiffDirNode::SPtr find_evoked (const FiffDirNode::SPtr& node)
     }
     return (tmp_node);
 }
-
-
 
 static QString get_comment (  FiffStream::SPtr& stream,
                               const FiffDirNode::SPtr& start)
@@ -511,10 +456,6 @@ static char *get_meas_date (    FiffStream::SPtr& stream,const FiffDirNode::SPtr
     return res;
 }
 
-
-
-
-
 static int get_meas_info (  FiffStream::SPtr& stream,       /* The stream we are reading */
                             const FiffDirNode::SPtr& node,  /* The directory node containing our data */
                             fiffId *id,                     /* The block id from the nearest FIFFB_MEAS parent */
@@ -523,16 +464,16 @@ static int get_meas_info (  FiffStream::SPtr& stream,       /* The stream we are
                             float *sfreq,                   /* Sampling frequency */
                             float *highpass,                /* Highpass filter setting */
                             float *lowpass,                 /* Lowpass filter setting */
-                            fiffChInfo *chp,                /* Channel descriptions */
+                            QList<FIFFLIB::FiffChInfo>& chp,                /* Channel descriptions */
                             FiffCoordTransOld* *trans)          /* Coordinate transformation (head <-> device) */
 /*
-* Find channel information from
-* nearest FIFFB_MEAS_INFO parent of
-* node.
-*/
+ * Find channel information from
+ * nearest FIFFB_MEAS_INFO parent of
+ * node.
+ */
 {
-    fiffChInfo ch;
-    fiffChInfo this_ch;
+    QList<FIFFLIB::FiffChInfo> ch;
+    FIFFLIB::FiffChInfo this_ch;
     FiffCoordTransOld* t;
     int j,k;
     int to_find = 4;
@@ -542,13 +483,11 @@ static int get_meas_info (  FiffStream::SPtr& stream,       /* The stream we are
     fiff_int_t kind, pos;
     FiffTag::SPtr t_pTag;
 
-    *chp     = NULL;
-    ch       = NULL;
-    *trans   = NULL;
-    *id      = NULL;
+     *trans   = NULL;
+     *id      = NULL;
     /*
-    * Find desired parents
-    */
+     * Find desired parents
+     */
     if (!(meas = find_meas_9(node))) {
         printf ("Meas. block not found!");
         goto bad;
@@ -558,8 +497,8 @@ static int get_meas_info (  FiffStream::SPtr& stream,       /* The stream we are
         goto bad;
     }
     /*
-    * Is there a block id is in the FIFFB_MEAS node?
-    */
+     * Is there a block id is in the FIFFB_MEAS node?
+     */
     if (!meas->id.isEmpty()) {
         *id = MALLOC_9(1,fiffIdRec);
         (*id)->version = meas->id.version;
@@ -568,10 +507,10 @@ static int get_meas_info (  FiffStream::SPtr& stream,       /* The stream we are
         (*id)->time = meas->id.time;
     }
     /*
-    * Others from FIFFB_MEAS_INFO
-    */
-    *lowpass = -1;
-    *highpass = -1;
+     * Others from FIFFB_MEAS_INFO
+     */
+     *lowpass = -1;
+     *highpass = -1;
     for (k = 0; k < meas_info->nent(); k++) {
         kind = meas_info->dir[k]->kind;
         pos  = meas_info->dir[k]->pos;
@@ -581,9 +520,11 @@ static int get_meas_info (  FiffStream::SPtr& stream,       /* The stream we are
             if (!stream->read_tag(t_pTag,pos))
                 goto bad;
             *nchan = *t_pTag->toInt();
-            ch = MALLOC_9(*nchan,fiffChInfoRec);
-            for (j = 0; j < *nchan; j++)
+
+            for (j = 0; j < *nchan; j++) {
+                ch.append(FiffChInfo());
                 ch[j].scanNo = -1;
+            }
             to_find = to_find + *nchan - 1;
             break;
 
@@ -621,13 +562,14 @@ static int get_meas_info (  FiffStream::SPtr& stream,       /* The stream we are
 
             if (!stream->read_tag(t_pTag,pos))
                 goto bad;
-            this_ch = (fiffChInfo)t_pTag->data();
-            if (this_ch->scanNo <= 0 || this_ch->scanNo > *nchan) {
+
+            this_ch = t_pTag->toChInfo();
+            if (this_ch.scanNo <= 0 || this_ch.scanNo > *nchan) {
                 qCritical ("FIFF_CH_INFO : scan # out of range!");
                 goto bad;
             }
             else
-                memcpy(ch+this_ch->scanNo-1,this_ch,sizeof(fiffChInfoRec));
+                ch[this_ch.scanNo-1] = this_ch;
             to_find--;
             break;
 
@@ -645,9 +587,9 @@ static int get_meas_info (  FiffStream::SPtr& stream,       /* The stream we are
         }
     }
     /*
-    * Search for the coordinate transformation from
-    * HPI_RESULT block if it was not previously found
-    */
+     * Search for the coordinate transformation from
+     * HPI_RESULT block if it was not previously found
+     */
 
     hpi = meas_info->dir_tree_find(FIFFB_HPI_RESULT);
 
@@ -678,17 +620,14 @@ static int get_meas_info (  FiffStream::SPtr& stream,       /* The stream we are
         printf ("Not all essential tags were found!");
         goto bad;
     }
-    *chp = ch;
+
+    chp = ch;
     return (0);
 
 bad : {
-        FREE_9(ch);
         return (-1);
     }
 }
-
-
-
 
 static int find_between (   FiffStream::SPtr& stream,
                             const FiffDirNode::SPtr& low_node,
@@ -702,7 +641,7 @@ static int find_between (   FiffStream::SPtr& stream,
     fiff_int_t kind_1, pos;
     int k;
 
-    *data = NULL;
+     *data = NULL;
     node = low_node;
     while (node != NULL) {
         for (k = 0; k < node->nent(); k++)
@@ -732,12 +671,6 @@ static int find_between (   FiffStream::SPtr& stream,
     }
     return (FIFF_OK);
 }
-
-
-
-
-
-
 
 static int get_evoked_essentials (FiffStream::SPtr& stream,         /* This is our file */
                                   const FiffDirNode::SPtr& node,    /* The interesting node */
@@ -771,8 +704,8 @@ static int get_evoked_essentials (FiffStream::SPtr& stream,         /* This is o
     FiffDirNode::SPtr tmp_node = node;
 
     /*
-    * This is rather difficult...
-    */
+     * This is rather difficult...
+     */
     if (find_between (stream,tmp_node,tmp_node->parent,FIFF_NAVE,&tempb) == FIFF_FAIL)
         return res;
     if (tempb)
@@ -859,22 +792,21 @@ out : {
     }
 }
 
-
 static int get_evoked_optional( FiffStream::SPtr& stream,
                                 const FiffDirNode::SPtr& node, /* The directory node containing our data */
                                 int *nchan,	 /* Number of channels */
-                                fiffChInfo *chp)	 /* Channel descriptions */
+                                QList<FiffChInfo>& chp)	 /* Channel descriptions */
 /*
-* The channel info may have been modified
-*/
+ * The channel info may have been modified
+ */
 {
     int res = FIFF_FAIL;
-    fiffChInfo   new_ch = NULL;
-    int          new_nchan = *nchan;
-    int          k,to_find;
+    QList<FiffChInfo> new_ch;
+    int new_nchan = *nchan;
+    int k,to_find;
     FiffTag::SPtr t_pTag;
     fiff_int_t kind, pos;
-    fiffChInfo   this_ch;
+    FiffChInfo this_ch;
     FiffDirNode::SPtr evoked_node;
 
     if (!(evoked_node = find_evoked(node))) {
@@ -892,20 +824,22 @@ static int get_evoked_optional( FiffStream::SPtr& stream,
         kind = evoked_node->dir[k]->kind;
         pos  = evoked_node->dir[k]->pos;
         if (kind == FIFF_CH_INFO) {     /* Information about one channel */
-            if (new_ch == NULL) {
-                new_ch = MALLOC_9(new_nchan,fiffChInfoRec);
+            if (new_ch.isEmpty()) {
                 to_find = new_nchan;
+                for (int i = 0; i < to_find; i++) {
+                    new_ch.append(FiffChInfo());
+                }
             }
             if (!stream->read_tag(t_pTag,pos))
                 goto out;
-            this_ch = MALLOC_9(1,fiffChInfoRec);
-            this_ch = (fiffChInfo)t_pTag->data();
-            if (this_ch->scanNo <= 0 || this_ch->scanNo > new_nchan) {
+
+            this_ch = t_pTag->toChInfo();
+            if (this_ch.scanNo <= 0 || this_ch.scanNo > new_nchan) {
                 printf ("FIFF_CH_INFO : scan # out of range!");
                 goto out;
             }
             else
-                new_ch[this_ch->scanNo-1] = *this_ch;
+                new_ch[this_ch.scanNo-1] = this_ch;
             to_find--;
         }
     }
@@ -920,21 +854,13 @@ static int get_evoked_optional( FiffStream::SPtr& stream,
 out : {
         if (res == FIFF_OK) {
             *nchan = new_nchan;
-            if (new_ch != NULL) {
-                FREE_9(*chp);
-                *chp = new_ch;
-                new_ch = NULL;
+            if (!new_ch.isEmpty()) {
+                chp = new_ch;
             }
         }
-        FREE_9(new_ch);
         return res;
     }
 }
-
-
-
-
-
 
 static void unpack_data(double offset,
                         double scale,
@@ -948,13 +874,12 @@ static void unpack_data(double offset,
     return;
 }
 
-
 static float **get_epochs ( FiffStream::SPtr& stream,       /* This is our file */
                             const FiffDirNode::SPtr& node,  /* The interesting node */
                             int nchan, int nsamp)            /* Number of channels and number of samples to be expected */
 /*
-* Get the evoked response epochs
-*/
+ * Get the evoked response epochs
+ */
 {
     fiff_int_t kind, pos;
     FiffTag::SPtr t_pTag;
@@ -1031,27 +956,13 @@ bad : {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 int mne_find_evoked_types_comments (    FiffStream::SPtr& stream,
                                         QList<FiffDirNode::SPtr>& nodesp,
                                         int         **aspect_typesp,
                                         QStringList* commentsp)
 /*
-* Find all data we are able to process
-*/
+ * Find all data we are able to process
+ */
 {
     QList<FiffDirNode::SPtr> evoked;
     QList<FiffDirNode::SPtr> meas;
@@ -1065,12 +976,12 @@ int mne_find_evoked_types_comments (    FiffStream::SPtr& stream,
     if (stream == NULL)
         return 0;
     /*
-    * First find all measurements
-    */
+     * First find all measurements
+     */
     meas = stream->dirtree()->dir_tree_find(FIFFB_MEAS);
     /*
-    * Process each measurement
-    */
+     * Process each measurement
+     */
     for (count = 0,p = 0; p < meas.size(); p++) {
         evoked = meas[p]->dir_tree_find(FIFFB_EVOKED);
         /*
@@ -1131,7 +1042,6 @@ int mne_find_evoked_types_comments (    FiffStream::SPtr& stream,
     }
 }
 
-
 QList<FiffDirNode::SPtr> mne_find_evoked ( FiffStream::SPtr& stream, QStringList* commentsp)
 /* Optionally return the compiled comments here */
 {
@@ -1140,17 +1050,13 @@ QList<FiffDirNode::SPtr> mne_find_evoked ( FiffStream::SPtr& stream, QStringList
     return evoked;
 }
 
-
-
-
-
 static void remove_artefacts (float *resp,
                               int   nsamp,
                               int   *artefs,
                               int   nartef)
 /*
-* Apply the artefact removal
-*/
+ * Apply the artefact removal
+ */
 {
     int   start,end;
     int   j,k;
@@ -1190,16 +1096,13 @@ static void remove_artefacts (float *resp,
     return;
 }
 
-
-
-
 int mne_read_evoked(const QString& name,        /* Name of the file */
                     int        setno,           /* Which data set */
                     int        *nchanp,         /* How many channels */
                     int        *nsampp,         /* Number of time points */
                     float      *tminp,          /* First time point */
                     float      *sfreqp,         /* Sampling frequency */
-                    fiffChInfo *chsp,           /* Channel info (this is now optional as well) */
+                    QList<FiffChInfo>& chsp,           /* Channel info (this is now optional as well) */
                     float      ***epochsp,      /* Data, channel by channel */
                     /*
                                         * Optional items follow
@@ -1213,8 +1116,8 @@ int mne_read_evoked(const QString& name,        /* Name of the file */
                     fiffId         *idp,        /* Measurement id */
                     fiffTime       *meas_datep) /* Measurement date */
 /*
-* Load evoked-response data from a fif file
-*/
+ * Load evoked-response data from a fif file
+ */
 {
     QFile file(name);
     FiffStream::SPtr stream(new FiffStream(&file));
@@ -1225,7 +1128,7 @@ int mne_read_evoked(const QString& name,        /* Name of the file */
     QStringList comments;               /* The associated comments */
     float       sfreq = 0.0;            /* What sampling frequency */
     FiffDirNode::SPtr start;
-    fiffChInfo   chs     = NULL;        /* Channel info */
+    QList<FiffChInfo>   chs;        /* Channel info */
     int          *artefs = NULL;        /* Artefact limits */
     int           nartef = 0;           /* How many */
     float       **epochs = NULL;        /* The averaged epochs */
@@ -1252,8 +1155,8 @@ int mne_read_evoked(const QString& name,        /* Name of the file */
         goto out;
 
     /*
-    * Select correct data set
-    */
+     * Select correct data set
+     */
     evoked = mne_find_evoked(stream,(commentp == NULL) ? NULL : &comments);
     if (!evoked.size()) {
         printf ("No evoked response data available here");
@@ -1270,33 +1173,45 @@ int mne_read_evoked(const QString& name,        /* Name of the file */
         goto out;
     }
     /*
-    * Get various things...
-    */
-    if (get_meas_info (stream,start,&id,&meas_date,&nchan,&sfreq,&highpass,&lowpass,&chs,&trans) == -1)
+     * Get various things...
+     */
+    if (get_meas_info (stream,
+                       start,
+                       &id,
+                       &meas_date,
+                       &nchan,
+                       &sfreq,
+                       &highpass,
+                       &lowpass,
+                       chs,
+                       &trans) == -1)
         goto out;
 
     /*
-    * sfreq is listed here again because
-    * there might be an individual one in the
-    * evoked-response data
-    */
+     * sfreq is listed here again because
+     * there might be an individual one in the
+     * evoked-response data
+     */
     if (get_evoked_essentials(stream,start,sfreq,
                               tmin,nsamp,nave,aspect_kind,
                               artefs,nartef) == -1)
         goto out;
     /*
-    * Some things may be redefined at a lower level
-    */
-    if (get_evoked_optional(stream,start,&nchan,&chs) == -1)
+     * Some things may be redefined at a lower level
+     */
+    if (get_evoked_optional(stream,
+                            start,
+                            &nchan,
+                            chs) == -1)
         goto out;
     /*
-    * Omit nonmagnetic channels
-    */
+     * Omit nonmagnetic channels
+     */
     if ((epochs = get_epochs(stream,start,nchan,nsamp)) == NULL)
         goto out;
     /*
-    * Change artefact limits to start from 0
-    */
+     * Change artefact limits to start from 0
+     */
     for (k = 0; k < nartef; k++) {
         qDebug() << "TODO: Artefact Vectors do not contain the right stuff!";
         artefs[2*k+1] = artefs[2*k+1] - sfreq*tmin;
@@ -1311,17 +1226,15 @@ int mne_read_evoked(const QString& name,        /* Name of the file */
     /*
    * Ready to go
    */
-    if (chsp) {
-        *chsp    = chs; chs = NULL;
-    }
+    chsp    = chs;
     *tminp   = tmin;
     *nchanp  = nchan;
     *nsampp  = nsamp;
     *sfreqp  = sfreq;
     *epochsp = epochs; epochs = NULL;
     /*
-    * Fill in the optional data
-    */
+     * Fill in the optional data
+     */
     if (commentp) {
         *commentp = comments[setno];
         comments[setno] = "";
@@ -1348,11 +1261,10 @@ int mne_read_evoked(const QString& name,        /* Name of the file */
     }
     res = OK;
     /*
-    * FREE all allocated data on exit
-    */
+     * FREE all allocated data on exit
+     */
 out : {
         comments.clear();
-        FREE_9(chs);
         FREE_9(artefs);
         FREE_9(trans);
         FREE_9(id);
@@ -1362,7 +1274,6 @@ out : {
         return res;
     }
 }
-
 
 //============================= mne_inverse_io.c =============================
 
@@ -1384,25 +1295,12 @@ char *mne_format_file_id (fiffId id)
     return s;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 int mne_read_meg_comp_eeg_ch_info_9(const QString& name,
-                                    fiffChInfo     *megp,	 /* MEG channels */
+                                    QList<FiffChInfo>& megp,	 /* MEG channels */
                                     int            *nmegp,
-                                    fiffChInfo     *meg_compp,
+                                    QList<FiffChInfo>& meg_compp,
                                     int            *nmeg_compp,
-                                    fiffChInfo     *eegp,	 /* EEG channels */
+                                    QList<FiffChInfo>& eegp,	 /* EEG channels */
                                     int            *neegp,
                                     FiffCoordTransOld* *meg_head_t,
                                     fiffId         *idp)	 /* The measurement ID */
@@ -1414,20 +1312,19 @@ int mne_read_meg_comp_eeg_ch_info_9(const QString& name,
     QFile file(name);
     FiffStream::SPtr stream(new FiffStream(&file));
 
-
-    fiffChInfo chs   = NULL;
+    QList<FiffChInfo> chs;
     int        nchan = 0;
-    fiffChInfo meg   = NULL;
+    QList<FiffChInfo> meg;
     int        nmeg  = 0;
-    fiffChInfo meg_comp = NULL;
+    QList<FiffChInfo> meg_comp;
     int        nmeg_comp = 0;
-    fiffChInfo eeg   = NULL;
+    QList<FiffChInfo> eeg;
     int        neeg  = 0;
     fiffId     id    = NULL;
     QList<FiffDirNode::SPtr> nodes;
     FiffDirNode::SPtr info;
     FiffTag::SPtr t_pTag;
-    fiffChInfo   this_ch = NULL;
+    FiffChInfo this_ch;
     FiffCoordTransOld* t = NULL;
     fiff_int_t kind, pos;
     int j,k,to_find;
@@ -1454,9 +1351,11 @@ int mne_read_meg_comp_eeg_ch_info_9(const QString& name,
             if (!stream->read_tag(t_pTag,pos))
                 goto bad;
             nchan = *t_pTag->toInt();
-            chs = MALLOC_9(nchan,fiffChInfoRec);
-            for (j = 0; j < nchan; j++)
+
+            for (j = 0; j < nchan; j++) {
+                chs.append(FiffChInfo());
                 chs[j].scanNo = -1;
+            }
             to_find = nchan;
             break;
 
@@ -1479,15 +1378,14 @@ int mne_read_meg_comp_eeg_ch_info_9(const QString& name,
         case FIFF_CH_INFO : /* Information about one channel */
             if(!stream->read_tag(t_pTag, pos))
                 goto bad;
-            //            this_ch = t_pTag->toChInfo();
-            this_ch = (fiffChInfo)malloc(sizeof(fiffChInfoRec));
-            *this_ch = *(fiffChInfo)(t_pTag->data());
-            if (this_ch->scanNo <= 0 || this_ch->scanNo > nchan) {
-                printf ("FIFF_CH_INFO : scan # out of range %d (%d)!",this_ch->scanNo,nchan);
+
+            this_ch = t_pTag->toChInfo();
+            if (this_ch.scanNo <= 0 || this_ch.scanNo > nchan) {
+                printf ("FIFF_CH_INFO : scan # out of range %d (%d)!",this_ch.scanNo,nchan);
                 goto bad;
             }
             else
-                chs[this_ch->scanNo-1] = *this_ch;
+                chs[this_ch.scanNo-1] = this_ch;
             to_find--;
             break;
         }
@@ -1508,49 +1406,35 @@ int mne_read_meg_comp_eeg_ch_info_9(const QString& name,
     /*
    * Sort out the channels
    */
-    for (k = 0; k < nchan; k++)
-        if (chs[k].kind == FIFFV_MEG_CH)
+    for (k = 0; k < nchan; k++) {
+        if (chs[k].kind == FIFFV_MEG_CH) {
+            meg.append(chs[k]);
             nmeg++;
-        else if (chs[k].kind == FIFFV_REF_MEG_CH)
+        } else if (chs[k].kind == FIFFV_REF_MEG_CH) {
+            meg_comp.append(chs[k]);
             nmeg_comp++;
-        else if (chs[k].kind == FIFFV_EEG_CH)
+        } else if (chs[k].kind == FIFFV_EEG_CH) {
+            eeg.append(chs[k]);
             neeg++;
-    if (nmeg > 0)
-        meg = MALLOC_9(nmeg,fiffChInfoRec);
-    if (neeg > 0)
-        eeg = MALLOC_9(neeg,fiffChInfoRec);
-    if (nmeg_comp > 0)
-        meg_comp = MALLOC_9(nmeg_comp,fiffChInfoRec);
-    neeg = nmeg = nmeg_comp = 0;
-
-    for (k = 0; k < nchan; k++)
-        if (chs[k].kind == FIFFV_MEG_CH)
-            meg[nmeg++] = chs[k];
-        else if (chs[k].kind == FIFFV_REF_MEG_CH)
-            meg_comp[nmeg_comp++] = chs[k];
-        else if (chs[k].kind == FIFFV_EEG_CH)
-            eeg[neeg++] = chs[k];
+        }
+    }
     //    fiff_close(in);
     stream->close();
-    FREE_9(chs);
-    if (megp) {
-        *megp  = meg;
+
+    megp  = meg;
+    if(nmegp) {
         *nmegp = nmeg;
     }
-    else
-        FREE_9(meg);
-    if (meg_compp) {
-        *meg_compp = meg_comp;
+
+    meg_compp = meg_comp;
+    if(nmeg_compp) {
         *nmeg_compp = nmeg_comp;
     }
-    else
-        FREE_9(meg_comp);
-    if (eegp) {
-        *eegp  = eeg;
+    eegp  = eeg;
+    if(neegp) {
         *neegp = neeg;
     }
-    else
-        FREE_9(eeg);
+
     if (idp == NULL) {
         FREE_9(id);
     }
@@ -1567,19 +1451,12 @@ int mne_read_meg_comp_eeg_ch_info_9(const QString& name,
 bad : {
         //        fiff_close(in);
         stream->close();
-        FREE_9(chs);
-        FREE_9(meg);
-        FREE_9(eeg);
         FREE_9(id);
         //        FREE(tag.data);
         FREE_9(t);
         return FIFF_FAIL;
     }
 }
-
-
-
-
 
 int mne_read_bad_channel_list_from_node_9(  FiffStream::SPtr& stream,
                                             const FiffDirNode::SPtr& pNode, QStringList& listp, int& nlistp)
@@ -1629,14 +1506,6 @@ int mne_read_bad_channel_list_9(const QString& name, QStringList& listp, int& nl
     return res;
 }
 
-
-
-
-
-
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -1651,7 +1520,6 @@ MneMeasData::MneMeasData()
     ,fwd       (NULL)
     ,meg_head_t(NULL)
     ,mri_head_t(NULL)
-    ,chs       (NULL)
     ,proj      (NULL)
     ,comp      (NULL)
     ,raw       (NULL)
@@ -1664,8 +1532,7 @@ MneMeasData::MneMeasData()
     meas_date.usecs = 0;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneMeasData::~MneMeasData()
 {
@@ -1673,7 +1540,6 @@ MneMeasData::~MneMeasData()
 
     filename.clear();
     FREE_9(meas_id);
-    FREE_9(chs);
     if(meg_head_t)
         delete meg_head_t;
     if(mri_head_t)
@@ -1695,8 +1561,7 @@ MneMeasData::~MneMeasData()
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MneMeasData::adjust_baselines(float bmin, float bmax)
 {
@@ -1756,10 +1621,15 @@ void MneMeasData::adjust_baselines(float bmin, float bmax)
     return;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MneMeasData *MneMeasData::mne_read_meas_data_add(const QString &name, int set, MneInverseOperator* op, MneNamedMatrix *fwd, const QStringList& namesp, int nnamesp, MneMeasData *add_to)     /* Add to this */
+MneMeasData *MneMeasData::mne_read_meas_data_add(const QString &name,
+                                                 int set,
+                                                 MneInverseOperator* op,
+                                                 MneNamedMatrix *fwd,
+                                                 const QStringList& namesp,
+                                                 int nnamesp,
+                                                 MneMeasData *add_to)     /* Add to this */
 /*
           * Read an evoked-response data file
           */
@@ -1767,7 +1637,7 @@ MneMeasData *MneMeasData::mne_read_meas_data_add(const QString &name, int set, M
     /*
        * Data read from the file
        */
-    fiffChInfo     chs = NULL;
+    QList<FiffChInfo> chs;
     int            nchan_file,nsamp;
     float          dtmin,dtmax,sfreq;
     QString        comment;
@@ -1780,8 +1650,8 @@ MneMeasData *MneMeasData::mne_read_meas_data_add(const QString &name, int set, M
     fiffTime       meas_date = NULL;
     QString        stim14_name;
     /*
-    * Desired channels
-    */
+     * Desired channels
+     */
     QStringList         names;
     int         nchan   = 0;
     /*
@@ -1824,8 +1694,20 @@ MneMeasData *MneMeasData::mne_read_meas_data_add(const QString &name, int set, M
        * Read the evoked data file
        */
     if (mne_read_evoked(name,set-1,
-                        &nchan_file,&nsamp,&dtmin,&sfreq,&chs,&data,
-                        &comment,&highpass,&lowpass,&nave,&aspect_kind,&t,&id,&meas_date) == FAIL)
+                        &nchan_file,
+                        &nsamp,
+                        &dtmin,
+                        &sfreq,
+                        chs,
+                        &data,
+                        &comment,
+                        &highpass,
+                        &lowpass,
+                        &nave,
+                        &aspect_kind,
+                        &t,
+                        &id,
+                        &meas_date) == FAIL)
         goto out;
 
     if (id)
@@ -1908,7 +1790,6 @@ MneMeasData *MneMeasData::mne_read_meas_data_add(const QString &name, int set, M
         }
         new_data->lowpass   = lowpass;
         new_data->highpass  = highpass;
-        new_data->chs       = MALLOC_9(nchan,fiffChInfoRec);
         new_data->nchan     = nchan;
         new_data->sfreq     = sfreq;
 
@@ -1926,8 +1807,10 @@ MneMeasData *MneMeasData::mne_read_meas_data_add(const QString &name, int set, M
         /*
          * Channel list
          */
-        for (k = 0; k < nchan; k++)
+        for (k = 0; k < nchan; k++) {
+            new_data->chs.append(FiffChInfo());
             new_data->chs[k] = chs[sel[k]];
+        }
 
         new_data->op  = op;		/* Attach inverse operator */
         new_data->fwd = fwd;		/* ...or a fwd operator */
@@ -2020,7 +1903,6 @@ out : {
         FREE_9(sel);
         comment.clear();
         FREE_CMATRIX_9(data);
-        FREE_9(chs);
         FREE_9(t);
         FREE_9(id);
         if (res == NULL && !add_to)
@@ -2031,10 +1913,14 @@ out : {
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MneMeasData *MneMeasData::mne_read_meas_data(const QString &name, int set, MneInverseOperator* op, MneNamedMatrix *fwd, const QStringList& namesp, int nnamesp)
+MneMeasData *MneMeasData::mne_read_meas_data(const QString &name,
+                                             int set,
+                                             MneInverseOperator* op,
+                                             MneNamedMatrix *fwd,
+                                             const QStringList& namesp,
+                                             int nnamesp)
 
 {
     return mne_read_meas_data_add(name,set,op,fwd,namesp,nnamesp,NULL);

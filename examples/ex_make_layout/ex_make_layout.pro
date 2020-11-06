@@ -1,14 +1,15 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     ex_make_layout.pro
-# @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @author   Robert Dicamillo <rd521@nmr.mgh.harvard.edu>;
+#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>
+# @since    0.1.0
 # @date     January, 2015
 #
 # @section  LICENSE
 #
-# Copyright (C) 2015, Lorenz Esch and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2015, Robert Dicamillo, Christoph Dinh, Lorenz Esch. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,42 +32,71 @@
 #
 # @brief    Builds example for making a 2D layout from 3D points
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../mne-cpp.pri)
 
 TEMPLATE = app
 
-VERSION = $${MNE_CPP_VERSION}
-
-QT       -= gui
+QT += network
+QT -= gui
 
 CONFIG   += console
-CONFIG   -= app_bundle
-
-TARGET = ex_make_layout
-
-CONFIG(debug, debug|release) {
-    TARGET = $$join(TARGET,,,d)
-}
-
-LIBS += -L$${MNE_LIBRARY_DIR}
-CONFIG(debug, debug|release) {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utilsd \
-            -lMNE$${MNE_LIB_VERSION}Fiffd
-}
-else {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
-            -lMNE$${MNE_LIB_VERSION}Fiff
+!contains(MNECPP_CONFIG, withAppBundles) {
+    CONFIG -= app_bundle
 }
 
 DESTDIR =  $${MNE_BINARY_DIR}
 
-SOURCES += main.cpp
+TARGET = ex_make_layout
+CONFIG(debug, debug|release) {
+    TARGET = $$join(TARGET,,,d)
+}
 
-HEADERS += \
+contains(MNECPP_CONFIG, static) {
+    CONFIG += static
+    DEFINES += STATICBUILD
+}
+
+LIBS += -L$${MNE_LIBRARY_DIR}
+CONFIG(debug, debug|release) {
+    LIBS += -lmnecppFiffd \
+            -lmnecppUtilsd \
+
+} else {
+    LIBS += -lmnecppFiff \
+            -lmnecppUtils \
+}
+
+SOURCES += main.cpp
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
 
-unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
+unix:!macx {
+    QMAKE_RPATHDIR += $ORIGIN/../lib
+}
+
+macx {
+    QMAKE_LFLAGS += -Wl,-rpath,@executable_path/../lib
+}
+
+# Activate FFTW backend in Eigen for non-static builds only
+contains(MNECPP_CONFIG, useFFTW):!contains(MNECPP_CONFIG, static) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
+
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
+    }
+
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
+}

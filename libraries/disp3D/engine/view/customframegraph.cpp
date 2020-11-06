@@ -1,48 +1,44 @@
 //=============================================================================================================
 /**
-* @file     customframegraph.cpp
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     August, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Lars Debor and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    CustomFrameGraph class definition.
-*
-*/
+ * @file     customframegraph.cpp
+ * @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     August, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lars Debor, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    CustomFrameGraph class definition.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "customframegraph.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -64,16 +60,13 @@
 #include <Qt3DRender/QBlendEquation>
 #include <Qt3DRender/QBlendEquationArguments>
 #include <Qt3DRender/QCullFace>
-#include <QSurfaceFormat>
+#include <Qt3DRender/QRenderCapture>
+#include <QGLFormat>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -81,44 +74,36 @@
 using namespace DISP3DLIB;
 using namespace Qt3DRender;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE GLOBAL METHODS
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-CustomFrameGraph::CustomFrameGraph(const QSurfaceFormat &tSurfaceFormat, Qt3DCore::QNode *parent)
-    : QViewport(parent)
-    , m_pForwardTranspKey(new QFilterKey)
-    , m_pForwardKey(new QFilterKey)
-    , m_pForwardSortedKey(new QFilterKey)
-    , m_pComputeKey(new QFilterKey)
-    , m_pDepthTest(new QDepthTest)
-    , m_pCullFace(new QCullFace)
-    , m_pBlendEquation(new QBlendEquation)
-    , m_pBlendArguments(new QBlendEquationArguments)
-    , m_pNoDepthMask( new QNoDepthMask)
-    , m_bUseOpenGl4_3(false)
+CustomFrameGraph::CustomFrameGraph(Qt3DCore::QNode *parent)
+: QViewport(parent)
+, m_pForwardTranspKey(new QFilterKey)
+, m_pForwardKey(new QFilterKey)
+, m_pForwardSortedKey(new QFilterKey)
+, m_pComputeKey(new QFilterKey)
+, m_pDepthTest(new QDepthTest)
+, m_pCullFace(new QCullFace)
+, m_pBlendEquation(new QBlendEquation)
+, m_pBlendArguments(new QBlendEquationArguments)
+, m_pNoDepthMask( new QNoDepthMask)
+, m_bUseOpenGl4_3(false)
 {
     //Test for OpenGL version 4.3
-    if((tSurfaceFormat.majorVersion() == 4
-            && tSurfaceFormat.minorVersion() >= 3
-            || tSurfaceFormat.majorVersion() > 4))
-    {
+    if(QGLFormat::openGLVersionFlags() >= QGLFormat::OpenGL_Version_4_3) {
         m_bUseOpenGl4_3 = true;
     }
 
     init();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 CustomFrameGraph::~CustomFrameGraph()
 {
@@ -130,7 +115,6 @@ CustomFrameGraph::~CustomFrameGraph()
     m_pCameraSelector->deleteLater();
     m_pForwardFilter->deleteLater();
     m_pSortPolicy->deleteLater();
-    m_pMemoryBarrier->deleteLater();
     m_pForwardKey->deleteLater();
     m_pComputeKey->deleteLater();
     m_pForwardState->deleteLater();
@@ -144,18 +128,19 @@ CustomFrameGraph::~CustomFrameGraph()
     m_pBlendEquation->deleteLater();
     m_pBlendArguments->deleteLater();
     m_pNoDepthMask->deleteLater();
+    if(m_bUseOpenGl4_3){
+        m_pMemoryBarrier->deleteLater();
+    }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void CustomFrameGraph::setCamera(QCamera *tCamera)
 {
     m_pCameraSelector->setCamera(tCamera);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void CustomFrameGraph::setWorkGroupSize(const uint tX, const uint tY, const uint tZ)
 {
@@ -164,48 +149,59 @@ void CustomFrameGraph::setWorkGroupSize(const uint tX, const uint tY, const uint
     m_pDispatchCompute->setWorkGroupZ(tZ);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void CustomFrameGraph::setClearColor(const QColor &tColor)
 {
     m_pClearBuffers->setClearColor(tColor);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+QRenderCaptureReply* CustomFrameGraph::requestRenderCaptureReply()
+{
+    return m_pCapture->requestCapture();
+}
+
+//=============================================================================================================
 
 void CustomFrameGraph::init()
 {
     //Build the frame graph
     m_pSurfaceSelector = new QRenderSurfaceSelector(this);
+
     //Clear buffer branch
     m_pClearBuffers = new QClearBuffers(m_pSurfaceSelector);
     m_pNoDraw = new QNoDraw(m_pClearBuffers);
+
     //Compute branch
     m_pDispatchCompute = new QDispatchCompute(m_pSurfaceSelector);
     m_pComputeFilter = new QTechniqueFilter(m_pDispatchCompute);
+
     // Forward render branch
     m_pCameraSelector = new QCameraSelector(m_pSurfaceSelector);
 
-    if(m_bUseOpenGl4_3)
-    {
+    if(m_bUseOpenGl4_3) {
         m_pMemoryBarrier = new QMemoryBarrier(m_pCameraSelector);
         m_pForwardState = new QRenderStateSet(m_pMemoryBarrier);
-    }
-    else
-    {
+
+        //Set Memory Barrier it ensures the finishing of the compute shader run before drawing the scene.
+        m_pMemoryBarrier->setWaitOperations(QMemoryBarrier::VertexAttributeArray);
+    } else {
         //don't use memory barrier
         m_pForwardState = new QRenderStateSet(m_pCameraSelector);
     }
 
     m_pForwardFilter = new QTechniqueFilter(m_pForwardState);
+
     //Transparent forward render branch
     m_pTransparentState = new QRenderStateSet(m_pForwardState);
     m_pForwardTranspFilter = new QTechniqueFilter(m_pTransparentState);
+
     //Transparent sorted forward render branch
     m_pForwardSortedFilter = new QTechniqueFilter(m_pTransparentState);
     m_pSortPolicy = new QSortPolicy(m_pForwardSortedFilter);
+    m_pCapture = new QRenderCapture(m_pSortPolicy);
 
     //Init frame graph nodes
     this->setNormalizedRect(QRectF(0.0f, 0.0f, 1.0f, 1.0f));
@@ -219,7 +215,6 @@ void CustomFrameGraph::init()
     m_pForwardState->addRenderState(m_pDepthTest);
     m_pCullFace->setMode(QCullFace::Back);
     m_pForwardState->addRenderState(m_pCullFace);
-
 
     //Set Transparent states
     m_pBlendArguments->setSourceRgb(QBlendEquationArguments::SourceAlpha);
@@ -251,10 +246,6 @@ void CustomFrameGraph::init()
     //Set draw policy
     QVector<QSortPolicy::SortType> sortTypes = {QSortPolicy::StateChangeCost, QSortPolicy::BackToFront};
     m_pSortPolicy->setSortTypes(sortTypes);
-
-    //Set Memory Barrier it ensures the finishing of the compute shader run before drawing the scene.
-    m_pMemoryBarrier->setWaitOperations(QMemoryBarrier::VertexAttributeArray);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================

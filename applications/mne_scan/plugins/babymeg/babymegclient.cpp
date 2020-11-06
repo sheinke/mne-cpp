@@ -1,48 +1,45 @@
 //=============================================================================================================
 /**
-* @file     babymegclient.cpp
-* @author   Limin Sun <liminsun@nmr.mgh.harvard.edu>;
-*           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     April, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Limin Sun, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief     BabyMEGClient class definition.
-*
-*/
+ * @file     babymegclient.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Limin Sun <limin.sun@childrens.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     April, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Christoph Dinh, Limin Sun, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief     BabyMEGClient class definition.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "babymegclient.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -51,16 +48,12 @@
 #include <QtNetwork>
 #include <QtEndian>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace BABYMEGPLUGIN;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -95,27 +88,23 @@ BabyMEGClient::BabyMEGClient(int myPort, QObject *parent)
     DataAcqStartFlag = false;
     numBlock = 0;
     DataACK = false;
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 BabyMEGClient::~BabyMEGClient()
 {
     delete tcpSocket;   // added 5.31.2013
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::SetInfo(QSharedPointer<BabyMEGInfo> pInfo)
 {
     myBabyMEGInfo = pInfo;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::DisplayError(int socketError, const QString &message)
 {
@@ -133,8 +122,7 @@ void BabyMEGClient::DisplayError(int socketError, const QString &message)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int BabyMEGClient::MGH_LM_Byte2Int(QByteArray b)
 {
@@ -150,8 +138,7 @@ int BabyMEGClient::MGH_LM_Byte2Int(QByteArray b)
     return value;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QByteArray BabyMEGClient::MGH_LM_Int2Byte(int a)
 {
@@ -167,8 +154,7 @@ QByteArray BabyMEGClient::MGH_LM_Int2Byte(int a)
     return b;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 double BabyMEGClient::MGH_LM_Byte2Double(QByteArray b)
 {
@@ -186,8 +172,7 @@ double BabyMEGClient::MGH_LM_Byte2Double(QByteArray b)
     return value;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::HescDisplay(double a)
 {
@@ -195,8 +180,7 @@ void BabyMEGClient::HescDisplay(double a)
     qDebug() << data.toHex();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::ConnectToBabyMEG()
 {
@@ -236,8 +220,7 @@ void BabyMEGClient::ConnectToBabyMEG()
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::DisConnectBabyMEG()
 {
@@ -245,8 +228,7 @@ void BabyMEGClient::DisConnectBabyMEG()
         SendCommand("QUIT");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::SendCommandToBabyMEGShortConnection(QByteArray s)
 {
@@ -282,11 +264,9 @@ void BabyMEGClient::SendCommandToBabyMEGShortConnection(QByteArray s)
             qDebug()<<"Connect state is abnormal:"<<tcpSocket->state();
         }
     }
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::SendCommandToBabyMEG()
 {
@@ -305,11 +285,9 @@ void BabyMEGClient::SendCommandToBabyMEG()
         tcpSocket->waitForBytesWritten();
         m_qMutex.unlock();
     }
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::ReadToBuffer()
 {
@@ -336,8 +314,7 @@ void BabyMEGClient::ReadToBuffer()
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::handleBuffer()
 {
@@ -451,11 +428,9 @@ void BabyMEGClient::handleBuffer()
             }
         }
     }// buffer is not empty and larger than 8 bytes
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::DispatchDataPackage(int tmp)
 {
@@ -474,8 +449,7 @@ void BabyMEGClient::DispatchDataPackage(int tmp)
     ReadNextBlock(tmp);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::ReadNextBlock(int tmp)
 {
@@ -517,15 +491,14 @@ void BabyMEGClient::ReadNextBlock(int tmp)
     DLEN1.clear();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::SendCommand(QString s)
 {
     QByteArray array;
     array.append(s);
 
-    int WrtNum;
+    qint64 WrtNum;
 
     if (tcpSocket->state()==QAbstractSocket::ConnectedState)
     {
@@ -558,10 +531,8 @@ void BabyMEGClient::SendCommand(QString s)
 //    sleep(1);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGClient::run()
 {
-
 }

@@ -1,47 +1,45 @@
 //=============================================================================================================
 /**
-* @file     ecd_set.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     December, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the Electric Current Dipole Set (ECDSet) Class.
-*
-*/
+ * @file     ecd_set.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     December, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the Electric Current Dipole Set (ECDSet) Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "ecd_set.h"
 #include <fiff/fiff_types.h>
-
 
 //ToDo don't use access and unlink -> use QT stuff instead -> QFile
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -50,24 +48,18 @@
 #include <unistd.h>
 #endif
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QDebug>
 #include <QFile>
 #include <QString>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -75,8 +67,6 @@
 using namespace INVERSELIB;
 using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINES
 //=============================================================================================================
@@ -85,8 +75,6 @@ using namespace FIFFLIB;
 #define Y 1
 #define Z 2
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE STATIC METHODS
 //=============================================================================================================
@@ -105,8 +93,7 @@ static fiff_int_t swap_int (fiff_int_t source)
     return (result);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //TODO OBSOLETE - USE ALREADY DEFINED ONE
 static float swap_float (float source)
 {
@@ -121,8 +108,9 @@ static float swap_float (float source)
     return result;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+namespace INVERSELIB {
 
 typedef struct {
     int   dipole;               /* Which dipole in a multi-dipole set */
@@ -141,8 +129,8 @@ typedef struct {
     float noise_est;            /* Total noise estimate */
 } *bdipEcd,bdipEcdRec;
 
+} // Namespace
 
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -151,34 +139,28 @@ ECDSet::ECDSet()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 ECDSet::ECDSet(const ECDSet &p_ECDSet)
 : dataname(p_ECDSet.dataname)
 , m_qListDips(p_ECDSet.m_qListDips)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 ECDSet::~ECDSet()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void ECDSet::addEcd(const ECD& p_ecd)
 {
     m_qListDips.append(p_ecd);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 ECDSet ECDSet::read_dipoles_dip(const QString& fileName)
 {
@@ -221,8 +203,7 @@ ECDSet ECDSet::read_dipoles_dip(const QString& fileName)
     return set;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool ECDSet::save_dipoles_bdip(const QString& fileName)
 /*
@@ -280,8 +261,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool ECDSet::save_dipoles_dip(const QString& fileName) const
 {
@@ -326,8 +306,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const ECD& ECDSet::operator[] (int idx) const
 {
@@ -339,8 +318,7 @@ const ECD& ECDSet::operator[] (int idx) const
     return m_qListDips[idx];
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 ECD& ECDSet::operator[] (int idx)
 {
@@ -352,8 +330,7 @@ ECD& ECDSet::operator[] (int idx)
     return m_qListDips[idx];
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 ECDSet &ECDSet::operator<<(const ECD &p_ecd)
 {

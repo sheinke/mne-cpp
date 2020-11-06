@@ -1,60 +1,60 @@
 //=============================================================================================================
 /**
-* @file     mainwindow.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017 Christoph Dinh, Lorenz Esch and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Contains the declaration of the MainWindow class.
-*
-*/
+ * @file     mainwindow.h
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Lars Debor <Lars.Debor@tu-ilmenau.de>;
+ *           Simon Heinke <Simon.Heinke@tu-ilmenau.de>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Christoph Dinh, Lorenz Esch, Lars Debor, Simon Heinke. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Contains the declaration of the MainWindow class.
+ *
+ */
 
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
-#include "mdiview.h"
+#include <disp/viewers/abstractview.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // Qt INCLUDES
 //=============================================================================================================
 
 #include <QMainWindow>
+#include <QCloseEvent>
 #include <QString>
+#include <QPointer>
+#include <QTextBrowser>
+#include <QSettings>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
@@ -63,18 +63,17 @@ QT_BEGIN_NAMESPACE
 class QAction;
 class QMenu;
 class QDockWidget;
+class QGridLayout;
 QT_END_NAMESPACE
 
-namespace ANSHAREDLIB
-{
-    class IExtension;
-    class ExtensionManager;
-    class AnalyzeData;
-    class AnalyzeSettings;
+namespace ANSHAREDLIB {
+    class PluginManager;
 }
 
+namespace DISPLIB {
+    class MultiView;
+}
 
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE NAMESPACE MNEANALYZE
 //=============================================================================================================
@@ -82,96 +81,147 @@ namespace ANSHAREDLIB
 namespace MNEANALYZE
 {
 
-//*************************************************************************************************************
 //=============================================================================================================
-// DEFINE FORWARD DECLARATIONS
+// MNEANALYZE FORWARD DECLARATIONS
 //=============================================================================================================
-
 
 //=============================================================================================================
 /**
-* MNE Analyze MainWindow
-*
-* @brief The MainWindow class provides the main mne analyze user interface.
-*/
+ * MNE Analyze MainWindow
+ *
+ * @brief The MainWindow class provides the main mne analyze user interface.
+ */
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+
 public:
     typedef QSharedPointer<MainWindow> SPtr;               /**< Shared pointer type for MainWindow. */
     typedef QSharedPointer<const MainWindow> ConstSPtr;    /**< Const shared pointer type for MainWindow. */
 
     //=========================================================================================================
     /**
-    * Constructs a MainWindow which is a child of parent.
-    *
-    * @param [in] parent pointer to parent widget; If parent is Q_NULLPTR, the new MainWindow becomes a window. If parent is another widget, MainWindow becomes a child window inside parent. MainWindow is deleted when its parent is deleted.
-    */
-    MainWindow(QWidget *parent = Q_NULLPTR);
+     * Constructs a MainWindow which is a child of parent.
+     *
+     * @param [in] pPluginManager Pointer to the plugin manager. It is needed to display subwindows froms plugins.
+     * @param [in] parent Pointer to parent widget; If parent is Q_NULLPTR, the new MainWindow becomes a window.
+     *                    If parent is another widget, MainWindow becomes a child window inside parent.
+     *                    MainWindow is deleted when its parent is deleted.
+     */
+    MainWindow(QSharedPointer<ANSHAREDLIB::PluginManager> pPluginManager, QWidget *parent = Q_NULLPTR);
 
     //=========================================================================================================
     /**
-    * Destroys the MainWindow.
-    * All MainWindow's children are deleted first. The application exits if MainWindow is the main widget.
-    */
+     * Destroys the MainWindow.
+     * All MainWindow's children are deleted first. The application exits if MainWindow is the main widget.
+     */
     ~MainWindow();
 
     //=========================================================================================================
     /**
-    * Initializes the global settings
-    */
-    void initGlobalSettings();
+     * This is called when the user presses the "close" button. It notifies the AnalyzeCore via a QtConnect.
+     *
+     * @param[in] event The event that has happened
+     */
+    void closeEvent(QCloseEvent *event) override;
+
+    //=============================================================================================================
+    /**
+     * Custom Qt message handler.
+     *
+     * @param [in] type      enum to identify the various message types
+     * @param [in] context   additional information about a log message
+     * @param [in] msg       the message to log
+     */
+    void writeToLog(QtMsgType type,
+                    const QMessageLogContext &context,
+                    const QString &msg);
 
     //=========================================================================================================
     /**
-    * Initializes the global data base
-    */
-    void initGlobalData();
+     * Saves geometry and state of GUI dock widgets that have given a name with setObjectName()
+     */
+    void saveSettings();
 
+    //=========================================================================================================
+    /**
+     * Restores geometry and state as saved by saveSettings()
+     */
+    void loadSettings();
 
-private:
-    void createActions();       /**< Creates all actions for user interface of MainWindow class. */
-    void createMenus();         /**< Creates all menus for user interface of MainWindow class. */
-    void createDockWindows();   /**< Creates all dock windows for user interface of MainWindow class. */
-    void createMdiView();       /**< Creates all Windows within the MDI View for user interface of MainWindow class. */
+signals:    
+    //=========================================================================================================
+    /**
+     * Signal emmited when the main window is closed
+     */
+    void mainWindowClosed();
 
-    void tabifyDockWindows();   /**< Tabify all dock windows */
-
-    QAction*                            m_pActionOpenDataFile;      /**< open data file action */
-    QAction*                            m_pActionExit;              /**< exit application action */
-
-
-    QAction*                            m_pActionPrint;             /**< view print action */
-    QAction*                            m_pActionCascade;           /**< view cascade action */
-    QAction*                            m_pActionTile;              /**< view tile action */
-
-    QAction*                            m_pActionAbout;             /**< show about dialog action */
-
-    //Main Window Menu
-    QMenu*                              m_pMenuFile;        /**< Holds the file menu.*/
-    QMenu*                              m_pMenuView;        /**< Holds the view menu.*/
-    QMenu*                              m_pMenuHelp;        /**< Holds the help menu.*/
-
-    QSharedPointer<QWidget>             m_pAboutWindow;     /**< Holds the widget containing the about information.*/
-
-    QSharedPointer<ANSHAREDLIB::ExtensionManager>   m_pExtensionManager;    /**< Holds extension manager.*/
-
+    //=========================================================================================================
+    /**
+     * Signal emmited whenever the gui modes changed
+     *
+     * @param [in] mode       the new gui mode
+     */
+    void guiModeChanged(DISPLIB::AbstractView::GuiMode mode);
 
 private:
-    //Open a FIFF file
-    void openFiffFile();            /**< Implements open fiff action. TODO: Move to fiffio*/
-    //FIFF File management
-    QString                 m_fiffFileName;  /**< TODO: Move to fiffio */
+    //=========================================================================================================
+    /**
+     * Creates the menu actions.
+     */
+    void createActions();
 
-    void about();                   /**< Implements about action.*/
+    //=========================================================================================================
+    /**
+     * Changes the current layout style of the application.
+     *
+     * @param [in] sStyle   The new qss style.
+     */
+    void onStyleChanged(const QString& sStyle);
 
-private:
-    //MDI Central View
-    MdiView *m_pMdiView;            /**< The Central MDI View.*/
+    //=========================================================================================================
+    /**
+     * Handles changes made to the application's GUI mode.
+     */
+    void onGuiModeChanged();
 
-    QSharedPointer<ANSHAREDLIB::AnalyzeSettings>    m_analyzeSettings;  /**< The global settings.*/
-    QSharedPointer<ANSHAREDLIB::AnalyzeData>        m_analyzeData;      /**< The global data base.*/
+    //=========================================================================================================
+    /**
+     * Creates log dock widget.
+     */
+    void createLogDockWindow();
 
+    /**< Creates all actions for user interface of MainWindow class. */
+    void createPluginMenus(QSharedPointer<ANSHAREDLIB::PluginManager> pPluginManager);          /**< Creates all menus for user interface of MainWindow class. */
+    void createPluginControls(QSharedPointer<ANSHAREDLIB::PluginManager> pPluginManager);    /**< Creates all dock windows for user interface of MainWindow class. */
+    void createPluginViews(QSharedPointer<ANSHAREDLIB::PluginManager> pPluginManager);      /**< Creates all Windows within the MultiView for user interface of MainWindow class. */
+    void tabifyDockWindows();                                                                   /**< Tabify all dock windows */
+    void about();                                                                               /**< Implements about action.*/
+
+    QPointer<DISPLIB::MultiView>        m_pMultiView;               /**< The central View.*/
+
+    QPointer<QGridLayout>               m_pGridLayout;              /**< Grid Layout is used for MainWindow, so that the MultiView can always fit the size of MainWindow */
+
+    // MainWindow actions
+    QPointer<QAction>                   m_pActionExit;              /**< exit application action */
+    QPointer<QAction>                   m_pActionAbout;             /**< show about dialog action */
+    QPointer<QAction>                   m_pActionResearchMode;      /**< toggle research mode action */
+    QPointer<QAction>                   m_pActionClinicalMode;      /**< toggle clinical mode action */
+    QPointer<QAction>                   m_pActionDarkMode;          /**< toggle dark mode */
+
+    // MainWindow menus
+    QPointer<QMenu>                     m_pMenuFile;                /**< Holds the file menu.*/
+    QPointer<QMenu>                     m_pMenuView;                /**< Holds the view menu.*/
+    QPointer<QMenu>                     m_pMenuControl;             /**< Holds the control menu */
+    QPointer<QMenu>                     m_pMenuAppearance;          /**< Holds the appearance menu.*/
+    QPointer<QMenu>                     m_pMenuHelp;                /**< Holds the help menu.*/
+
+    QPointer<QTextBrowser>              m_pTextBrowser_Log;         /**< Holds the text browser for the log.*/
+
+    QSharedPointer<QWidget>             m_pAboutWindow;             /**< Holds the widget containing the about information.*/
+
+    QString                             m_sSettingsPath;            /**< The settings path to store the GUI settings to. */
+    QString                             m_sCurrentStyle;            /**< The currently selected style (dark mode, default mode). */
 };
 
 }// NAMESPACE

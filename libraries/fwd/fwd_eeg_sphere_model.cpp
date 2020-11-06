@@ -1,62 +1,55 @@
 //=============================================================================================================
 /**
-* @file     fwd_eeg_sphere_model.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     December, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FwdEegSphereModel Class.
-*
-*/
+ * @file     fwd_eeg_sphere_model.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     December, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FwdEegSphereModel Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "utils/simplex_algorithm.h"
 
-
 #include "fwd_eeg_sphere_model.h"
 #include "fwd_eeg_sphere_model_set.h"
 
-
 #include <QtAlgorithms>
 
-
 #include <qmath.h>
-
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -64,8 +57,6 @@
 using namespace Eigen;
 using namespace UTILSLIB;
 using namespace FWDLIB;
-
-
 
 #define MIN_1(a,b) ((a) < (b) ? (a) : (b))
 
@@ -87,13 +78,11 @@ using namespace FWDLIB;
     (diff)[Z_1] = (to)[Z_1] - (from)[Z_1];\
     }
 
-
 #define VEC_COPY_1(to,from) {\
     (to)[X_1] = (from)[X_1];\
     (to)[Y_1] = (from)[Y_1];\
     (to)[Z_1] = (from)[Z_1];\
     }
-
 
 #define CROSS_PRODUCT_1(x,y,xy) {\
     (xy)[X_1] =   (x)[Y_1]*(y)[Z_1]-(y)[Y_1]*(x)[Z_1];\
@@ -101,28 +90,21 @@ using namespace FWDLIB;
     (xy)[Z_1] =   (x)[X_1]*(y)[Y_1]-(y)[X_1]*(x)[Y_1];\
     }
 
-
-
 #define MALLOC_1(x,t) (t *)malloc((x)*sizeof(t))
 
 #define REALLOC_1(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
 
 #define FREE(x) if ((char *)(x) != NULL) free((char *)(x))
 
-
-
 #define ALLOC_DCMATRIX_1(x,y) mne_dmatrix_1((x),(y))
 #define FREE_DCMATRIX_1(m) mne_free_dcmatrix_1((m))
 
 #define ALLOC_CMATRIX_1(x,y) mne_cmatrix_1((x),(y))
 
-
 /*
-* float matrices
-*/
+ * float matrices
+ */
 #define FREE_CMATRIX_1(m) mne_free_cmatrix_1((m))
-
-
 
 #ifndef TRUE
 #define TRUE 1
@@ -132,7 +114,6 @@ using namespace FWDLIB;
 #define FALSE 0
 #endif
 
-
 #ifndef FAIL
 #define FAIL -1
 #endif
@@ -140,9 +121,6 @@ using namespace FWDLIB;
 #ifndef OK
 #define OK 0
 #endif
-
-
-
 
 static void matrix_error_1(int kind, int nr, int nc)
 
@@ -161,8 +139,6 @@ static void matrix_error_1(int kind, int nr, int nc)
     exit(1);
 }
 
-
-
 float **mne_cmatrix_1(int nr,int nc)
 
 {
@@ -179,7 +155,6 @@ float **mne_cmatrix_1(int nr,int nc)
         m[i] = whole + i*nc;
     return m;
 }
-
 
 double **mne_dmatrix_1(int nr, int nc)
 
@@ -198,7 +173,6 @@ double **mne_dmatrix_1(int nr, int nc)
     return m;
 }
 
-
 void mne_free_cmatrix_1 (float **m)
 {
     if (m) {
@@ -206,8 +180,6 @@ void mne_free_cmatrix_1 (float **m)
         free(m);
     }
 }
-
-
 
 void mne_free_dcmatrix_1 (double **m)
 
@@ -218,20 +190,13 @@ void mne_free_dcmatrix_1 (double **m)
     }
 }
 
-
-
-
 #define MAXTERMS 1000
 #define EPS      1e-10
 #define SIN_EPS  1e-3
 
-
-
 static int         terms = 0;       /* These statistics may be useful */
 static int         eval = 0;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -249,8 +214,7 @@ FwdEegSphereModel::FwdEegSphereModel()
     r0[2] = 0.0;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdEegSphereModel::FwdEegSphereModel(const FwdEegSphereModel& p_FwdEegSphereModel)
 {
@@ -281,8 +245,7 @@ FwdEegSphereModel::FwdEegSphereModel(const FwdEegSphereModel& p_FwdEegSphereMode
     this->scale_pos = p_FwdEegSphereModel.scale_pos;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdEegSphereModel* FwdEegSphereModel::fwd_create_eeg_sphere_model(const QString& name,
                                                      int nlayer,
@@ -319,15 +282,13 @@ FwdEegSphereModel* FwdEegSphereModel::fwd_create_eeg_sphere_model(const QString&
     return new_model;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdEegSphereModel::~FwdEegSphereModel()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdEegSphereModel* FwdEegSphereModel::setup_eeg_sphere_model(const QString& eeg_model_file, QString eeg_model_name, float eeg_sphere_rad)
 {
@@ -358,8 +319,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 fitUser FwdEegSphereModel::new_fit_user(int nfit, int nterms)
 
@@ -378,8 +338,7 @@ fitUser FwdEegSphereModel::new_fit_user(int nfit, int nterms)
     return u;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 // fwd_multi_spherepot.c
 double FwdEegSphereModel::fwd_eeg_get_multi_sphere_model_coeff(int n)
 {
@@ -484,8 +443,7 @@ double FwdEegSphereModel::fwd_eeg_get_multi_sphere_model_coeff(int n)
     return n*div/(n*M(1,1) + n1*M(1,0));
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 // fwd_multi_spherepot.c
 void FwdEegSphereModel::next_legen(int n, double x, double *p0, double *p01, double *p1, double *p11)        /* Input: P1(n-2) Output: P1(n-1) */
 /*
@@ -519,8 +477,7 @@ void FwdEegSphereModel::next_legen(int n, double x, double *p0, double *p01, dou
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FwdEegSphereModel::calc_pot_components(double beta, double cgamma, double *Vrp, double *Vtp, const Eigen::VectorXd& fn, int nterms)
 {
@@ -544,35 +501,34 @@ void FwdEegSphereModel::calc_pot_components(double beta, double cgamma, double *
         Vt = Vt + multn*p1/n;
         betan = beta*betan;
     }
-    *Vrp = Vr;
-    *Vtp = Vt;
+     *Vrp = Vr;
+     *Vtp = Vt;
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 // fwd_multi_spherepot.c
 int FwdEegSphereModel::fwd_eeg_multi_spherepot(float *rd, float *Q, float **el, int neeg, float *Vval, void *client)	  /* The model definition */
 /*
-* Compute the electric potentials in a set of electrodes in spherically
-* Symmetric head model.
-*
-* The code is based on the formulas presented in
-*
-* Z. Zhang, A fast method to compute surface potentials
-* generated by dipoles within multilayer anisotropic spheres,
-* Phys. Med. Biol., 40, 335 - 349, 1995.
-*
-* and
-*
-* J.C. Moscher, R.M. Leahy, and P.S. Lewis, Matrix Kernels for
-* Modeling of EEG and MEG Data, Los Alamos Technical Report,
-* LA-UR-96-1993, 1996.
-*
-* This version does not use the acceleration with help of equivalent sources
-* in the homogeneous model
-*
-*/
+ * Compute the electric potentials in a set of electrodes in spherically
+ * Symmetric head model.
+ *
+ * The code is based on the formulas presented in
+ *
+ * Z. Zhang, A fast method to compute surface potentials
+ * generated by dipoles within multilayer anisotropic spheres,
+ * Phys. Med. Biol., 40, 335 - 349, 1995.
+ *
+ * and
+ *
+ * J.C. Moscher, R.M. Leahy, and P.S. Lewis, Matrix Kernels for
+ * Modeling of EEG and MEG Data, Los Alamos Technical Report,
+ * LA-UR-96-1993, 1996.
+ *
+ * This version does not use the acceleration with help of equivalent sources
+ * in the homogeneous model
+ *
+ */
 {
     FwdEegSphereModel* m = (FwdEegSphereModel*)client;
     float  my_rd[3],pos[3];
@@ -677,17 +633,16 @@ int FwdEegSphereModel::fwd_eeg_multi_spherepot(float *rd, float *Q, float **el, 
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 // fwd_multi_spherepot.c
 int FwdEegSphereModel::fwd_eeg_multi_spherepot_coil1(float *rd, float *Q, FwdCoilSet *els, float *Vval, void *client)           /* Client data will be the sphere model definition */
 /*
-* Calculate the EEG in the sphere model using the fwdCoilSet structure
-*
-* This version does not use the acceleration with help of equivalent sources
-* in the homogeneous model
-*
-*/
+ * Calculate the EEG in the sphere model using the fwdCoilSet structure
+ *
+ * This version does not use the acceleration with help of equivalent sources
+ * in the homogeneous model
+ *
+ */
 {
     float *vval_one = NULL,val;
     int   nvval = 0;
@@ -715,8 +670,7 @@ int FwdEegSphereModel::fwd_eeg_multi_spherepot_coil1(float *rd, float *Q, FwdCoi
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 // fwd_multi_spherepot.c
 bool FwdEegSphereModel::fwd_eeg_spherepot_vec( float   *rd, float   **el, int neeg, float **Vval_vec, void *client)
 {
@@ -828,8 +782,7 @@ bool FwdEegSphereModel::fwd_eeg_spherepot_vec( float   *rd, float   **el, int ne
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 // fwd_multi_spherepot.c
 int FwdEegSphereModel::fwd_eeg_spherepot_coil_vec(float *rd, FwdCoilSet* els, float **Vval_vec, void *client)
 {
@@ -862,8 +815,7 @@ int FwdEegSphereModel::fwd_eeg_spherepot_coil_vec(float *rd, FwdCoilSet* els, fl
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int FwdEegSphereModel::fwd_eeg_spherepot_grad_coil(float *rd, float Q[], FwdCoilSet *coils, float Vval[], float xgrad[], float ygrad[], float zgrad[], void *client)  /* Client data to be passed to some foward modelling routines */
 /*
@@ -903,8 +855,7 @@ int FwdEegSphereModel::fwd_eeg_spherepot_grad_coil(float *rd, float Q[], FwdCoil
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 // fwd_multi_spherepot.c
 int FwdEegSphereModel::fwd_eeg_spherepot(   float   *rd,       /* Dipole position */
                                             float   *Q,	 /* Dipole moment */
@@ -1021,8 +972,7 @@ int FwdEegSphereModel::fwd_eeg_spherepot(   float   *rd,       /* Dipole positio
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 // fwd_multi_spherepot.c
 int FwdEegSphereModel::fwd_eeg_spherepot_coil(  float *rd, float *Q, FwdCoilSet* els, float *Vval, void *client)
 {
@@ -1051,9 +1001,7 @@ int FwdEegSphereModel::fwd_eeg_spherepot_coil(  float *rd, float *Q, FwdCoilSet*
     return OK;
 }
 
-
-
-//*************************************************************************************************************
+//=============================================================================================================
 // fwd_eeg_sphere_models.c
 bool FwdEegSphereModel::fwd_setup_eeg_sphere_model(float rad, bool fit_berg_scherg, int nfit)
 {
@@ -1061,8 +1009,8 @@ bool FwdEegSphereModel::fwd_setup_eeg_sphere_model(float rad, bool fit_berg_sche
     float  rv;
 
     /*
-    * Scale the relative radiuses
-    */
+     * Scale the relative radiuses
+     */
     for (int k = 0; k < this->nlayer(); k++)
         this->layers[k].rad = rad*this->layers[k].rel_rad;
 
@@ -1081,16 +1029,6 @@ bool FwdEegSphereModel::fwd_setup_eeg_sphere_model(float rad, bool fit_berg_sche
     return true;
 }
 
-
-
-
-
-
-
-
-
-
-
 Eigen::MatrixXd toDoubleEigenMatrix(double **mat, const int m, const int n)
 {
     Eigen::MatrixXd eigen_mat(m,n);
@@ -1101,8 +1039,6 @@ Eigen::MatrixXd toDoubleEigenMatrix(double **mat, const int m, const int n)
 
     return eigen_mat;
 }
-
-
 
 void fromDoubleEigenMatrix(const Eigen::MatrixXd& from_mat, double **to_mat, const int m, const int n)
 {
@@ -1126,12 +1062,6 @@ void fromDoubleEigenVector(const Eigen::VectorXd& from_vec, double *to_vec)
 {
     fromDoubleEigenVector(from_vec, to_vec, from_vec.size());
 }
-
-
-
-
-
-
 
 //============================= fwd_fit_berg_scherg.c
 static double dot_dvectors (double *v1,
@@ -1195,13 +1125,16 @@ static int c_dsvd(double **mat,		/* The matrix */
 
 //============================= fwd_fit_berg_scherg.c
 
-
-
 //============================= fwd_fit_berg_scherg.c
+namespace FWDLIB
+{
+
 typedef struct {
     double lambda;		/* Magnitude for the apparent dipole */
     double mu;			/* Distance multiplier for the apparent dipole */
 } *bergSchergPar,bergSchergParRec;
+
+} // Namepsace
 
 //============================= fwd_fit_berg_scherg.c
 static int comp_pars(const void *p1,const void *p2)
@@ -1241,7 +1174,6 @@ static void sort_parameters(VectorXd& mu,VectorXd& lambda,int nfit)
     return;
 }
 
-
 //============================= fwd_fit_berg_scherg.c
 static bool report_fit(int    loop,
                       const VectorXd &fitpar,
@@ -1268,7 +1200,6 @@ static MatrixXd get_initial_simplex(const VectorXd &pars,
 
     MatrixXd simplex = MatrixXd::Zero(npar+1,npar);
 
-
     simplex.rowwise() += pars.transpose();
 
     for (int k = 1; k < npar+1; k++)
@@ -1276,30 +1207,6 @@ static MatrixXd get_initial_simplex(const VectorXd &pars,
 
     return simplex;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void FwdEegSphereModel::compose_linear_fitting_data(const VectorXd& mu,fitUser u)
 {
@@ -1317,9 +1224,6 @@ void FwdEegSphereModel::compose_linear_fitting_data(const VectorXd& mu,fitUser u
             u->M[k][p] = u->w[k]*(pow(mu[p+1],k1)-mu1n);
     }
 }
-
-
-
 
 // fwd_fit_berg_scherg.c
 double FwdEegSphereModel::compute_linear_parameters(const VectorXd& mu,
@@ -1361,9 +1265,6 @@ double FwdEegSphereModel::compute_linear_parameters(const VectorXd& mu,
     return dot_dvectors(u->resi,u->resi,u->nterms-1)/dot_dvectors(u->y,u->y,u->nterms-1);
 }
 
-
-
-
 // fwd_fit_berg_scherg.c
 double FwdEegSphereModel::one_step (const VectorXd& mu, const void *user_data)
 /*
@@ -1402,11 +1303,6 @@ double FwdEegSphereModel::one_step (const VectorXd& mu, const void *user_data)
    */
     return dot_dvectors(u->resi,u->resi,u->nterms-1);
 }
-
-
-
-
-
 
 // fwd_fit_berg_scherg.c
 bool FwdEegSphereModel::fwd_eeg_fit_berg_scherg(int   nterms,              /* Number of terms to use in the series expansion
@@ -1482,7 +1378,7 @@ bool FwdEegSphereModel::fwd_eeg_fit_berg_scherg(int   nterms,              /* Nu
     for (k = 0; k < nfit; k++) {
         /*
     mu[k] = (k+1)*0.1*f;
-    */
+     */
         mu[k] = (rand() / (RAND_MAX + 1.0))*f;//replacement for: mu[k] = drand48()*f;
     }
 

@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fiff_raw_data.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FiffRawData Class.
-*
-*/
+ * @file     fiff_raw_data.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FiffRawData Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,15 +43,13 @@
 #include "fiff_stream.h"
 #include "cstdlib"
 
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace FIFFLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -60,11 +58,9 @@ FiffRawData::FiffRawData()
 : first_samp(-1)
 , last_samp(-1)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffRawData::FiffRawData(QIODevice &p_IODevice)
 : first_samp(-1)
@@ -79,8 +75,22 @@ FiffRawData::FiffRawData(QIODevice &p_IODevice)
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+FiffRawData::FiffRawData(QIODevice &p_IODevice, bool b_littleEndian)
+: first_samp(-1)
+, last_samp(-1)
+{
+    //setup FiffRawData object
+    if(!FiffStream::setup_read_raw(p_IODevice, *this, false, b_littleEndian))
+    {
+        printf("\tError during fiff setup raw read.\n");
+        //exit(EXIT_FAILURE); //ToDo Throw here, e.g.: throw std::runtime_error("IO Error! File not found");
+        return;
+    }
+}
+
+//=============================================================================================================
 
 FiffRawData::FiffRawData(const FiffRawData &p_FiffRawData)
 : file(p_FiffRawData.file)
@@ -92,19 +102,15 @@ FiffRawData::FiffRawData(const FiffRawData &p_FiffRawData)
 , proj(p_FiffRawData.proj)
 , comp(p_FiffRawData.comp)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffRawData::~FiffRawData()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffRawData::clear()
 {
@@ -117,15 +123,22 @@ void FiffRawData::clear()
     comp.clear();
 }
 
-
-//*************************************************************************************************************
-
-bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t from, fiff_int_t to, const RowVectorXi& sel, bool do_debug)
+//=============================================================================================================
+#include <QElapsedTimer>
+#include <QDebug>
+bool FiffRawData::read_raw_segment(MatrixXd& data,
+                                   MatrixXd& times,
+                                   fiff_int_t from,
+                                   fiff_int_t to,
+                                   const RowVectorXi& sel,
+                                   bool do_debug) const
 {
     bool projAvailable = true;
 
-    if (this->proj.size() == 0)
+    if (this->proj.size() == 0) {
+        //qDebug() << "FiffRawData::read_raw_segment - No projectors setup. Consider calling MNE::setup_compensators.";
         projAvailable = false;
+    }
 
     if(from == -1)
         from = this->first_samp;
@@ -141,10 +154,10 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t f
     //
     if(from > to)
     {
-        printf("No data in this range\n");
+        printf("No data in this range %d ... %d  =  %9.3f ... %9.3f secs...", from, to, ((float)from)/this->info.sfreq, ((float)to)/this->info.sfreq);
         return false;
     }
-    printf("Reading %d ... %d  =  %9.3f ... %9.3f secs...", from, to, ((float)from)/this->info.sfreq, ((float)to)/this->info.sfreq);
+    //printf("Reading %d ... %d  =  %9.3f ... %9.3f secs...", from, to, ((float)from)/this->info.sfreq, ((float)to)/this->info.sfreq);
     //
     //  Initialize the data and calibration vector
     //
@@ -238,8 +251,6 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t f
         mult.setFromTriplets(tripletList.begin(), tripletList.end());
 //    mult.makeCompressed();
 
-    //
-
     FiffStream::SPtr fid;
     if (!this->file->device()->isOpen())
     {
@@ -254,11 +265,13 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t f
         fid = this->file;
     }
 
-    MatrixXd one;
+    MatrixXd one, newData, tmp_data;
+    FiffRawDir thisRawDir;
+    FiffTag::SPtr t_pTag;
     fiff_int_t first_pick, last_pick, picksamp;
     for(k = 0; k < this->rawdir.size(); ++k)
     {
-        FiffRawDir thisRawDir = this->rawdir[k];
+        thisRawDir = this->rawdir[k];
         //
         //  Do we need this buffer
         //
@@ -280,7 +293,6 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t f
             }
             else
             {
-                FiffTag::SPtr t_pTag;
                 fid->read_tag(t_pTag, thisRawDir.ent->pos);
                 //
                 //   Depending on the state of the projection and selection
@@ -296,39 +308,47 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t f
                             one = cal*(Map< MatrixXi >( t_pTag->toInt(),nchan, thisRawDir.nsamp)).cast<double>();
                         else if(t_pTag->type == FIFFT_FLOAT)
                             one = cal*(Map< MatrixXf >( t_pTag->toFloat(),nchan, thisRawDir.nsamp)).cast<double>();
+                        else if(t_pTag->type == FIFFT_SHORT)
+                            one = cal*(Map< MatrixShort >( t_pTag->toShort(),nchan, thisRawDir.nsamp)).cast<double>();
                         else
-                            printf("Data Storage Format not known jet [1]!! Type: %d\n", t_pTag->type);
+                            printf("Data Storage Format not known yet [1]!! Type: %d\n", t_pTag->type);
                     }
                     else
                     {
-
                         //ToDo find a faster solution for this!! --> make cal and mul sparse like in MATLAB
-                        MatrixXd newData(sel.cols(), thisRawDir.nsamp); //ToDo this can be done much faster, without newData
+                        newData.resize(sel.cols(), thisRawDir.nsamp); //ToDo this can be done much faster, without newData
 
                         if (t_pTag->type == FIFFT_DAU_PACK16)
                         {
-                            MatrixXd tmp_data = (Map< MatrixDau16 > ( t_pTag->toDauPack16(),nchan, thisRawDir.nsamp)).cast<double>();
+                            tmp_data = (Map< MatrixDau16 > ( t_pTag->toDauPack16(),nchan, thisRawDir.nsamp)).cast<double>();
 
                             for(r = 0; r < sel.size(); ++r)
                                 newData.block(r,0,1,thisRawDir.nsamp) = tmp_data.block(sel[r],0,1,thisRawDir.nsamp);
                         }
                         else if(t_pTag->type == FIFFT_INT)
                         {
-                            MatrixXd tmp_data = (Map< MatrixXi >( t_pTag->toInt(),nchan, thisRawDir.nsamp)).cast<double>();
+                            tmp_data = (Map< MatrixXi >( t_pTag->toInt(),nchan, thisRawDir.nsamp)).cast<double>();
 
                             for(r = 0; r < sel.size(); ++r)
                                 newData.block(r,0,1,thisRawDir.nsamp) = tmp_data.block(sel[r],0,1,thisRawDir.nsamp);
                         }
                         else if(t_pTag->type == FIFFT_FLOAT)
                         {
-                            MatrixXd tmp_data = (Map< MatrixXf > ( t_pTag->toFloat(),nchan, thisRawDir.nsamp)).cast<double>();
+                            tmp_data = (Map< MatrixXf > ( t_pTag->toFloat(),nchan, thisRawDir.nsamp)).cast<double>();
+
+                            for(r = 0; r < sel.size(); ++r)
+                                newData.block(r,0,1,thisRawDir.nsamp) = tmp_data.block(sel[r],0,1,thisRawDir.nsamp);
+                        }
+                        else if(t_pTag->type == FIFFT_SHORT)
+                        {
+                            tmp_data = (Map< MatrixShort > ( t_pTag->toShort(),nchan, thisRawDir.nsamp)).cast<double>();
 
                             for(r = 0; r < sel.size(); ++r)
                                 newData.block(r,0,1,thisRawDir.nsamp) = tmp_data.block(sel[r],0,1,thisRawDir.nsamp);
                         }
                         else
                         {
-                            printf("Data Storage Format not known jet [2]!! Type: %d\n", t_pTag->type);
+                            printf("Data Storage Format not known yet [2]!! Type: %d\n", t_pTag->type);
                         }
 
                         one = cal*newData;
@@ -343,7 +363,7 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t f
                     else if(t_pTag->type == FIFFT_FLOAT)
                         one = mult*(Map< MatrixXf >( t_pTag->toFloat(),nchan, thisRawDir.nsamp)).cast<double>();
                     else
-                        printf("Data Storage Format not known jet [3]!! Type: %d\n", t_pTag->type);
+                        printf("Data Storage Format not known yet [3]!! Type: %d\n", t_pTag->type);
                 }
             }
             //
@@ -419,12 +439,14 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t f
         //
         if (thisRawDir.last >= to)
         {
-            printf(" [done]\n");
+            //printf(" [done]\n");
             break;
         }
     }
 
-//        fclose(fid);
+    if (!this->file->device()->isOpen()) {
+        this->file->device()->close();
+    }
 
     times = MatrixXd(1, to-from+1);
 
@@ -434,15 +456,22 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, fiff_int_t f
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, SparseMatrix<double>& multSegment, fiff_int_t from, fiff_int_t to, const RowVectorXi& sel, bool do_debug)
+bool FiffRawData::read_raw_segment(MatrixXd& data,
+                                   MatrixXd& times,
+                                   SparseMatrix<double>& multSegment,
+                                   fiff_int_t from,
+                                   fiff_int_t to,
+                                   const RowVectorXi& sel,
+                                   bool do_debug) const
 {
     bool projAvailable = true;
 
-    if (this->proj.size() == 0)
+    if (this->proj.size() == 0) {
+        //qInfo() << "FiffRawData::read_raw_segment - No projectors setup. Consider calling MNE::setup_compensators.";
         projAvailable = false;
+    }
 
     if(from == -1)
         from = this->first_samp;
@@ -461,7 +490,7 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, SparseMatrix
         printf("No data in this range\n");
         return false;
     }
-    printf("Reading %d ... %d  =  %9.3f ... %9.3f secs...", from, to, ((float)from)/this->info.sfreq, ((float)to)/this->info.sfreq);
+    //printf("Reading %d ... %d  =  %9.3f ... %9.3f secs...", from, to, ((float)from)/this->info.sfreq, ((float)to)/this->info.sfreq);
     //
     //  Initialize the data and calibration vector
     //
@@ -613,8 +642,10 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, SparseMatrix
                             one = cal*(Map< MatrixXi >( t_pTag->toInt(),nchan, thisRawDir.nsamp)).cast<double>();
                         else if(t_pTag->type == FIFFT_FLOAT)
                             one = cal*(Map< MatrixXf >( t_pTag->toFloat(),nchan, thisRawDir.nsamp)).cast<double>();
+                        else if(t_pTag->type == FIFFT_SHORT)
+                            one = cal*(Map< MatrixShort >( t_pTag->toShort(),nchan, thisRawDir.nsamp)).cast<double>();
                         else
-                            printf("Data Storage Format not known jet [1]!! Type: %d\n", t_pTag->type);
+                            printf("Data Storage Format not known yet [1]!! Type: %d\n", t_pTag->type);
                     }
                     else
                     {
@@ -643,9 +674,16 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, SparseMatrix
                             for(r = 0; r < sel.size(); ++r)
                                 newData.block(r,0,1,thisRawDir.nsamp) = tmp_data.block(sel[r],0,1,thisRawDir.nsamp);
                         }
+                        else if(t_pTag->type == FIFFT_SHORT)
+                        {
+                            MatrixXd tmp_data = (Map< MatrixShort > ( t_pTag->toShort(),nchan, thisRawDir.nsamp)).cast<double>();
+
+                            for(r = 0; r < sel.size(); ++r)
+                                newData.block(r,0,1,thisRawDir.nsamp) = tmp_data.block(sel[r],0,1,thisRawDir.nsamp);
+                        }
                         else
                         {
-                            printf("Data Storage Format not known jet [2]!! Type: %d\n", t_pTag->type);
+                            printf("Data Storage Format not known yet [2]!! Type: %d\n", t_pTag->type);
                         }
 
                         one = cal*newData;
@@ -660,7 +698,7 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, SparseMatrix
                     else if(t_pTag->type == FIFFT_FLOAT)
                         one = mult*(Map< MatrixXf >( t_pTag->toFloat(),nchan, thisRawDir.nsamp)).cast<double>();
                     else
-                        printf("Data Storage Format not known jet [3]!! Type: %d\n", t_pTag->type);
+                        printf("Data Storage Format not known yet [3]!! Type: %d\n", t_pTag->type);
                 }
             }
             //
@@ -736,7 +774,7 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, SparseMatrix
         //
         if (thisRawDir.last >= to)
         {
-            printf(" [done]\n");
+            //printf(" [done]\n");
             break;
         }
     }
@@ -745,7 +783,10 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, SparseMatrix
         multSegment = cal;
     else
         multSegment = mult;
-//        fclose(fid);
+
+    if (!this->file->device()->isOpen()) {
+        this->file->device()->close();
+    }
 
     times = MatrixXd(1, to-from+1);
 
@@ -755,10 +796,13 @@ bool FiffRawData::read_raw_segment(MatrixXd& data, MatrixXd& times, SparseMatrix
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool FiffRawData::read_raw_segment_times(MatrixXd& data, MatrixXd& times, float from, float to, const RowVectorXi& sel)
+bool FiffRawData::read_raw_segment_times(MatrixXd& data,
+                                         MatrixXd& times,
+                                         float from,
+                                         float to,
+                                         const RowVectorXi& sel) const
 {
     //
     //   Convert to samples

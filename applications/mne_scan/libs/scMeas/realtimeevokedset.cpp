@@ -1,39 +1,38 @@
 //=============================================================================================================
 /**
-* @file     realtimeevokedset.cpp
-* @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     August, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Lorenz Esch and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Contains the implementation of the RealTimeEvokedSet class.
-*
-*/
+ * @file     realtimeevokedset.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     August, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Christoph Dinh, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the RealTimeEvokedSet class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -42,14 +41,10 @@
 
 #include <time.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -57,31 +52,25 @@
 using namespace SCMEASLIB;
 using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
 RealTimeEvokedSet::RealTimeEvokedSet(QObject *parent)
-: NewMeasurement(QMetaType::type("RealTimeEvokedSet::SPtr"), parent)
+: Measurement(QMetaType::type("RealTimeEvokedSet::SPtr"), parent)
 , m_pFiffEvokedSet(new FiffEvokedSet)
-, m_bInitialized(false)
 , m_iPreStimSamples(0)
+, m_bInitialized(false)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 RealTimeEvokedSet::~RealTimeEvokedSet()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void RealTimeEvokedSet::init(FiffInfo::SPtr p_fiffInfo)
 {
@@ -91,7 +80,7 @@ void RealTimeEvokedSet::init(FiffInfo::SPtr p_fiffInfo)
 
     m_pFiffInfo = p_fiffInfo;
 
-    qsrand(time(NULL));
+    qsrand(static_cast<uint>(time(Q_NULLPTR)));
     for(qint32 i = 0; i < p_fiffInfo->nchan; ++i)
     {
          m_qListChColors.append(QColor(qrand() % 256, qrand() % 256, qrand() % 256));
@@ -120,8 +109,7 @@ void RealTimeEvokedSet::init(FiffInfo::SPtr p_fiffInfo)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffEvokedSet::SPtr& RealTimeEvokedSet::getValue()
 {
@@ -129,18 +117,27 @@ FiffEvokedSet::SPtr& RealTimeEvokedSet::getValue()
     return m_pFiffEvokedSet;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+const QStringList& RealTimeEvokedSet::getResponsibleTriggerTypes()
+{
+    QMutexLocker locker(&m_qMutex);
+    return m_lResponsibleTriggerTypes;
+}
 
-void RealTimeEvokedSet::setValue(FiffEvokedSet& v, FiffInfo::SPtr p_fiffinfo)
+//=============================================================================================================
+
+void RealTimeEvokedSet::setValue(const FiffEvokedSet &v,
+                                 const FiffInfo::SPtr &p_fiffinfo,
+                                 const QStringList &lResponsibleTriggerTypes)
 {
     //Store
     m_qMutex.lock();
-    *m_pFiffEvokedSet = v;
+     *m_pFiffEvokedSet = v;
+    m_lResponsibleTriggerTypes = lResponsibleTriggerTypes;
     m_qMutex.unlock();
 
-    if(!m_bInitialized)
-    {
+    if(!m_bInitialized) {
         init(p_fiffinfo);
 
         m_qMutex.lock();
@@ -149,12 +146,12 @@ void RealTimeEvokedSet::setValue(FiffEvokedSet& v, FiffInfo::SPtr p_fiffinfo)
         //Take the first evoked iformation to calcualte the pre samples.
         //They all have the same pre sample size as of right now.
         if(!m_pFiffEvokedSet->evoked.isEmpty()) {
-            for(qint32 i = 0; i < m_pFiffEvokedSet->evoked.at(0).times.size(); ++i)
-            {
-                if(m_pFiffEvokedSet->evoked.at(0).times[i] >= 0)
+            for(qint32 i = 0; i < m_pFiffEvokedSet->evoked.at(0).times.size(); ++i) {
+                if(m_pFiffEvokedSet->evoked.at(0).times[i] >= 0) {
                     break;
-                else
+                } else {
                     ++m_iPreStimSamples;
+                }
             }
         }
 
@@ -165,5 +162,4 @@ void RealTimeEvokedSet::setValue(FiffEvokedSet& v, FiffInfo::SPtr p_fiffinfo)
     emit notify();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================

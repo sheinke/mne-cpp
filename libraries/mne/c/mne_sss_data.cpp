@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_sss_data.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MNE SSS Data (MneSssData) Class.
-*
-*/
+ * @file     mne_sss_data.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MNE SSS Data (MneSssData) Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -44,8 +43,6 @@
 #include <fiff/fiff_constants.h>
 #include <fiff/fiff_stream.h>
 #include <fiff/fiff_tag.h>
-
-
 
 //============================= dot.h =============================
 
@@ -59,18 +56,12 @@
     (to)[Z] = (from)[Z];\
     }
 
-
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QFile>
 
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -79,8 +70,6 @@ using namespace Eigen;
 using namespace MNELIB;
 using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -96,11 +85,9 @@ MneSssData::MneSssData()
 , in_nuse(0)
 , out_nuse(0)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneSssData::MneSssData(const MneSssData& p_MneSssData)
 : job(p_MneSssData.job)
@@ -120,11 +107,9 @@ MneSssData::MneSssData(const MneSssData& p_MneSssData)
 
     for (int k = 0; k < ncomp; k++)
         comp_info[k] = p_MneSssData.comp_info[k];
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneSssData::~MneSssData()
 {
@@ -132,8 +117,7 @@ MneSssData::~MneSssData()
         free((char *)(comp_info));
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneSssData *MneSssData::read_sss_data(const QString &name)
 {
@@ -149,8 +133,7 @@ MneSssData *MneSssData::read_sss_data(const QString &name)
     return s;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneSssData *MneSssData::read_sss_data_from_node(QSharedPointer<FiffStream> &stream, const QSharedPointer<FiffDirNode> &start)
 {
@@ -232,16 +215,18 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
+namespace MNELIB
+{
 
 typedef struct {
     int frame;
     const char *name;
 } frameNameRec_1;
 
+}
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 const char *mne_coord_frame_name_1(int frame)
 {
@@ -271,8 +256,7 @@ const char *mne_coord_frame_name_1(int frame)
     return frames[k].name;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MneSssData::print(FILE *f) const
 {

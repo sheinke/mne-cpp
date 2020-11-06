@@ -1,15 +1,15 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
-# @file     GUSBAmp.pro
-# @author   Viktor Klüber <viktor.klueber@tu-ilmenau.de>;
-#           Lorenz Esch <lorenz.esch@tu-ilmenau.de>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @file     gusbamp.pro
+# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>;
+#           Viktor Klueber <Viktor.Klueber@tu-ilmenau.de>
+# @since    0.1.0
 # @date     Oktober, 2016
 #
 # @section  LICENSE
 #
-# Copyright (C) 2016, Viktor Klüber, Lorenz Esch and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2016, Christoph Dinh, Lorenz Esch, Viktor Klueber. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -32,17 +32,21 @@
 #
 # @brief    This project file generates the makefile for the GUSBAmp plug-in.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../../../mne-cpp.pri)
 
 TEMPLATE = lib
 
-CONFIG += plugin
+QT += core widgets svg
 
-DEFINES += GUSBAMP_LIBRARY
+CONFIG += skip_target_version_ext plugin
 
-#contains(QMAKE_HOST.arch, x86_64) { #Compiling MNE-X FOR a 64bit system
+DEFINES += GUSBAMP_PLUGIN
+
+DESTDIR = $${MNE_BINARY_DIR}/mne_scan_plugins
+
+#contains(QMAKE_HOST.arch, x86_64) { #Compiling MNE Scan FOR a 64bit system
 #    exists(C:/Windows/System32/GUSBAmpSDK.dll) {
 #        DEFINES += TAKE_GUSBAmpSDK_DLL
 #    }
@@ -60,40 +64,40 @@ DEFINES += GUSBAMP_LIBRARY
 #        }
 #    }
 #}
-
-QT += core widgets svg
-
-TARGET = gusbamp_temp
+TARGET = gusbamp
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
 
-LIBS += -L$${MNE_LIBRARY_DIR}
-CONFIG(debug, debug|release) {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utilsd \
-            -lMNE$${MNE_LIB_VERSION}Fiffd \
-            -lMNE$${MNE_LIB_VERSION}Dispd \
-            -lscMeasd \
-            -lscDispd \
-            -lscSharedd
-}
-else {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
-            -lMNE$${MNE_LIB_VERSION}Fiff \
-            -lMNE$${MNE_LIB_VERSION}Disp \
-            -lscMeas \
-            -lscDisp \
-            -lscShared
+contains(MNECPP_CONFIG, static) {
+    CONFIG += staticlib
+    DEFINES += STATICBUILD
+} else {
+    CONFIG += shared
 }
 
-DESTDIR = $${MNE_BINARY_DIR}/mne_scan_plugins
+LIBS += -L$${MNE_LIBRARY_DIR}
+CONFIG(debug, debug|release) {
+    LIBS += -lscSharedd \
+            -lscDispd \
+            -lscMeasd \
+            -lmnecppDispd \
+            -lmnecppFiffd \
+            -lmnecppUtilsd \
+} else {
+    LIBS += -lscShared \
+            -lscDisp \
+            -lscMeas \
+            -lmnecppDisp \
+            -lmnecppFiff \
+            -lmnecppUtils \
+}
 
 SOURCES += \
         gusbamp.cpp \
         gusbampproducer.cpp \
         gusbampdriver.cpp \
         FormFiles/gusbampsetupwidget.cpp \
-        FormFiles/gusbampaboutwidget.cpp \
         FormFiles/gusbampsetupprojectwidget.cpp
 
 HEADERS += \
@@ -102,30 +106,11 @@ HEADERS += \
         gusbampproducer.h \
         gusbampdriver.h \
         FormFiles/gusbampsetupwidget.h \
-        FormFiles/gusbampaboutwidget.h \
-        gtec_gUSBamp.h \
         FormFiles/gusbampsetupprojectwidget.h
 
 FORMS += \
         FormFiles/gusbampsetupwidget.ui \
-        FormFiles/gusbampabout.ui \
         FormFiles/gusbampsetupprojectwidget.ui
-
-RESOURCE_FILES +=\
-    $${MNE_DIR}/resources/mne_scan/plugins/gusbamp/readme.txt \
-
-# Copy resource files to bin resource folder
-for(FILE, RESOURCE_FILES) {
-    FILEDIR = $$dirname(FILE)
-    FILEDIR ~= s,/resources,/bin/resources,g
-    FILEDIR = $$shell_path($${FILEDIR})
-    TRGTDIR = $${FILEDIR}
-
-    QMAKE_POST_LINK += $$sprintf($${QMAKE_MKDIR_CMD}, "$${TRGTDIR}") $$escape_expand(\n\t)
-
-    FILE = $$shell_path($${FILE})
-    QMAKE_POST_LINK += $${QMAKE_COPY} $$quote($${FILE}) $$quote($${TRGTDIR}) $$escape_expand(\\n\\t)
-}
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
@@ -133,13 +118,25 @@ INCLUDEPATH += $${MNE_SCAN_INCLUDE_DIR}
 
 OTHER_FILES += gusbamp.json
 
-# Put generated form headers into the origin --> cause other src is pointing at them
-UI_DIR = $${PWD}
-
-unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
-
-# suppress visibility warnings
-unix: QMAKE_CXXFLAGS += -Wno-attributes
-
 RESOURCES += \
     gusbamp.qrc
+
+# Activate FFTW backend in Eigen for non-static builds only
+contains(MNECPP_CONFIG, useFFTW):!contains(MNECPP_CONFIG, static) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
+
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
+    }
+
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
+}

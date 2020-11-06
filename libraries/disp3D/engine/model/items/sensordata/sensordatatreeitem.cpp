@@ -1,40 +1,38 @@
 //=============================================================================================================
 /**
-* @file     sensordatatreeitem.cpp
-* @author   Felix Griesau <felix.griesau@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     June, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Felix Griesau and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    SensorDataTreeItem class definition.
-*
-*/
+ * @file     sensordatatreeitem.cpp
+ * @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     June, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lars Debor, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    SensorDataTreeItem class definition.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -45,28 +43,24 @@
 #include "../common/gpuinterpolationitem.h"
 #include "../common/abstractmeshtreeitem.h"
 #include "../../3dhelpers/custommesh.h"
+#include "../../materials/pervertexphongalphamaterial.h"
 
 #include <mne/mne_bem.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QVector3D>
 #include <QGeometryRenderer>
+#include <Qt3DCore/QTransform>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -76,14 +70,10 @@ using namespace FIFFLIB;
 using namespace DISP3DLIB;
 using namespace MNELIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE GLOBAL METHODS
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -99,16 +89,14 @@ SensorDataTreeItem::SensorDataTreeItem(int iType,
     initItem();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SensorDataTreeItem::~SensorDataTreeItem()
 {
     m_pSensorRtDataWorkController->deleteLater();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::initData(const MNEBemSurface &bemSurface,
                                   const FiffInfo &fiffInfo,
@@ -181,21 +169,25 @@ void SensorDataTreeItem::initData(const MNEBemSurface &bemSurface,
         if(!m_pInterpolationItemCPU) {
             m_pInterpolationItemCPU = new AbstractMeshTreeItem(p3DEntityParent,
                                                             Data3DTreeModelItemTypes::AbstractMeshItem,
-                                                            QStringLiteral("3D Plot - Left"));
+                                                            QStringLiteral("3D Plot"));
 
             //Create color from curvature information with default gyri and sulcus colors
-            MatrixX3f matVertColor = AbstractMeshTreeItem::createVertColor(bemSurface.rr.rows());
+            MatrixX4f matVertColor = AbstractMeshTreeItem::createVertColor(bemSurface.rr.rows());
 
-            m_pInterpolationItemCPU->getCustomMesh()->setMeshData(bemSurface.rr,
-                                                                  bemSurface.nn,
-                                                                  bemSurface.tris,
-                                                                  matVertColor,
-                                                                  Qt3DRender::QGeometryRenderer::Triangles);
+            m_pInterpolationItemCPU->setMeshData(bemSurface.rr,
+                                                 bemSurface.nn,
+                                                 bemSurface.tris,
+                                                 matVertColor,
+                                                 Qt3DRender::QGeometryRenderer::Triangles);
 
             QList<QStandardItem*> list;
             list << m_pInterpolationItemCPU;
             list << new QStandardItem(m_pInterpolationItemCPU->toolTip());
             this->appendRow(list);
+
+            //Set material to enable sorting
+            QPointer<PerVertexPhongAlphaMaterial> pBemMaterial = new PerVertexPhongAlphaMaterial(true);
+            m_pInterpolationItemCPU->setMaterial(pBemMaterial);
         }
 
         connect(m_pSensorRtDataWorkController.data(), &RtSensorDataController::newRtSmoothedDataAvailable,
@@ -213,8 +205,7 @@ void SensorDataTreeItem::initData(const MNEBemSurface &bemSurface,
     m_bIsDataInit = true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::addData(const MatrixXd &tSensorData)
 {
@@ -266,8 +257,7 @@ void SensorDataTreeItem::addData(const MatrixXd &tSensorData)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::setLoopState(bool bState)
 {
@@ -283,8 +273,7 @@ void SensorDataTreeItem::setLoopState(bool bState)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::setStreamingState(bool bState)
 {
@@ -300,8 +289,7 @@ void SensorDataTreeItem::setStreamingState(bool bState)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::setTimeInterval(int iMSec)
 {
@@ -317,8 +305,7 @@ void SensorDataTreeItem::setTimeInterval(int iMSec)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::setNumberAverages(int iNumberAverages)
 {
@@ -334,8 +321,7 @@ void SensorDataTreeItem::setNumberAverages(int iNumberAverages)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::setColormapType(const QString& sColormap)
 {
@@ -351,8 +337,7 @@ void SensorDataTreeItem::setColormapType(const QString& sColormap)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::setThresholds(const QVector3D& vecThresholds)
 {
@@ -371,8 +356,7 @@ void SensorDataTreeItem::setThresholds(const QVector3D& vecThresholds)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::setCancelDistance(double dCancelDist)
 {
@@ -388,8 +372,7 @@ void SensorDataTreeItem::setCancelDistance(double dCancelDist)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::setInterpolationFunction(const QString &sInterpolationFunction)
 {
@@ -405,8 +388,7 @@ void SensorDataTreeItem::setInterpolationFunction(const QString &sInterpolationF
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::setSFreq(const double dSFreq)
 {
@@ -415,8 +397,7 @@ void SensorDataTreeItem::setSFreq(const double dSFreq)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::setBadChannels(const FIFFLIB::FiffInfo &info)
 {
@@ -432,12 +413,65 @@ void SensorDataTreeItem::setBadChannels(const FIFFLIB::FiffInfo &info)
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+void SensorDataTreeItem::setTransform(const Qt3DCore::QTransform& transform)
+{
+    if(m_pInterpolationItemGPU) {
+        m_pInterpolationItemGPU->setTransform(transform);
+    }
+
+    if(m_pInterpolationItemCPU) {
+        m_pInterpolationItemCPU->setTransform(transform);
+    }
+}
+
+//=============================================================================================================
+
+void SensorDataTreeItem::setTransform(const FiffCoordTrans& transform, bool bApplyInverse)
+{
+    if(m_pInterpolationItemGPU) {
+        m_pInterpolationItemGPU->setTransform(transform, bApplyInverse);
+    }
+
+    if(m_pInterpolationItemCPU) {
+        m_pInterpolationItemCPU->setTransform(transform, bApplyInverse);
+    }
+}
+
+//=============================================================================================================
+
+void SensorDataTreeItem::applyTransform(const Qt3DCore::QTransform& transform)
+{
+    if(m_pInterpolationItemGPU) {
+        m_pInterpolationItemGPU->applyTransform(transform);
+    }
+
+    if(m_pInterpolationItemCPU) {
+        m_pInterpolationItemCPU->applyTransform(transform);
+    }
+}
+
+//=============================================================================================================
+
+void SensorDataTreeItem::applyTransform(const FiffCoordTrans& transform, bool bApplyInverse)
+{
+    if(m_pInterpolationItemGPU) {
+        m_pInterpolationItemGPU->applyTransform(transform, bApplyInverse);
+    }
+
+    if(m_pInterpolationItemCPU) {
+        m_pInterpolationItemCPU->applyTransform(transform, bApplyInverse);
+    }
+}
+
+//=============================================================================================================
 
 void SensorDataTreeItem::initItem()
 {
     this->setEditable(false);
+    this->setCheckable(true);
+    this->setCheckState(Qt::Checked);
     this->setToolTip("Sensor Data item");
 
     //Add items
@@ -497,7 +531,7 @@ void SensorDataTreeItem::initItem()
     connect(pItemLoopedStreaming, &MetaTreeItem::checkStateChanged,
             this, &SensorDataTreeItem::onLoopStateChanged);
 
-    MetaTreeItem *pItemAveragedStreaming = new MetaTreeItem(MetaTreeItemTypes::NumberAverages, "1");
+    MetaTreeItem *pItemAveragedStreaming = new MetaTreeItem(MetaTreeItemTypes::NumberAverages, "17");
     list.clear();
     list << pItemAveragedStreaming;
     list << new QStandardItem(pItemAveragedStreaming->toolTip());
@@ -528,8 +562,7 @@ void SensorDataTreeItem::initItem()
             this, &SensorDataTreeItem::onInterpolationFunctionChanged);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::onNewInterpolationMatrixAvailable(QSharedPointer<SparseMatrix<float> > pMatInterpolationMatrixLeftHemi)
 {
@@ -539,8 +572,7 @@ void SensorDataTreeItem::onNewInterpolationMatrixAvailable(QSharedPointer<Sparse
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::onNewRtRawDataAvailable(const VectorXd &vecDataVector)
 {
@@ -550,21 +582,17 @@ void SensorDataTreeItem::onNewRtRawDataAvailable(const VectorXd &vecDataVector)
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-void SensorDataTreeItem::onNewRtSmoothedDataAvailable(const MatrixX3f &matColorMatrix)
+void SensorDataTreeItem::onNewRtSmoothedDataAvailable(const MatrixX4f &matColorMatrix)
 {
     if(m_pInterpolationItemCPU)
     {
-        QVariant data;
-        data.setValue(matColorMatrix);
-        m_pInterpolationItemCPU->setVertColor(data);
+        m_pInterpolationItemCPU->setVertColor(matColorMatrix);
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::onStreamingStateChanged(const Qt::CheckState &checkState)
 {
@@ -577,8 +605,7 @@ void SensorDataTreeItem::onStreamingStateChanged(const Qt::CheckState &checkStat
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::onColormapTypeChanged(const QVariant &sColormapType)
 {
@@ -595,8 +622,7 @@ void SensorDataTreeItem::onColormapTypeChanged(const QVariant &sColormapType)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::onTimeIntervalChanged(const QVariant &iMSec)
 {
@@ -607,8 +633,7 @@ void SensorDataTreeItem::onTimeIntervalChanged(const QVariant &iMSec)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::onDataThresholdChanged(const QVariant &vecThresholds)
 {
@@ -625,8 +650,7 @@ void SensorDataTreeItem::onDataThresholdChanged(const QVariant &vecThresholds)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::onLoopStateChanged(const Qt::CheckState &checkState)
 {
@@ -639,8 +663,7 @@ void SensorDataTreeItem::onLoopStateChanged(const Qt::CheckState &checkState)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::onNumberAveragesChanged(const QVariant &iNumAvr)
 {
@@ -651,8 +674,7 @@ void SensorDataTreeItem::onNumberAveragesChanged(const QVariant &iNumAvr)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::onCancelDistanceChanged(const QVariant &dCancelDist)
 {
@@ -664,8 +686,7 @@ void SensorDataTreeItem::onCancelDistanceChanged(const QVariant &dCancelDist)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SensorDataTreeItem::onInterpolationFunctionChanged(const QVariant &sInterpolationFunction)
 {

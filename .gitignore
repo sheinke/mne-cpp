@@ -19,11 +19,8 @@
 *.qm
 
 # Bin folder with exceptions
-/lib/   
-/bin/              
-
-# Applications folder
-/applications/mne_analyze/extensions/deepcntknets/bio
+/lib/
+/bin/
 
 # External device SDKs (if installed)
 /applications/mne_scan/plugins/eegosports/eemagine/
@@ -43,6 +40,10 @@
 
 # Compiled Dynamic libraries
 *.so
+*.so.1
+*.so.1.0
+*.so.1.0.0
+*.so
 *.so.debug
 *.debug
 
@@ -61,3 +62,7 @@ Makefile
 .project
 .settings
 .vscode
+mne-cpp.pro.user*
+
+# FFTW
+/include/3rdParty/fftw

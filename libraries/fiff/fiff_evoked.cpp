@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fiff_evoked.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     September, 2015
-*
-* @section  LICENSE
-*
-* Copyright (C) 2015, Christoph Dinh, Lorenz Esch and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FIFFEvoked Class.
-*
-*/
+ * @file     fiff_evoked.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     September, 2015
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2015, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FIFFEvoked Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -46,17 +45,14 @@
 
 #include <utils/mnemath.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace FIFFLIB;
 using namespace UTILSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -66,15 +62,18 @@ FiffEvoked::FiffEvoked()
 , aspect_kind(-1)
 , first(-1)
 , last(-1)
-, baseline(qMakePair(QVariant("None"), QVariant("None")))
+, baseline(qMakePair(-1.0f, -1.0f))
 {
 
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-FiffEvoked::FiffEvoked(QIODevice& p_IODevice, QVariant setno, QPair<QVariant,QVariant> t_baseline, bool proj, fiff_int_t p_aspect_kind)
+FiffEvoked::FiffEvoked(QIODevice& p_IODevice,
+                       QVariant setno,
+                       QPair<float,float> t_baseline,
+                       bool proj,
+                       fiff_int_t p_aspect_kind)
 {
     if(!FiffEvoked::read(p_IODevice, *this, setno, t_baseline, proj, p_aspect_kind))
     {
@@ -85,8 +84,7 @@ FiffEvoked::FiffEvoked(QIODevice& p_IODevice, QVariant setno, QPair<QVariant,QVa
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffEvoked::FiffEvoked(const FiffEvoked& p_FiffEvoked)
 : info(p_FiffEvoked.info)
@@ -103,16 +101,14 @@ FiffEvoked::FiffEvoked(const FiffEvoked& p_FiffEvoked)
 
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffEvoked::~FiffEvoked()
 {
 
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffEvoked::clear()
 {
@@ -127,10 +123,10 @@ void FiffEvoked::clear()
     proj = MatrixXd();
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-FiffEvoked FiffEvoked::pick_channels(const QStringList& include, const QStringList& exclude) const
+FiffEvoked FiffEvoked::pick_channels(const QStringList& include,
+                                     const QStringList& exclude) const
 {
     if(include.size() == 0 && exclude.size() == 0)
         return FiffEvoked(*this);
@@ -156,7 +152,11 @@ FiffEvoked FiffEvoked::pick_channels(const QStringList& include, const QStringLi
         selBlock.resize(sel.cols(), res.data.cols());
     for(qint32 l = 0; l < sel.cols(); ++l)
     {
-        selBlock.block(l,0,1,selBlock.cols()) = res.data.block(sel(0,l),0,1,selBlock.cols());
+        if(sel(0,l) <= res.data.rows()) {
+            selBlock.block(l,0,1,selBlock.cols()) = res.data.block(sel(0,l),0,1,selBlock.cols());
+        } else {
+            qWarning("FiffEvoked::pick_channels - Warning : Selected channel index out of bound.\n");
+        }
     }
     res.data.resize(sel.cols(), res.data.cols());
     res.data = selBlock;
@@ -164,10 +164,14 @@ FiffEvoked FiffEvoked::pick_channels(const QStringList& include, const QStringLi
     return res;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool FiffEvoked::read(QIODevice& p_IODevice, FiffEvoked& p_FiffEvoked, QVariant setno, QPair<QVariant,QVariant> t_baseline, bool proj, fiff_int_t p_aspect_kind)
+bool FiffEvoked::read(QIODevice& p_IODevice,
+                      FiffEvoked& p_FiffEvoked,
+                      QVariant setno,
+                      QPair<float,float> t_baseline,
+                      bool proj,
+                      fiff_int_t p_aspect_kind)
 {
     p_FiffEvoked.clear();
 
@@ -491,10 +495,10 @@ bool FiffEvoked::read(QIODevice& p_IODevice, FiffEvoked& p_FiffEvoked, QVariant 
     return true;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-void FiffEvoked::setInfo(FiffInfo &p_info, bool proj)
+void FiffEvoked::setInfo(const FiffInfo &p_info,
+                         bool proj)
 {
     info = p_info;
     //
@@ -526,8 +530,7 @@ void FiffEvoked::setInfo(FiffInfo &p_info, bool proj)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffEvoked & FiffEvoked::operator+=(const MatrixXd &newData)
 {
@@ -554,10 +557,9 @@ FiffEvoked & FiffEvoked::operator+=(const MatrixXd &newData)
     return *this;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-void FiffEvoked::applyBaselineCorrection(QPair<QVariant, QVariant>& p_baseline)
+void FiffEvoked::applyBaselineCorrection(QPair<float, float>& p_baseline)
 {
     // Run baseline correction
     printf("Applying baseline correction ... (mode: mean)\n");

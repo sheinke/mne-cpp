@@ -1,14 +1,16 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     libraries.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+#           Daniel Strohmeier <Daniel.Strohmeier@tu-ilmenau.de>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>;
+#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+# @since    0.1.0
 # @date     July, 2012
 #
 # @section  LICENSE
 #
-# Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2012, Lars Debor, Daniel Strohmeier, Lorenz Esch, Christoph Dinh. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,13 +33,12 @@
 #
 # @brief    This project file builds all MNE libraries.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../mne-cpp.pri)
 
 TEMPLATE = subdirs
 
-# TBD change the dependency order - forward before inverse
 SUBDIRS += \
     utils \
     fs \
@@ -45,26 +46,29 @@ SUBDIRS += \
     mne \
     fwd \
     inverse \
-    realtime \
-
-!contains(MNECPP_CONFIG, minimalVersion) {
-
-    !isEmpty( CNTK_INCLUDE_DIR ) {
-        SUBDIRS += \
-            deep
-    }
-
-    SUBDIRS += \
-        connectivity \
-        disp \
+    communication \
+    rtprocessing \
+    connectivity \
+    disp \
 
     qtHaveModule(charts) {
-        SUBDIRS += \
-            disp3D \
+        # The Qt3D module is not yet Wasm supported
+        !contains(MNECPP_CONFIG, wasm) {
+            SUBDIRS += disp3D
+        }
     } else {
-        message("libraries.pro - The Qt Charts module is missing. Please install to build the complete set of MNE-CPP features.")
+        message("libraries.pro - The Qt Charts module is missing. Please install to build the disp3D library.")
     }
-}
 
-
-CONFIG += ordered
+# Specify library dependencies
+utils.depends =
+fs.depends = utils
+fiff.depends = utils
+mne.depends = utils fs fiff
+fwd.depends = utils fs fiff mne
+inverse.depends = utils fs fiff mne fwd
+communication.depends = utils fiff
+rtprocessing.depends = utils connectivity fiff mne fwd inverse
+connectivity.depends = utils fs fiff mne
+disp.depends = utils fs fiff mne fwd inverse rtprocessing
+disp3D.depends = utils connectivity rtprocessing fs fiff mne fwd inverse disp

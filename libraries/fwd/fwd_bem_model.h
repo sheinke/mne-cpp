@@ -1,42 +1,42 @@
 //=============================================================================================================
 /**
-* @file     fwd_bem_model.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-* 
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    FwdBemModel class declaration.
-*
-*/
+ * @file     fwd_bem_model.h
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    FwdBemModel class declaration.
+ *
+ */
 
 #ifndef FWDBEMMODEL_H
 #define FWDBEMMODEL_H
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -47,25 +47,20 @@
 #include <fiff/c/fiff_coord_trans_old.h>
 #include <fiff/fiff_dir_node.h>
 #include <fiff/fiff_tag.h>
+#include <fiff/fiff_named_matrix.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QSharedPointer>
 #include <QString>
-
-
 
 #define FWD_BEM_UNKNOWN           -1
 #define FWD_BEM_CONSTANT_COLL     1
@@ -77,10 +72,8 @@
 #define FWD_BEM_LIN_FIELD_FERGUSON  2
 #define FWD_BEM_LIN_FIELD_URANKAR   3
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Forward Declarations
+// FORWARD DECLARATIONS
 //=============================================================================================================
 
 namespace MNELIB
@@ -92,7 +85,9 @@ namespace MNELIB
     class MneNamedMatrix;
 }
 
-//*************************************************************************************************************
+namespace FIFFLIB {
+    class FiffNamedMatrix;
+}
 //=============================================================================================================
 // DEFINE NAMESPACE FWDLIB
 //=============================================================================================================
@@ -100,20 +95,18 @@ namespace MNELIB
 namespace FWDLIB
 {
 
-//*************************************************************************************************************
 //=============================================================================================================
-// Forward Declarations
+// FWDLIB FORWARD DECLARATIONS
 //=============================================================================================================
 
 class FwdEegSphereModel;
 
-
 //=============================================================================================================
 /**
-* Implements FwdBemModel (Replaces *FwdBemModel*,FwdBemModel*Rec struct of MNE-C fwd_types.h).
-*
-* @brief Holds the BEM model definition
-*/
+ * Implements FwdBemModel (Replaces *FwdBemModel*,FwdBemModel*Rec struct of MNE-C fwd_types.h).
+ *
+ * @brief Holds the BEM model definition
+ */
 class FWDSHARED_EXPORT FwdBemModel
 {
 public:
@@ -122,28 +115,24 @@ public:
 
     //=========================================================================================================
     /**
-    * Constructs the BEM Model
-    * Refactored: fwd_bem_new_model (fwd_bem_model.c)
-    *
-    */
+     * Constructs the BEM Model
+     * Refactored: fwd_bem_new_model (fwd_bem_model.c)
+     *
+     */
     explicit FwdBemModel();
 
     //=========================================================================================================
     /**
-    * Destroys the BEM Model
-    * Refactored: fwd_bem_free_model (fwd_bem_free_model.c)
-    */
+     * Destroys the BEM Model
+     * Refactored: fwd_bem_free_model (fwd_bem_free_model.c)
+     */
     virtual ~FwdBemModel();
 
     //=========================================================================================================
     /**
-    * Refactored: fwd_bem_free_solution (fwd_bem_model.c)
-    */
+     * Refactored: fwd_bem_free_solution (fwd_bem_model.c)
+     */
     void fwd_bem_free_solution();
-
-
-
-
 
 //char *fwd_bem_make_bem_name(char *name)
 ///*
@@ -163,10 +152,7 @@ public:
 //    return s2;
 //}
 
-
     static QString fwd_bem_make_bem_sol_name(const QString& name);
-
-
 
     //============================= fwd_bem_model.c =============================
 
@@ -177,11 +163,10 @@ public:
     static int get_int( FIFFLIB::FiffStream::SPtr& stream, const FIFFLIB::FiffDirNode::SPtr& node,int what,int *res);
 
     /*
-    * Return a pointer to a specific surface in a BEM
-    */
+     * Return a pointer to a specific surface in a BEM
+     */
     // Refactored: fwd_bem_find_surface (fwd_bem_model.c)
     MNELIB::MneSurfaceOld* fwd_bem_find_surface(int kind);
-
 
     static FwdBemModel* fwd_bem_load_surfaces(const QString& name,
                                       int  *kinds,
@@ -235,7 +220,6 @@ public:
                                     int   *ntri);
 
     static float **fwd_bem_homog_solution (float **solids,int ntri);
-
 
     static void fwd_bem_ip_modify_solution(float **solution,    /* The original solution */
                                     float **ip_solution,        /* The isolated problem solution */
@@ -390,7 +374,6 @@ public:
     static int fwd_bem_specify_coils(FwdBemModel* m,
                               FwdCoilSet*  coils);
 
-
     #define MAG_FACTOR 1e-7         /* \mu_0/4\pi */
 
     static void fwd_bem_lin_field_calc(float       *rd,
@@ -413,19 +396,16 @@ public:
                         float       *ygrad,
                         float       *zgrad);
 
-
     static float fwd_bem_inf_field_der(float *rd,      /* Dipole position */
                        float *Q,	   /* Dipole moment */
                        float *rp,	   /* Field point */
                        float *dir,     /* Which field component */
                        float *comp);
 
-
     static float fwd_bem_inf_pot_der (float *rd,   /* Dipole position */
                                float *Q,    /* Dipole moment */
                                float *rp,   /* Potential point */
                                float *comp);
-
 
     static void fwd_bem_lin_field_grad_calc(float       *rd,
                                             float       *Q,
@@ -434,7 +414,6 @@ public:
                                             float       *xgrad,
                                             float       *ygrad,
                                             float       *zgrad);
-
 
     static int fwd_bem_field(float       *rd,	/* Dipole position */
                       float       *Q,	/* Dipole orientation */
@@ -456,28 +435,29 @@ public:
     static void *meg_eeg_fwd_one_source_space(void *arg);
 
     // TODO check if this is the correct class or move
-    static int compute_forward_meg( MNELIB::MneSourceSpaceOld*    *spaces,     /* Source spaces */
-                                    int                 nspace,      /* How many? */
-                                    FwdCoilSet*         coils,
-                                    FwdCoilSet*         comp_coils,
-                                    MNELIB::MneCTFCompDataSet*  comp_data,
-                                    bool                fixed_ori,   /* Use fixed-orientation dipoles */
-                                    FwdBemModel*        bem_model,   /* BEM model definition */
-                                    Eigen::Vector3f*    r0,         /* Sphere model origin */
-                                    bool                use_threads, /* Parallelize with threads? */
-                                    MNELIB::MneNamedMatrix*     *resp,       /* The results */
-                                    MNELIB::MneNamedMatrix*     *resp_grad);
+    static int compute_forward_meg( MNELIB::MneSourceSpaceOld*  *spaces,        /**< Source spaces */
+                                    int                         nspace,         /**< How many? */
+                                    FwdCoilSet*                 coils,          /**< MEG Coilset */
+                                    FwdCoilSet*                 comp_coils,     /**< Compensator Coilset */
+                                    MNELIB::MneCTFCompDataSet*  comp_data,      /**< Compensator Data */
+                                    bool                        fixed_ori,      /**< Use fixed-orientation dipoles */
+                                    FwdBemModel*                bem_model,      /**< BEM model definition */
+                                    Eigen::Vector3f*            r0,             /**< Sphere model origin */
+                                    bool                        use_threads,    /**< Parallelize with threads? */
+                                    FIFFLIB::FiffNamedMatrix&   resp,           /**< The results */
+                                    FIFFLIB::FiffNamedMatrix&   resp_grad,
+                                    bool bDoGRad);                              /**< calculate gradient solution */
 
-    static int compute_forward_eeg( MNELIB::MneSourceSpaceOld*  *spaces,     /* Source spaces */
-                                    int                 nspace,      /* How many? */
-                                    FwdCoilSet*         els,         /* Electrode locations */
-                                    bool                fixed_ori,   /* Use fixed-orientation dipoles */
-                                    FwdBemModel*        bem_model,   /* BEM model definition */
-                                    FwdEegSphereModel*  m,           /* Sphere model definition */
-                                    bool                use_threads, /* Parallelize with threads? */
-                                    MNELIB::MneNamedMatrix*     *resp,       /* The results */
-                                    MNELIB::MneNamedMatrix*     *resp_grad);
-
+    static int compute_forward_eeg( MNELIB::MneSourceSpaceOld*  *spaces,        /**< Source spaces */
+                                    int                         nspace,         /**< How many? */
+                                    FwdCoilSet*                 els,            /**< Electrode locations */
+                                    bool                        fixed_ori,      /**< Use fixed-orientation dipoles */
+                                    FwdBemModel*                bem_model,      /**< BEM model definition */
+                                    FwdEegSphereModel*          m,              /**< Sphere model definition */
+                                    bool                        use_threads,    /**< Parallelize with threads? */
+                                    FIFFLIB::FiffNamedMatrix&   resp,           /**< The results */
+                                    FIFFLIB::FiffNamedMatrix&   resp_grad,
+                                    bool                        bDoGrad);       /**< calculate gradient solution */
 
     //============================= fwd_spherefield.c =============================
     // TODO location of these functions need to be checked -> evtl moving to more suitable space
@@ -564,13 +544,9 @@ public:
 //} *FwdBemModel*,FwdBemModel*Rec;      /* Holds the BEM model definition */
 };
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INLINE DEFINITIONS
 //=============================================================================================================
-
-
 } // NAMESPACE FWDLIB
 
 #endif // FWDBEMMODEL_H

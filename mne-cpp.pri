@@ -1,5 +1,6 @@
 ############################################## GLOBAL FUNCTIONS ###############################################
-#Define minQtVersion Test
+
+# Define minQtVersion Test
 defineTest(minQtVersion) {
     maj = $$1
     min = $$2
@@ -23,103 +24,110 @@ defineTest(minQtVersion) {
     return(false)
 }
 
-
 ############################################### GLOBAL DEFINES ################################################
 
-MNE_CPP_VERSION = 1.0.0
-MNE_LIB_VERSION = 1
+VERSION = 0.1.7
 
-QMAKE_TARGET_PRODUCT = mne-cpp
-QMAKE_TARGET_DESCRIPTION = MNE Qt 5 based C++ library.
-QMAKE_TARGET_COPYRIGHT = Copyright (C) 2016 Authors of mne-cpp. All rights reserved.
-
+QMAKE_TARGET_PRODUCT = MNE-CPP
+QMAKE_TARGET_DESCRIPTION = A Framework for Electrophysiology.
+QMAKE_TARGET_COPYRIGHT = Copyright (C) 2020 Authors of MNE-CPP. All rights reserved.
 
 ########################################### PROJECT CONFIGURATION #############################################
 
-## To build only the minimal version, i.e, for mne_rt_server run: qmake MNECPP_CONFIG+=minimalVersion
-## To set CodeCov coverage compiler flag run: qmake MNECPP_CONFIG+=withCodeCov
-## To disable tests run: qmake MNECPP_CONFIG+=noTests
-## To disable examples run: qmake MNECPP_CONFIG+=noExamples
-## To build basic MNE Scan version run: qmake MNECPP_CONFIG+=buildBasicMneScanVersion
-## To build MNE-CPP libraries as static libs: qmake MNECPP_CONFIG+=buildStaticLibraries
+# To compile with code coverage support run: qmake MNECPP_CONFIG+=withCodeCov
+# To disable tests run: qmake MNECPP_CONFIG+=noTests
+# To disable examples run: qmake MNECPP_CONFIG+=noExamples
+# To disable applications run: qmake MNECPP_CONFIG+=noApplications
+# To build applications as .app bundles on MacOS run: qmake MNECPP_CONFIG+=withAppBundles
+# To build MNE-CPP libraries and executables statically run: qmake MNECPP_CONFIG+=static
+# To build MNE-CPP with FFTW support in Eigen (make sure to specify FFTW_DIRs below) run: qmake MNECPP_CONFIG+=useFFTW
+# To build MNE-CPP without QOpenGLWidget support run: qmake MNECPP_CONFIG+=noQOpenGLWidget
+# To build MNE-CPP against WebAssembly (Wasm) run: qmake MNECPP_CONFIG+=wasm
+# To build MNE Scan with BrainFlow support run: qmake MNECPP_CONFIG+=withBrainFlow
+# To build MNE Scan with LSL support run: qmake MNECPP_CONFIG+=withLsl
+# To build MNE Scan with BrainAMP support run: qmake MNECPP_CONFIG+=withBrainAmp
+# To build MNE Scan with EegoSports support run: qmake MNECPP_CONFIG+=withEego
+# To build MNE Scan with GUSBAmp support run: qmake MNECPP_CONFIG+=withGUSBAmp
+# To build MNE Scan with TMSI support run: qmake MNECPP_CONFIG+=withTmsi
 
-## Build MNE-CPP Deep library
-MNECPP_CONFIG += buildDeep
+# Default flags
+MNECPP_CONFIG +=
 
-#Build minimalVersion for qt versions <5.9.1
-!minQtVersion(5, 9, 1) {
-    message("Building minimal version due to Qt version $${QT_VERSION}.")
-    MNECPP_CONFIG += minimalVersion
+# Suppress untested SDK version checks on MacOS
+macx {
+    CONFIG += sdk_no_version_check
 }
 
+# Check versions
+!minQtVersion(5, 10, 0) {
+    error("You are trying to build with Qt version $${QT_VERSION}. However, the minimal Qt version to build MNE-CPP is 5.10.0.")
+}
+
+# Build static version if wasm flag was defined
+contains(MNECPP_CONFIG, wasm) {
+    message("The wasm flag was detected. Building static version of MNE-CPP. Disabling QOpenGLWidget support.")
+    MNECPP_CONFIG += static noQOpenGLWidget
+}
+
+contains(MNECPP_CONFIG, static) {
+    message("The static flag was detected. Building static version of MNE-CPP.")
+}
+
+# Do not support QOpenGLWidget support on macx because signal backgrounds are not plotted correctly (tested on Qt 5.15.0 and Qt 5.15.1)
+macx:minQtVersion(5, 15, 0) {
+    message("Excluding QOpenGLWidget on MacOS for Qt version greater than 5.15.0")
+    MNECPP_CONFIG += noQOpenGLWidget
+}
 
 ########################################### DIRECTORY DEFINITIONS #############################################
 
-# Eigen
-EIGEN_INCLUDE_DIR = $$EIGEN_INCLUDE_DIR
-isEmpty(EIGEN_INCLUDE_DIR) {
-    EIGEN_INCLUDE_DIR = $${PWD}/include/3rdParty/eigen3
-}
-
-#CNTK
-CNTK_INCLUDE_DIR = $$CNTK_INCLUDE_DIR
-isEmpty( CNTK_INCLUDE_DIR ) {
-    # Check CNTK Path options
-    exists($$(CNTKPATH)/cntk/Include/Eval.h) {
-        CNTK_TEST_DIR = $$(CNTKPATH)/cntk
-    }
-    exists($$(CNTKPATH)/Include/Eval.h) {
-        CNTK_TEST_DIR = $$(CNTKPATH)
-    }
-    exists($$(MYCNTKPATH)/cntk/Include/Eval.h) {
-        CNTK_TEST_DIR = $$(MYCNTKPATH)/cntk
-    }
-    exists($$(MYCNTKPATH)/Include/Eval.h) {
-        CNTK_TEST_DIR = $$(MYCNTKPATH)
-    }
-    # Set CNTK path variables
-    !isEmpty( CNTK_TEST_DIR ) {
-        CNTK_INCLUDE_DIR = $${CNTK_TEST_DIR}/Include
-        CNTK_LIBRARY_DIR = $${CNTK_TEST_DIR}/cntk
-    }
-}
-
-# include
-MNE_INCLUDE_DIR = $$MNE_INCLUDE_DIR
-isEmpty( MNE_INCLUDE_DIR ) {
-    MNE_INCLUDE_DIR = $${PWD}/libraries
-}
-MNE_SCAN_INCLUDE_DIR = $$MNE_SCAN_INCLUDE_DIR
-isEmpty( MNE_SCAN_INCLUDE_DIR ) {
-    MNE_SCAN_INCLUDE_DIR = $${PWD}/applications/mne_scan/libs
-}
-MNE_ANALYZE_INCLUDE_DIR = $$MNE_ANALYZE_INCLUDE_DIR
-isEmpty( MNE_ANALYZE_INCLUDE_DIR ) {
-    MNE_ANALYZE_INCLUDE_DIR = $${PWD}/applications/mne_analyze/libs
-}
-MNE_ANALYZE_EXTENSIONS_DIR = $$MNE_ANALYZE_EXTENSIONS_DIR
-isEmpty( MNE_ANALYZE_EXTENSIONS_DIR ) {
-    MNE_ANALYZE_EXTENSIONS_DIR = $${PWD}/applications/mne_analyze/extensions
-}
-
-# lib
-MNE_LIBRARY_DIR = $$MNE_LIBRARY_DIR
-isEmpty( MNE_LIBRARY_DIR ) {
-    MNE_LIBRARY_DIR = $${PWD}/lib
-}
-contains(MNECPP_CONFIG, buildDeep) {
-    CNTK_LIBRARY_DIR = $$CNTK_LIBRARY_DIR
-    isEmpty( CNTK_LIBRARY_DIR ) {
-        CNTK_LIBRARY_DIR = C:/local/cntk/cntk
-    }
-}
-
-# bin
-MNE_BINARY_DIR = $$MNE_BINARY_DIR
-isEmpty( MNE_BINARY_DIR ) {
-    MNE_BINARY_DIR = $${PWD}/bin
-}
-
-# repository dir
+# Repository directory
 ROOT_DIR = $${PWD}
 
+# Include directories
+EIGEN_INCLUDE_DIR = $$EIGEN_INCLUDE_DIR
+isEmpty(EIGEN_INCLUDE_DIR) {
+    EIGEN_INCLUDE_DIR = $$shell_path($${PWD}/include/3rdParty/eigen3)
+}
+
+MNE_INCLUDE_DIR = $$MNE_INCLUDE_DIR
+isEmpty( MNE_INCLUDE_DIR ) {
+    MNE_INCLUDE_DIR = $$shell_path($${PWD}/libraries)
+}
+
+MNE_SCAN_INCLUDE_DIR = $$MNE_SCAN_INCLUDE_DIR
+isEmpty( MNE_SCAN_INCLUDE_DIR ) {
+    MNE_SCAN_INCLUDE_DIR = $$shell_path($${PWD}/applications/mne_scan/libs)
+}
+
+MNE_ANALYZE_INCLUDE_DIR = $$MNE_ANALYZE_INCLUDE_DIR
+isEmpty( MNE_ANALYZE_INCLUDE_DIR ) {
+    MNE_ANALYZE_INCLUDE_DIR = $$shell_path($${PWD}/applications/mne_analyze/libs)
+}
+
+# Library directories
+MNE_LIBRARY_DIR = $$MNE_LIBRARY_DIR
+isEmpty( MNE_LIBRARY_DIR ) {
+    MNE_LIBRARY_DIR = $$shell_path($${PWD}/lib)
+}
+
+win32 {
+    FFTW_DIR_LIBS = $$shell_path($${PWD}/include/3rdParty/fftw)
+    FFTW_DIR_INCLUDE = $$shell_path($${PWD}/include/3rdParty/fftw)
+}
+unix{
+    FFTW_DIR_LIBS = $$shell_path($${PWD}/include/3rdParty/fftw/lib)
+    FFTW_DIR_INCLUDE = $$shell_path($${PWD}/include/3rdParty/fftw/include)
+}
+
+# Binary directory
+MNE_BINARY_DIR = $$MNE_BINARY_DIR
+isEmpty( MNE_BINARY_DIR ) {
+    MNE_BINARY_DIR = $$shell_path($${PWD}/bin)
+}
+
+# Install directory
+MNE_INSTALL_INCLUDE_DIR = $$MNE_INSTALL_INCLUDE_DIR
+isEmpty( MNE_INSTALL_INCLUDE_DIR ) {
+    MNE_INSTALL_INCLUDE_DIR = $$shell_path($${PWD}/include)
+}

@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_raw_info.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MneRawInfo Class.
-*
-*/
+ * @file     mne_raw_info.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MneRawInfo Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -46,9 +46,6 @@
 
 #include <QFile>
 
-
-
-
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -57,18 +54,10 @@
 #define FALSE 0
 #endif
 
-
-
 #define FREE_33(x) if ((char *)(x) != NULL) free((char *)(x))
-
-
 
 #define MALLOC_33(x,t) (t *)malloc((x)*sizeof(t))
 
-
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -77,31 +66,25 @@ using namespace Eigen;
 using namespace FIFFLIB;
 using namespace MNELIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
 MneRawInfo::MneRawInfo()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneRawInfo::~MneRawInfo()
 {
     this->filename.clear();
-    FREE_33(this->chInfo);
     FREE_33(this->trans);
 //    FREE_33(this->rawDir);
     FREE_33(this->id);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDirNode::SPtr MneRawInfo::find_meas(const FiffDirNode::SPtr &node)
 /*
@@ -119,8 +102,7 @@ FiffDirNode::SPtr MneRawInfo::find_meas(const FiffDirNode::SPtr &node)
     return (tmp_node);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDirNode::SPtr MneRawInfo::find_meas_info(const FiffDirNode::SPtr &node)
 /*
@@ -142,8 +124,7 @@ FiffDirNode::SPtr MneRawInfo::find_meas_info(const FiffDirNode::SPtr &node)
     return empty_node;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDirNode::SPtr MneRawInfo::find_raw(const FiffDirNode::SPtr &node)
 /*
@@ -163,8 +144,7 @@ FiffDirNode::SPtr MneRawInfo::find_raw(const FiffDirNode::SPtr &node)
     return raw;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffDirNode::SPtr MneRawInfo::find_maxshield(const FiffDirNode::SPtr &node)
 
@@ -177,10 +157,18 @@ FiffDirNode::SPtr MneRawInfo::find_maxshield(const FiffDirNode::SPtr &node)
     return (raw);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-int MneRawInfo::get_meas_info(FiffStream::SPtr &stream, FiffDirNode::SPtr &node, fiffId *id, int *nchan, float *sfreq, float *highpass, float *lowpass, fiffChInfo *chp, FiffCoordTransOld **trans, fiffTime *start_time)  /* Measurement date (starting time) */
+int MneRawInfo::get_meas_info(FiffStream::SPtr &stream,
+                              FiffDirNode::SPtr &node,
+                              fiffId *id,
+                              int *nchan,
+                              float *sfreq,
+                              float *highpass,
+                              float *lowpass,
+                              QList<FiffChInfo>& chp,
+                              FiffCoordTransOld **trans,
+                              fiffTime *start_time)  /* Measurement date (starting time) */
 /*
           * Find channel information from
           * nearest FIFFB_MEAS_INFO parent of
@@ -190,8 +178,8 @@ int MneRawInfo::get_meas_info(FiffStream::SPtr &stream, FiffDirNode::SPtr &node,
     FiffTag::SPtr t_pTag;
     //    fiffTagRec tag;
     //    fiffDirEntry this_ent;
-    fiffChInfo ch;
-    fiffChInfo this_ch;
+    QList<FiffChInfo> ch;
+    FiffChInfo this_ch;
     FiffCoordTransOld* t;
     int j,k;
     int to_find = 4;
@@ -200,11 +188,9 @@ int MneRawInfo::get_meas_info(FiffStream::SPtr &stream, FiffDirNode::SPtr &node,
     fiff_int_t kind, pos;
 
     //    tag.data    = NULL;
-    *chp        = NULL;
-    ch          = NULL;
-    *trans      = NULL;
-    *id         = NULL;
-    *start_time = NULL;
+     *trans      = NULL;
+     *id         = NULL;
+     *start_time = NULL;
     /*
         * Find desired parents
         */
@@ -236,8 +222,8 @@ int MneRawInfo::get_meas_info(FiffStream::SPtr &stream, FiffDirNode::SPtr &node,
     /*
        * Others from FIFFB_MEAS_INFO
        */
-    *lowpass  = -1;
-    *highpass = -1;
+     *lowpass  = -1;
+     *highpass = -1;
     for (k = 0; k < node->nent(); k++) {
         kind = node->dir[k]->kind;
         pos  = node->dir[k]->pos;
@@ -250,9 +236,11 @@ int MneRawInfo::get_meas_info(FiffStream::SPtr &stream, FiffDirNode::SPtr &node,
             if (!stream->read_tag(t_pTag,pos))
                 goto bad;
             *nchan = *t_pTag->toInt();
-            ch = MALLOC_33(*nchan,fiffChInfoRec);
-            for (j = 0; j < *nchan; j++)
+
+            for (j = 0; j < *nchan; j++) {
+                ch.append(FiffChInfo());
                 ch[j].scanNo = -1;
+            }
             to_find = to_find + *nchan - 1;
             break;
 
@@ -292,14 +280,14 @@ int MneRawInfo::get_meas_info(FiffStream::SPtr &stream, FiffDirNode::SPtr &node,
             //            this_ch = (fiffChInfo)(tag.data);
             if (!stream->read_tag(t_pTag,pos))
                 goto bad;
-            this_ch = (fiffChInfo)t_pTag->data();
-            if (this_ch->scanNo <= 0 || this_ch->scanNo > *nchan) {
+
+            this_ch = t_pTag->toChInfo();
+            if (this_ch.scanNo <= 0 || this_ch.scanNo > *nchan) {
                 qCritical ("FIFF_CH_INFO : scan # out of range!");
                 goto bad;
             }
             else
-                memcpy(ch+this_ch->scanNo-1,this_ch,
-                       sizeof(fiffChInfoRec));
+                ch[this_ch.scanNo-1] = this_ch;
             to_find--;
             break;
 
@@ -376,18 +364,16 @@ int MneRawInfo::get_meas_info(FiffStream::SPtr &stream, FiffDirNode::SPtr &node,
         goto bad;
     }
     //    FREE_33(tag.data);
-    *chp = ch;
+    chp = ch;
     return (0);
 
 bad : {
-        FREE_33(ch);
         //        FREE_33(tag.data);
         return (-1);
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneRawInfo::mne_load_raw_info(const QString& name, int allow_maxshield, MneRawInfo **infop)
 /*
@@ -400,7 +386,7 @@ int MneRawInfo::mne_load_raw_info(const QString& name, int allow_maxshield, MneR
     //    fiffFile       in       = NULL;
 
     int            res      = FIFF_FAIL;
-    fiffChInfo     chs      = NULL;	/* Channel info */
+    QList<FiffChInfo> chs;	/* Channel info */
     FiffCoordTransOld* trans    = NULL;	/* The coordinate transformation */
     fiffId         id       = NULL;	/* Measurement id */
     QList<FiffDirEntry::SPtr>   rawDir;	/* Directory of raw data tags */
@@ -439,7 +425,16 @@ int MneRawInfo::mne_load_raw_info(const QString& name, int allow_maxshield, MneR
     /*
        * Get the essential measurement information
        */
-    if (get_meas_info (stream,raw,&id,&nchan,&sfreq,&highpass,&lowpass,&chs,&trans,&start_time) < 0)
+    if (get_meas_info (stream,
+                       raw,
+                       &id,
+                       &nchan,
+                       &sfreq,
+                       &highpass,
+                       &lowpass,
+                       chs,
+                       &trans,
+                       &start_time) < 0)
         goto out;
     /*
         * Get the raw directory
@@ -506,12 +501,11 @@ int MneRawInfo::mne_load_raw_info(const QString& name, int allow_maxshield, MneR
     }
     info->rawDir     = rawDir;
     info->ndir       = raw->nent();
-    *infop = info;
+     *infop = info;
     res = FIFF_OK;
 
 out : {
         if (res != FIFF_OK) {
-            FREE_33(chs);
             FREE_33(trans);
             //            FREE_33(rawDir);
             FREE_33(info);

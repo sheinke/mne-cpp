@@ -1,49 +1,54 @@
 //=============================================================================================================
 /**
-* @file     fwd_coil.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     December, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FwdCoil Class.
-*
-*/
+ * @file     fwd_coil.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     December, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FwdCoil Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "fwd_coil.h"
-#include <fiff/fiff_types.h>
+//#include <fiff/fiff_types.h>
+#include <fiff/fiff_ch_info.h>
 #include <stdio.h>
 
+//=============================================================================================================
+// QT INCLUDES
+//=============================================================================================================
 
-//*************************************************************************************************************
+#include <QDebug>
+
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -52,13 +57,10 @@ using namespace Eigen;
 using namespace FIFFLIB;
 using namespace FWDLIB;
 
-
 #define MALLOC_5(x,t) (t *)malloc((x)*sizeof(t))
-
 
 #define FREE_5(x) if ((char *)(x) != NULL) free((char *)(x))
 #define FREE_CMATRIX_5(m) mne_free_cmatrix_5((m))
-
 
 #define ALLOC_CMATRIX_5(x,y) mne_cmatrix_5((x),(y))
 
@@ -66,17 +68,14 @@ using namespace FWDLIB;
 #define Y_5 1
 #define Z_5 2
 
-
 #define VEC_DOT_5(x,y) ((x)[X_5]*(y)[X_5] + (x)[Y_5]*(y)[Y_5] + (x)[Z_5]*(y)[Z_5])
 #define VEC_LEN_5(x) sqrt(VEC_DOT_5(x,x))
-
 
 #define VEC_COPY_5(to,from) {\
     (to)[X_5] = (from)[X_5];\
     (to)[Y_5] = (from)[Y_5];\
     (to)[Z_5] = (from)[Z_5];\
     }
-
 
 static void matrix_error_5(int kind, int nr, int nc)
 
@@ -94,7 +93,6 @@ static void matrix_error_5(int kind, int nr, int nc)
     printf("Cannot continue. Sorry.\n");
     exit(1);
 }
-
 
 float **mne_cmatrix_5(int nr,int nc)
 
@@ -121,7 +119,6 @@ void mne_free_cmatrix_5 (float **m)
     }
 }
 
-
 static void normalize_5(float *rr)
 /*
       * Scale vector to unit length
@@ -136,8 +133,6 @@ static void normalize_5(float *rr)
     return;
 }
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -166,8 +161,7 @@ FwdCoil::FwdCoil(int p_np)
     ez[2] = 1.0;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdCoil::FwdCoil(const FwdCoil& p_FwdCoil)
 {
@@ -199,8 +193,7 @@ FwdCoil::FwdCoil(const FwdCoil& p_FwdCoil)
     this->coord_frame = p_FwdCoil.coord_frame;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdCoil::~FwdCoil()
 {
@@ -209,16 +202,15 @@ FwdCoil::~FwdCoil()
     FREE_5(w);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-FwdCoil *FwdCoil::create_eeg_el(FIFFLIB::fiffChInfo ch, const FiffCoordTransOld* t)
+FwdCoil *FwdCoil::create_eeg_el(const FiffChInfo& ch, const FiffCoordTransOld* t)
 {
     FwdCoil*    res = NULL;
     int        c;
 
-    if (ch->kind != FIFFV_EEG_CH) {
-        printf("%s is not an EEG channel. Cannot create an electrode definition.",ch->ch_name);
+    if (ch.kind != FIFFV_EEG_CH) {
+        qWarning() << ch.ch_name << "is not an EEG channel. Cannot create an electrode definition.";
         goto bad;
     }
     if (t && t->from != FIFFV_COORD_HEAD) {
@@ -226,18 +218,18 @@ FwdCoil *FwdCoil::create_eeg_el(FIFFLIB::fiffChInfo ch, const FiffCoordTransOld*
         goto bad;
     }
 
-    if (VEC_LEN_5(ch->chpos.ex) < 1e-4)
+    if (ch.chpos.ex.norm() < 1e-4)
         res = new FwdCoil(1);	             /* No reference electrode */
     else
         res = new FwdCoil(2);		     /* Reference electrode present */
 
-    res->chname     = ch->ch_name;
+    res->chname     = ch.ch_name;
     res->desc       = "EEG electrode";
     res->coil_class = FWD_COILC_EEG;
     res->accuracy   = FWD_COIL_ACCURACY_NORMAL;
-    res->type       = ch->chpos.coil_type;
-    VEC_COPY_5(res->r0,ch->chpos.r0);
-    VEC_COPY_5(res->ex,ch->chpos.ex);
+    res->type       = ch.chpos.coil_type;
+    VEC_COPY_5(res->r0,ch.chpos.r0);
+    VEC_COPY_5(res->ex,ch.chpos.ex);
     /*
        * Optional coordinate transformation
        */
@@ -271,8 +263,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FwdCoil::is_axial_coil() const
 {
@@ -281,24 +272,21 @@ bool FwdCoil::is_axial_coil() const
             this->coil_class == FWD_COILC_AXIAL_GRAD2);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FwdCoil::is_magnetometer_coil() const
 {
     return this->coil_class == FWD_COILC_MAG;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FwdCoil::is_planar_coil() const
 {
     return this->coil_class == FWD_COILC_PLANAR_GRAD;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FwdCoil::is_eeg_electrode() const
 {

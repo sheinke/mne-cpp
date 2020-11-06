@@ -1,15 +1,16 @@
-
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     utils.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+#           Daniel Strohmeier <Daniel.Strohmeier@tu-ilmenau.de>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>;
+#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+# @since    0.1.0
 # @date     July, 2012
 #
 # @section  LICENSE
 #
-# Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2012, Lars Debor, Daniel Strohmeier, Lorenz Esch, Christoph Dinh. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -32,44 +33,32 @@
 #
 # @brief    This project file builds the Utils library.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../mne-cpp.pri)
 
 TEMPLATE = lib
 
+CONFIG += skip_target_version_ext
+
 QT -= gui
-QT += xml core
-QT += network concurrent # Check with HP-UX
+QT += concurrent
 
 DEFINES += UTILS_LIBRARY
 
+DESTDIR = $${MNE_LIBRARY_DIR}
+
 TARGET = Utils
-TARGET = $$join(TARGET,,MNE$$MNE_LIB_VERSION,)
+TARGET = $$join(TARGET,,"mnecpp",)
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
 
-DESTDIR = $${MNE_LIBRARY_DIR}
-
-contains(MNECPP_CONFIG, buildStaticLibraries) {
+contains(MNECPP_CONFIG, static) {
     CONFIG += staticlib
-    DEFINES += BUILD_STATIC_LIBRARIES
-}
-else {
-    CONFIG += dll
-
-    #
-    # win32: copy dll's to bin dir
-    # unix: add lib folder to LD_LIBRARY_PATH
-    #
-    win32 {
-        FILE = $${DESTDIR}/$${TARGET}.dll
-        BINDIR = $${DESTDIR}/../bin
-        FILE ~= s,/,\\,g
-        BINDIR ~= s,/,\\,g
-        QMAKE_POST_LINK += $${QMAKE_COPY} $$quote($${FILE}) $$quote($${BINDIR}) $$escape_expand(\\n\\t)
-    }
+    DEFINES += STATICBUILD
+} else {
+    CONFIG += shared
 }
 
 SOURCES += \
@@ -78,24 +67,13 @@ SOURCES += \
     ioutils.cpp \
     layoutloader.cpp \
     layoutmaker.cpp \
-    mp/adaptivemp.cpp \
-    mp/atom.cpp \
-    mp/fixdictmp.cpp \
     selectionio.cpp \
-    filterTools/cosinefilter.cpp \
-    filterTools/parksmcclellan.cpp \
-    filterTools/filterdata.cpp \
-    filterTools/filterio.cpp \
-    detecttrigger.cpp \
     spectrogram.cpp \
     warp.cpp \
-    filterTools/sphara.cpp \
     sphere.cpp \
-    generics/buffer.cpp \
-    generics/circularbuffer.cpp \
-    generics/circularmatrixbuffer.cpp \
-    generics/observerpattern.cpp
-
+    generics/observerpattern.cpp \
+    generics/applicationlogger.cpp \
+    spectral.cpp
 
 HEADERS += \
     kmeans.h\
@@ -104,56 +82,55 @@ HEADERS += \
     ioutils.h \
     layoutloader.h \
     layoutmaker.h \
-    mp/adaptivemp.h \
-    mp/atom.h \
-    mp/fixdictmp.h \
     selectionio.h \
-    layoutmaker.h \
-    filterTools/cosinefilter.h \
-    filterTools/parksmcclellan.h \
-    filterTools/filterdata.h \
-    filterTools/filterio.h \
-    detecttrigger.h \
     spectrogram.h \
     warp.h \
-    filterTools/sphara.h \
     sphere.h \
     simplex_algorithm.h \
-    generics/buffer.h \
     generics/circularbuffer.h \
-    generics/circularbuffer_old.h \
-    generics/circularmatrixbuffer.h \
-    generics/circularmultichannelbuffer_old.h \
     generics/commandpattern.h \
     generics/observerpattern.h \
-    generics/typename_old.h
+    generics/applicationlogger.h \
+    spectral.h
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
 
 # Install headers to include directory
-header_files.files = ./*.h
-header_files.path = $${MNE_INCLUDE_DIR}/utils
+header_files.files = $${HEADERS}
+header_files.path = $${MNE_INSTALL_INCLUDE_DIR}/utils
 
 INSTALLS += header_files
 
-unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
+contains(MNECPP_CONFIG, withCodeCov) {
+    QMAKE_CXXFLAGS += --coverage
+    QMAKE_LFLAGS += --coverage
+}
 
-FORMS += \
+win32:!contains(MNECPP_CONFIG, static) {
+    QMAKE_POST_LINK += $$QMAKE_COPY $$shell_path($${MNE_LIBRARY_DIR}/$${TARGET}.dll) $${MNE_BINARY_DIR}
+}
 
-# Deploy Qt Dependencies
-win32 {
-    isEmpty(TARGET_EXT) {
-        TARGET_CUSTOM_EXT = .dll
-    } else {
-        TARGET_CUSTOM_EXT = $${TARGET_EXT}
+macx {
+    QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
+}
+
+# Activate FFTW backend in Eigen for non-static builds only
+contains(MNECPP_CONFIG, useFFTW):!contains(MNECPP_CONFIG, static) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
+
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
     }
 
-    DEPLOY_COMMAND = windeployqt
-
-    DEPLOY_TARGET = $$shell_quote($$shell_path($${MNE_BINARY_DIR}/$${TARGET}$${TARGET_CUSTOM_EXT}))
-
-    #  # Uncomment the following line to help debug the deploy command when running qmake
-    #  warning($${DEPLOY_COMMAND} $${DEPLOY_TARGET})
-    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
 }

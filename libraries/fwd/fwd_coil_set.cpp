@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fwd_coil_set.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     December, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FwdCoilSet Class.
-*
-*/
+ * @file     fwd_coil_set.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     December, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FwdCoilSet Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -41,16 +41,14 @@
 #include "fwd_coil_set.h"
 #include "fwd_coil.h"
 
+#include <fiff/fiff_ch_info.h>
 
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QDebug>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -59,12 +57,8 @@ using namespace Eigen;
 using namespace FIFFLIB;
 using namespace FWDLIB;
 
-
-
 #define MAXWORD 1000
 #define BIG 0.5
-
-
 
 #ifndef TRUE
 #define TRUE 1
@@ -74,7 +68,6 @@ using namespace FWDLIB;
 #define FALSE 0
 #endif
 
-
 #ifndef FAIL
 #define FAIL -1
 #endif
@@ -83,24 +76,15 @@ using namespace FWDLIB;
 #define OK 0
 #endif
 
-
-
-
 #define MALLOC_6(x,t) (t *)malloc((x)*sizeof(t))
 #define REALLOC_6(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
 #define FREE_6(x) if ((char *)(x) != NULL) free((char *)(x))
 
 #define FIFFV_COORD_UNKNOWN     0
 
-
-
-
-
 #define X_6 0
 #define Y_6 1
 #define Z_6 2
-
-
 
 #define VEC_DOT_6(x,y) ((x)[X_6]*(y)[X_6] + (x)[Y_6]*(y)[Y_6] + (x)[Z_6]*(y)[Z_6])
 #define VEC_LEN_6(x) sqrt(VEC_DOT_6(x,x))
@@ -110,10 +94,6 @@ using namespace FWDLIB;
     (to)[Y_6] = (from)[Y_6];\
     (to)[Z_6] = (from)[Z_6];\
     }
-
-
-
-
 
 static void skip_comments(FILE *in)
 
@@ -132,7 +112,6 @@ static void skip_comments(FILE *in)
         }
     }
 }
-
 
 static int whitespace(int c)
 
@@ -209,6 +188,7 @@ static int get_fval(FILE *in, float *fval)
 
 {
     char *next = next_word(in);
+    setlocale(LC_NUMERIC, "C");
     if (next == NULL) {
         qWarning("bad integer");
         return FAIL;
@@ -221,9 +201,6 @@ static int get_fval(FILE *in, float *fval)
     FREE_6(next);
     return OK;
 }
-
-
-
 
 static void normalize(float *rr)
 /*
@@ -281,14 +258,6 @@ static FwdCoil* fwd_add_coil_to_set(FwdCoilSet* set,
     return def;
 }
 
-
-
-
-
-
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -302,15 +271,13 @@ FwdCoilSet::FwdCoilSet()
     user_data_free = NULL;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 //FwdCoilSet::FwdCoilSet(const FwdCoilSet& p_FwdCoilSet)
 //{
 //}
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdCoilSet::~FwdCoilSet()
 {
@@ -321,30 +288,29 @@ FwdCoilSet::~FwdCoilSet()
     this->fwd_free_coil_set_user_data();
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-FwdCoil *FwdCoilSet::create_meg_coil(fiffChInfo ch, int acc, const FiffCoordTransOld* t)
+FwdCoil *FwdCoilSet::create_meg_coil(const FiffChInfo& ch, int acc, const FiffCoordTransOld* t)
 {
     int        k,p,c;
     FwdCoil*    def;
     FwdCoil*    res = NULL;
 
-    if (ch->kind != FIFFV_MEG_CH && ch->kind != FIFFV_REF_MEG_CH) {
-        printf("%s is not a MEG channel. Cannot create a coil definition.",ch->ch_name);
+    if (ch.kind != FIFFV_MEG_CH && ch.kind != FIFFV_REF_MEG_CH) {
+        qWarning() << ch.ch_name << "is not a MEG channel. Cannot create a coil definition.";
         goto bad;
     }
     /*
         * Simple linear search from the coil definitions
         */
     for (k = 0, def = NULL; k < this->ncoil; k++) {
-        if ((this->coils[k]->type == (ch->chpos.coil_type & 0xFFFF)) &&
+        if ((this->coils[k]->type == (ch.chpos.coil_type & 0xFFFF)) &&
                 this->coils[k]->accuracy == acc) {
             def = this->coils[k];
         }
     }
     if (!def) {
-        printf("Desired coil definition not found (type = %d acc = %d)",ch->chpos.coil_type,acc);
+        printf("Desired coil definition not found (type = %d acc = %d)",ch.chpos.coil_type,acc);
         goto bad;
     }
     /*
@@ -352,19 +318,19 @@ FwdCoil *FwdCoilSet::create_meg_coil(fiffChInfo ch, int acc, const FiffCoordTran
         */
     res = new FwdCoil(def->np);
 
-    res->chname   = ch->ch_name;
+    res->chname   = ch.ch_name;
     if (!def->desc.isEmpty())
         res->desc   = def->desc;
     res->coil_class = def->coil_class;
     res->accuracy   = def->accuracy;
     res->base       = def->base;
     res->size       = def->size;
-    res->type       = ch->chpos.coil_type;
+    res->type       = ch.chpos.coil_type;
 
-    VEC_COPY_6(res->r0,ch->chpos.r0);
-    VEC_COPY_6(res->ex,ch->chpos.ex);
-    VEC_COPY_6(res->ey,ch->chpos.ey);
-    VEC_COPY_6(res->ez,ch->chpos.ez);
+    VEC_COPY_6(res->r0,ch.chpos.r0);
+    VEC_COPY_6(res->ex,ch.chpos.ex);
+    VEC_COPY_6(res->ey,ch.chpos.ey);
+    VEC_COPY_6(res->ez,ch.chpos.ez);
     /*
         * Apply a coordinate transformation if so desired
         */
@@ -392,17 +358,19 @@ bad : {
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-FwdCoilSet *FwdCoilSet::create_meg_coils(FIFFLIB::fiffChInfo chs, int nch, int acc, const FiffCoordTransOld* t)
+FwdCoilSet *FwdCoilSet::create_meg_coils(const QList<FIFFLIB::FiffChInfo>& chs,
+                                         int nch,
+                                         int acc,
+                                         const FiffCoordTransOld* t)
 {
     FwdCoilSet* res = new FwdCoilSet();
     FwdCoil*    next;
     int        k;
 
     for (k = 0; k < nch; k++) {
-        if ((next = this->create_meg_coil(chs+k,acc,t)) == NULL)
+        if ((next = this->create_meg_coil(chs.at(k),acc,t)) == Q_NULLPTR)
             goto bad;
         res->coils = REALLOC_6(res->coils,res->ncoil+1,FwdCoil*);
         res->coils[res->ncoil++] = next;
@@ -417,17 +385,18 @@ bad : {
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-FwdCoilSet *FwdCoilSet::create_eeg_els(fiffChInfo chs, int nch, const FiffCoordTransOld* t)
+FwdCoilSet *FwdCoilSet::create_eeg_els(const QList<FIFFLIB::FiffChInfo>& chs,
+                                       int nch,
+                                       const FiffCoordTransOld* t)
 {
     FwdCoilSet* res = new FwdCoilSet();
     FwdCoil*    next;
     int        k;
 
     for (k = 0; k < nch; k++) {
-        if ((next = FwdCoil::create_eeg_el(chs+k,t)) == NULL)
+        if ((next = FwdCoil::create_eeg_el(chs.at(k),t)) == Q_NULLPTR)
             goto bad;
         res->coils = REALLOC_6(res->coils,res->ncoil+1,FwdCoil*);
         res->coils[res->ncoil++] = next;
@@ -442,8 +411,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdCoilSet *FwdCoilSet::read_coil_defs(const QString &name)
 /*
@@ -459,7 +427,7 @@ FwdCoilSet *FwdCoilSet::read_coil_defs(const QString &name)
     FwdCoil* def;
 
     if (in == NULL) {
-        qWarning() << name;
+        qWarning() << "FwdCoilSet::read_coil_defs - File is NULL" << name;
         goto bad;
     }
 
@@ -520,6 +488,9 @@ FwdCoilSet *FwdCoilSet::read_coil_defs(const QString &name)
             normalize(def->cosmag[p]);
         }
     }
+
+    fclose(in);
+
     printf("%d coil definitions read\n",res->ncoil);
     return res;
 
@@ -530,8 +501,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FwdCoilSet* FwdCoilSet::dup_coil_set(const FiffCoordTransOld* t) const
 {
@@ -574,8 +544,7 @@ FwdCoilSet* FwdCoilSet::dup_coil_set(const FiffCoordTransOld* t) const
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FwdCoilSet::is_planar_coil_type(int type) const
 {
@@ -587,8 +556,7 @@ bool FwdCoilSet::is_planar_coil_type(int type) const
     return false;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FwdCoilSet::is_axial_coil_type(int type) const
 {
@@ -602,8 +570,7 @@ bool FwdCoilSet::is_axial_coil_type(int type) const
     return false;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FwdCoilSet::is_magnetometer_coil_type(int type) const
 {
@@ -615,8 +582,7 @@ bool FwdCoilSet::is_magnetometer_coil_type(int type) const
     return false;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FwdCoilSet::is_eeg_electrode_type(int type) const
 {

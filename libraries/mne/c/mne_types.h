@@ -124,11 +124,16 @@
 
 #include <QStringList>
 
+//=============================================================================================================
+// DEFINE NAMESPACE MNELIB
+//=============================================================================================================
 
-#if defined(__cplusplus) 
+namespace MNELIB
+{
+
+#if defined(__cplusplus)
 extern "C" {
 #endif
-
 
 //namespace MNELIB {
 //    class MneSurfaceOrVolume {
@@ -142,7 +147,6 @@ extern "C" {
 //    }
 
 //}
-
 
 ///*
 // * Complex data
@@ -442,7 +446,6 @@ typedef struct {            /* Vector specification with a channel list */
 //  MNELIB::MneProjOp*    proj;           /* The associated projection operator */
 //} *mneInverseOperator,mneInverseOperatorRec;
 
-
 //typedef struct {		/* For storing the wdata */
 //  int   id;			/* Surface id these data belong to */
 //  int   kind;			/* What kind of data */
@@ -463,38 +466,37 @@ typedef struct {            /* Vector specification with a channel list */
 //  float **data;			/* The data, time by time */
 //} *mneStcData,mneStcDataRec;
 
-typedef struct {		/* Information about raw data in fiff file */
-  char          *filename;	/* The name of the file this comes from */
-  FIFFLIB::fiffId        id;		/* Measurement id from the file */
-  int           nchan;		/* Number of channels */
-  FIFFLIB::fiffChInfo    chInfo;		/* Channel info data  */
-  int           coord_frame;	/* 
-				 * Which coordinate frame are the
-				 * positions defined in? 
-				 */
-  FIFFLIB::FiffCoordTransOld* trans;	        /* This is the coordinate transformation
-				 * FIFF_COORD_HEAD <--> FIFF_COORD_DEVICE
-				 */
-  float         sfreq;		/* Sampling frequency */
-  float         lowpass;	/* Lowpass filter setting */
-  float         highpass;       /* Highpass filter setting */
-  FIFFLIB::fiffTimeRec   start_time;	/* Starting time of the acquisition
-				 * taken from the meas date 
-				 * or the meas block id
-				 * whence it may be inaccurate. */
-  int           buf_size;                       /**< Buffer size in samples */
-  int           maxshield_data;                 /**< Are these unprocessed MaxShield data */
-  QList<FIFFLIB::FiffDirEntry::SPtr> rawDir;    /**< Directory of raw data tags
-				 * These may be of type
-				 *       FIFF_DATA_BUFFER
-				 *       FIFF_DATA_SKIP
-				 *       FIFF_DATA_SKIP_SAMP
-				 *       FIFF_NOP
-				 */
-  int           ndir;		/* Number of tags in the above
-				 * directory */
-} mneRawInfoRec, *mneRawInfo;
-
+//typedef struct {		/* Information about raw data in fiff file */
+//  char          *filename;	/* The name of the file this comes from */
+//  FIFFLIB::fiffId        id;		/* Measurement id from the file */
+//  int           nchan;		/* Number of channels */
+//  QList<FIFFLIB::FiffChInfo>    chInfo;		/* Channel info data  */
+//  int           coord_frame;	/*
+//				 * Which coordinate frame are the
+//				 * positions defined in?
+//				 */
+//  FIFFLIB::FiffCoordTransOld* trans;	        /* This is the coordinate transformation
+//				 * FIFF_COORD_HEAD <--> FIFF_COORD_DEVICE
+//				 */
+//  float         sfreq;		/* Sampling frequency */
+//  float         lowpass;	/* Lowpass filter setting */
+//  float         highpass;       /* Highpass filter setting */
+//  FIFFLIB::fiffTimeRec   start_time;	/* Starting time of the acquisition
+//				 * taken from the meas date
+//				 * or the meas block id
+//				 * whence it may be inaccurate. */
+//  int           buf_size;                       /**< Buffer size in samples */
+//  int           maxshield_data;                 /**< Are these unprocessed MaxShield data */
+//  QList<FIFFLIB::FiffDirEntry::SPtr> rawDir;    /**< Directory of raw data tags
+//				 * These may be of type
+//				 *       FIFF_DATA_BUFFER
+//				 *       FIFF_DATA_SKIP
+//				 *       FIFF_DATA_SKIP_SAMP
+//				 *       FIFF_NOP
+//				 */
+//  int           ndir;		/* Number of tags in the above
+//				 * directory */
+//} mneRawInfoRec, *mneRawInfo;
 
 //typedef struct {		/* Spatiotemporal map */
 //  int kind;			/* What kind of data */
@@ -586,19 +588,18 @@ typedef struct {
 } *mneFilterDef,mneFilterDefRec;
 #endif
 
-typedef struct {
-  FIFFLIB::FiffDirEntry::SPtr ent;		/* Where is this in the file (file bufs only, pointer to info) */
-  int   firsts,lasts;		/* First and last sample */
-  int   ntaper;			/* For filtered buffers: taper length */
-  int   ns;			/* Number of samples (last - first + 1) */
-  int   nchan;			/* Number of channels */
-  int   is_skip;		/* Is this a skip? */
-  float **vals;			/* Values (null if not in memory) */
-  int   valid;			/* Are the data meaningful? */
-  int   *ch_filtered;		/* For filtered buffers: has this channel filtered already */
-  int   comp_status;		/* For raw buffers: compensation status */
-} *mneRawBufDef,mneRawBufDefRec;
-
+//typedef struct {
+//  FIFFLIB::FiffDirEntry::SPtr ent;		/* Where is this in the file (file bufs only, pointer to info) */
+//  int   firsts,lasts;		/* First and last sample */
+//  int   ntaper;			/* For filtered buffers: taper length */
+//  int   ns;			/* Number of samples (last - first + 1) */
+//  int   nchan;			/* Number of channels */
+//  int   is_skip;		/* Is this a skip? */
+//  float **vals;			/* Values (null if not in memory) */
+//  int   valid;			/* Are the data meaningful? */
+//  int   *ch_filtered;		/* For filtered buffers: has this channel filtered already */
+//  int   comp_status;		/* For raw buffers: compensation status */
+//} *mneRawBufDef,mneRawBufDefRec;
 
 /*
  * CTF compensation stuff
@@ -648,7 +649,6 @@ typedef struct {
 //  int      nderiv;		        /* How many? */
 //  mneDeriv *derivs;			/* Pointers to the items */
 //} *mneDerivSet,mneDerivSetRec;
-
 
 //typedef struct {			/* A comprehensive raw data structure */
 //  char             *filename;           /* This is our file */
@@ -755,7 +755,6 @@ typedef struct {
 //  int                nset;	 /* How many */
 //  MNELIB::MneMeasDataSet*     current;	 /* Which is the current one */
 //} *mneMeasData,mneMeasDataRec;
-
 
 //typedef struct {		/* Identifier for the automatic parcellation */
 //  char  *name;			/* Name of this area */
@@ -895,7 +894,10 @@ typedef struct {
 //#define MNE_ENV_TRIGGER_CH_MASK     "MNE_TRIGGER_CH_MASK"
 #define MNE_ENV_ROOT                "MNE_ROOT"
 
-#if defined(__cplusplus) 
+#if defined(__cplusplus)
 }
 #endif
+
+} // Namespace
+
 #endif

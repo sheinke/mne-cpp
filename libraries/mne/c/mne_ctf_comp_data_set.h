@@ -1,42 +1,42 @@
 //=============================================================================================================
 /**
-* @file     mne_ctf_comp_data_set.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    MneCTFCompDataSet class declaration.
-*
-*/
+ * @file     mne_ctf_comp_data_set.h
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    MneCTFCompDataSet class declaration.
+ *
+ */
 
 #ifndef MNECTFCOMPDATASET_H
 #define MNECTFCOMPDATASET_H
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -46,25 +46,19 @@
 #include "mne_named_matrix.h"
 #include <fiff/c/fiff_sparse_matrix.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QSharedPointer>
 #include <QList>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE NAMESPACE MNELIB
 //=============================================================================================================
@@ -72,20 +66,18 @@
 namespace MNELIB
 {
 
-//*************************************************************************************************************
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
 
 class MneCTFCompData;
 
-
 //=============================================================================================================
 /**
-* Implements an MNE CTF Compensation Data Set (Replaces *mneCTFcompDataSet,mneCTFcompDataSetRec; struct of MNE-C mne_types.h).
-*
-* @brief One MNE CTF Compensation Data Set description
-*/
+ * Implements an MNE CTF Compensation Data Set (Replaces *mneCTFcompDataSet,mneCTFcompDataSetRec; struct of MNE-C mne_types.h).
+ *
+ * @brief One MNE CTF Compensation Data Set description
+ */
 class MNESHARED_EXPORT MneCTFCompDataSet
 {
 public:
@@ -94,46 +86,36 @@ public:
 
     //=========================================================================================================
     /**
-    * Constructs the MNE CTF Comepnsation Data Set
-    * Refactored: mne_new_ctf_comp_data_set (mne_ctf_comp.c)
-    */
+     * Constructs the MNE CTF Comepnsation Data Set
+     * Refactored: mne_new_ctf_comp_data_set (mne_ctf_comp.c)
+     */
     MneCTFCompDataSet();
 
     //=========================================================================================================
     /**
-    * Copies the MNE CTF Comepnsation Data Set
-    * Refactored: mne_dup_ctf_comp_data_set (mne_ctf_comp.c)
-    */
+     * Copies the MNE CTF Comepnsation Data Set
+     * Refactored: mne_dup_ctf_comp_data_set (mne_ctf_comp.c)
+     */
     MneCTFCompDataSet(const MneCTFCompDataSet& set);
 
     //=========================================================================================================
     /**
-    * Destroys the MNE CTF Comepnsation Data Set
-    * Refactored: mne_free_ctf_comp_data_set (mne_ctf_comp.c)
-    */
+     * Destroys the MNE CTF Comepnsation Data Set
+     * Refactored: mne_free_ctf_comp_data_set (mne_ctf_comp.c)
+     */
     ~MneCTFCompDataSet();
-
 
     static MneCTFCompDataSet* mne_read_ctf_comp_data(const QString& name);
 
-
-
     static int mne_make_ctf_comp(MneCTFCompDataSet* set,        /* The available compensation data */
-                          FIFFLIB::fiffChInfo        chs,        /* Channels to compensate These may contain channels other than those requiring compensation */
-                          int               nch,        /* How many of these */
-                          FIFFLIB::fiffChInfo        compchs,    /* The compensation input channels These may contain channels other than the MEG compensation channels */
-                          int               ncomp);
+                          const QList<FIFFLIB::FiffChInfo>& chs,        /* Channels to compensate These may contain channels other than those requiring compensation */
+                          int nch,        /* How many of these */
+                          QList<FIFFLIB::FiffChInfo> compchs,    /* The compensation input channels These may contain channels other than the MEG compensation channels */
+                          int ncomp);
 
-
-
-
-    static int mne_set_ctf_comp(FIFFLIB::fiffChInfo chs,
+    static int mne_set_ctf_comp(QList<FIFFLIB::FiffChInfo> &chs,
                          int        nch,
                          int        comp);
-
-
-
-
 
     static int mne_apply_ctf_comp(MneCTFCompDataSet*   set,        /* The compensation data */
                            int                  do_it,
@@ -142,37 +124,20 @@ public:
                            float                *compdata,  /* Data containing the compensation channels */
                            int                  ncompdata);
 
-
-
-
-
-
-
-
     static int mne_apply_ctf_comp_t(MneCTFCompDataSet* set,     /* The compensation data */
                              int               do_it,
                              float             **data,  /* The data to process (channel by channel) */
                              int               ndata,
                              int               ns);
 
-
-
-    static int mne_get_ctf_comp(FIFFLIB::fiffChInfo chs,int nch);
-
-
-
+    static int mne_get_ctf_comp(const QList<FIFFLIB::FiffChInfo>& chs,int nch);
 
     /*
      * Mapping from simple integer orders to the mysterious CTF compensation numbers
      */
     static int mne_map_ctf_comp_kind(int grad);
 
-
-
     static const char *mne_explain_ctf_comp(int kind);
-
-
-
 
     //int mne_ctf_compensate_to(mneCTFcompDataSet set,            /* The compensation data */
     //                          int               compensate_to,  /* What is the desired compensation to achieve */
@@ -262,21 +227,17 @@ public:
     //    }
     //}
 
-
     static int mne_ctf_set_compensation(MneCTFCompDataSet* set,            /* The compensation data */
-                                 int               compensate_to,  /* What is the desired compensation to achieve */
-                                 FIFFLIB::fiffChInfo        chs,            /* The channels to compensate */
-                                 int               nchan,          /* How many? */
-                                 FIFFLIB::fiffChInfo        comp_chs,       /* Maybe a different set, defaults to the same */
-                                 int               ncomp_chan);
-
-
-
+                                 int compensate_to,  /* What is the desired compensation to achieve */
+                                 QList<FIFFLIB::FiffChInfo>& chs,            /* The channels to compensate */
+                                 int nchan,          /* How many? */
+                                 QList<FIFFLIB::FiffChInfo> comp_chs,       /* Maybe a different set, defaults to the same */
+                                 int ncomp_chan);
 
 public:
     QList<MneCTFCompData*> comps;   /* All available compensation data sets */
     int            ncomp;           /* How many? */
-    FIFFLIB::fiffChInfo     chs;    /* Channel information */
+    QList<FIFFLIB::FiffChInfo>     chs;    /* Channel information */
     int            nch;             /* How many of the above */
     MneCTFCompData* undo;           /* Compensation data to undo the current compensation before applying current */
     MneCTFCompData* current;        /* The current compensation data composed from the above taking into account channels presently available */
@@ -292,11 +253,9 @@ public:
 //} *mneCTFcompDataSet,mneCTFcompDataSetRec;
 };
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INLINE DEFINITIONS
 //=============================================================================================================
-
 } // NAMESPACE MNELIB
 
 #endif // MNECTFCOMPDATASET_H

@@ -1,14 +1,22 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     testframes.pro
-# @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+# @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+#           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+#           Ruben Doerfel <Ruben.Doerfel@tu-ilmenau.de>;
+#           Felix Griesau <Felix.Griesau@tu-ilmenau.de>;
+#           Gabriel B Motta <gabrielbenmotta@gmail.com>;
+#           Daniel Strohmeier <Daniel.Strohmeier@tu-ilmenau.de>;
+#           Lorenz Esch <lesch@mgh.harvard.edu>;
+#           Ricky Tjen <ricky270@student.sgu.ac.id>;
+#           Sugandha Sachdeva <sugandha.sachdeva@tu-ilmenau.de>
+# @since    0.1.0
 # @date     July, 2012
 #
 # @section  LICENSE
 #
-# Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2012, Lars Debor, Christoph Dinh, Ruben Doerfel, Felix Griesau, Gabriel B Motta, 
+#                     Daniel Strohmeier, Lorenz Esch, Ricky Tjen, Sugandha Sachdeva. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,26 +39,30 @@
 #
 # @brief    This project file generates the makefile to build the unit tests.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../mne-cpp.pri)
 
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    test_codecov \
+    test_coregistration \
     test_dipole_fit \
+    test_fiff_coord_trans \
     test_fiff_rwr \
     test_fiff_mne_types_io \
-    test_forward_solution \
+    test_filtering \
+    test_hpiFit \
+    test_mne_forward_solution \
     test_fiff_cov \
     test_fiff_digitizer \
     test_mne_msh_display_surface_set \
+    test_mne_project_to_surface
 
-!contains(MNECPP_CONFIG, minimalVersion) {
     qtHaveModule(charts) {
         SUBDIRS += \
             test_interpolation \
             test_geometryinfo \
+            test_spectral_connectivity \
+            test_mne_anonymize
     }
-}

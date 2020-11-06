@@ -1,42 +1,42 @@
 //=============================================================================================================
 /**
-* @file     mne_surface_or_volume.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    MNE Surface or Volume (MneSurfaceOrVolume) class declaration.
-*
-*/
+ * @file     mne_surface_or_volume.h
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    MNE Surface or Volume (MneSurfaceOrVolume) class declaration.
+ *
+ */
 
 #ifndef MNESURFACEORVOLUME_H
 #define MNESURFACEORVOLUME_H
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -44,24 +44,19 @@
 #include "../mne_global.h"
 #include <mne/c/mne_types.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QSharedPointer>
 #include <QStringList>
 #include <QDebug>
-
 
 //============================= mne_fiff.h =============================
 
@@ -80,8 +75,6 @@
 
 #define TAG_OLD_SURF_GEOM           20
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
@@ -90,8 +83,6 @@ namespace FIFFLIB {
     class FiffDigitizerData;
 }
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE NAMESPACE MNELIB
 //=============================================================================================================
@@ -99,9 +90,8 @@ namespace FIFFLIB {
 namespace MNELIB
 {
 
-//*************************************************************************************************************
 //=============================================================================================================
-// FORWARD DECLARATIONS
+// MNELIB FORWARD DECLARATIONS
 //=============================================================================================================
 
 class MneTriangle;
@@ -114,13 +104,12 @@ class MneMshDisplaySurface;
 class MneProjData;
 class MneMghTagGroup;
 
-
 //=============================================================================================================
 /**
-* Implements MNE Surface or Volume (Replaces *mneSurfaceOrVolume,mneSurfaceOrVolumeRec; struct of MNE-C mne_types.h).
-*
-* @brief This defines a source space or a surface
-*/
+ * Implements MNE Surface or Volume (Replaces *mneSurfaceOrVolume,mneSurfaceOrVolumeRec; struct of MNE-C mne_types.h).
+ *
+ * @brief This defines a source space or a surface
+ */
 class MNESHARED_EXPORT MneSurfaceOrVolume
 {
 public:
@@ -135,20 +124,18 @@ public:
 //    typedef MneSurfaceOrVolume MneCSurface; //TODO create a derived class
     //typedef mneSurfaceOrVolume mneVolume;
 
-
     //=========================================================================================================
     /**
-    * Constructs the MNE Surface or Volume
-    */
+     * Constructs the MNE Surface or Volume
+     */
     MneSurfaceOrVolume();
 
     //=========================================================================================================
     /**
-    * Destroys the MNE Surface or Volume description
-    * Refactored: mne_free_source_space (mne_source_space.c)
-    */
+     * Destroys the MNE Surface or Volume description
+     * Refactored: mne_free_source_space (mne_source_space.c)
+     */
     virtual ~MneSurfaceOrVolume();
-
 
     //============================= make_filter_source_sapces.c =============================
 
@@ -156,7 +143,6 @@ public:
                                MNELIB::MneTriangle* tri);
 
     static double sum_solids(float *from, MneSurfaceOld* surf);
-
 
     static int mne_filter_source_spaces(MneSurfaceOld* surf,  /* The bounding surface must be provided */
                                         float limit,                                   /* Minimum allowed distance from the surface */
@@ -168,7 +154,6 @@ public:
     //============================= mne_patches.c =============================
 
     static int mne_add_patch_stats(MneSourceSpaceOld* s);
-
 
     //============================= filter_source_sapces.c =============================
 
@@ -214,8 +199,6 @@ public:
                                           int  add_geometry,      /* Add the geometry information */
                                           float *sigmap,          /* Conductivity? */
                                           bool   check_too_many_neighbors);
-
-
 
     //============================= mne_project_to_surface.c =============================
 
@@ -271,7 +254,6 @@ public:
                                       MneSourceSpaceOld* **spacesp, /* These are the results */
                                       int            *nspacep);
 
-
     static void mne_source_space_update_inuse(MneSourceSpaceOld* s,
                                               int *new_inuse);
 
@@ -294,7 +276,6 @@ public:
                                           int            nspace,
                                           const QStringList& labels,
                                           int            nlabel);
-
 
     //============================= mne_labels.c =============================
     //TODO Move to separate label class
@@ -346,7 +327,8 @@ public:
                                MneMshDisplaySurface* head_surf,
                                int niter,
                                int scale_head,
-                               float omit_dist);
+                               float omit_dist,
+                               float *scales);
 
     static void get_head_scale(FIFFLIB::FiffDigitizerData* dig,
                                    float **mri_fid,
@@ -444,13 +426,13 @@ public:
     int             id;            /* Surface id */
     int             coord_frame;   /* Which coordinate system are the data in now */
     /*
-    * These relate to the FreeSurfer way
-    */
+     * These relate to the FreeSurfer way
+     */
     MneVolGeom       *vol_geom;     /* MRI volume geometry information as FreeSurfer likes it */
     void             *mgh_tags;     /* Tags listed in the file */
     /*
-    * These are meaningful for both surfaces and volumes
-    */
+     * These are meaningful for both surfaces and volumes
+     */
     int              np;        /* Number of vertices */
     float            **rr;      /* The vertex locations */
     float            **nn;      /* Surface normals at these points */
@@ -464,8 +446,8 @@ public:
     int              *nneighbor_vert; /* Number of vertices neighboring each vertex */
     float            **vert_dist;     /* Distances between neigboring vertices */
     /*
-    * These are for surfaces only
-    */
+     * These are for surfaces only
+     */
     int              ntri;      /* Number of triangles */
     MneTriangle*     tris;      /* The triangulation information */
     int              **itris;   /* The vertex numbers */
@@ -488,8 +470,8 @@ public:
     float            *curv; /* The FreeSurfer curvature values */
     float            *val;  /* Some other values associated with the vertices */
     /*
-    * These are for volumes only
-    */
+     * These are for volumes only
+     */
     FIFFLIB::FiffCoordTransOld*  voxel_surf_RAS_t;   /* Transform from voxel coordinate to the surface RAS (MRI) coordinates */
     int             vol_dims[3];        /* Dimensions of the volume grid (width x height x depth) NOTE: This will be present only if the source space is a complete rectangular grid with unused vertices included */
     float           voxel_size[3];      /* Derived from the above */
@@ -499,8 +481,8 @@ public:
     FIFFLIB::FiffCoordTransOld*  MRI_surf_RAS_RAS_t; /* Transform from surface RAS to RAS coordinates in the associated MRI volume */
     int             MRI_vol_dims[3];       /* Dimensions of the MRI volume (width x height x depth) */
     /*
-    * Possibility to add user-defined data
-    */
+     * Possibility to add user-defined data
+     */
     void             *user_data;        /* Anything else we want */
     mneUserFreeFunc  user_data_free;    /* Function to set the above free */
 
@@ -573,11 +555,9 @@ public:
 //} *mneSurfaceOrVolume,mneSurfaceOrVolumeRec;
 };
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INLINE DEFINITIONS
 //=============================================================================================================
-
 } // NAMESPACE MNELIB
 
 #endif // MNESURFACEORVOLUME_H

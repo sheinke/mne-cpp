@@ -1,72 +1,72 @@
 /*
-* Copyright (c) 2001-2008 Elekta Neuromag Oy
-*
-* No part of this program may be photocopied, reproduced,
-* or translated to another program language without the
-* prior written consent of the author.
-*
-*
-* $Id: fiff_types.h 2696 2009-05-23 18:47:52Z msh $
-*
-* Revision 1.17  2008/04/15 10:59:42  mjk
-* Defines to compile on Apple.
-*
-* Revision 1.16  2008/01/25 08:25:05  jne
-* added FIFFV_COIL_CTF_GRAD
-*
-* Revision 1.15  2007/02/28 08:25:01  jne
-* Some cleaning of comments
-*
-* Revision 1.14  2007/01/09 12:41:40  jne
-* new structs fiffEventBitsRec, fiffHpiCoilRec, fiffHpiSubsysRec
-* new defs FIFFV_XFIT_MAP_SURF_SENSORS, FIFFV_XFIT_MAP_SURF_HEAD, FIFFV_XFIT_MAP_SURF_SPHERE
-*
-* Revision 1.13  2006/05/22  11:24:24  11:24:24  jne (Jukka Nenonen)
-* Added fiffSparseMatrixRec (equivalence fiff_sparse_matrix_t)
-* Added FIFFV_QUAT_CH0...7, FIFFV_ESTIM_ERROR_CH, FIFFV_HEAD_MOVEMENT_CH
-* 
-* Revision 1.12  2005/11/03 14:27:40  skesti
-* Renumbered candela
-*
-* Revision 1.11  2005/07/01  09:11:03  09:11:03  skesti (Sami Kesti)
-* Check in mjk changes
-* 
-* Revision 1.10  2004/05/18 11:52:42  mjk
-* Added some Doxygen tags.
-*
-* Revision 1.9  2003/10/23 08:38:05  mjk
-* Fixed headers to work on Lynxos.
-*
-* Revision 1.8  2003/06/27 14:52:29  mjk
-* Fixed header problem in linux.
-*
-* Revision 1.7  2003/01/23 15:25:55  mjk
-* Fixed FIFFC_DATA_OFFSET and some comments having FIFF_ instead of FIFFV_.
-*
-* Revision 1.6  2002/12/18 15:36:45  mjk
-* Added extractable comments.
-*
-* Revision 1.5  2002/08/23  22:47:40  22:47:40  mjk (Matti Kajola)
-* Rev 1.5.1
-* 
-* Revision 1.4  2002/08/19  11:56:42  11:56:42  mjk (Matti Kajola)
-* Librev 1.5.0
-* 
-* Revision 1.3  2001/09/18  09:36:25  09:36:25  mjk (Matti Kajola)
-* Trying to close 1.4.0.
-* 
-*----------------------------------------------------------------------*/
+ * Copyright (c) 2001-2008 Elekta Neuromag Oy
+ *
+ * No part of this program may be photocopied, reproduced,
+ * or translated to another program language without the
+ * prior written consent of the author.
+ *
+ *
+ * $Id: fiff_types.h 2696 2009-05-23 18:47:52Z msh $
+ *
+ * Revision 1.17  2008/04/15 10:59:42  mjk
+ * Defines to compile on Apple.
+ *
+ * Revision 1.16  2008/01/25 08:25:05  jne
+ * added FIFFV_COIL_CTF_GRAD
+ *
+ * Revision 1.15  2007/02/28 08:25:01  jne
+ * Some cleaning of comments
+ *
+ * Revision 1.14  2007/01/09 12:41:40  jne
+ * new structs fiffEventBitsRec, fiffHpiCoilRec, fiffHpiSubsysRec
+ * new defs FIFFV_XFIT_MAP_SURF_SENSORS, FIFFV_XFIT_MAP_SURF_HEAD, FIFFV_XFIT_MAP_SURF_SPHERE
+ *
+ * Revision 1.13  2006/05/22  11:24:24  11:24:24  jne (Jukka Nenonen)
+ * Added fiffSparseMatrixRec (equivalence fiff_sparse_matrix_t)
+ * Added FIFFV_QUAT_CH0...7, FIFFV_ESTIM_ERROR_CH, FIFFV_HEAD_MOVEMENT_CH
+ * 
+ * Revision 1.12  2005/11/03 14:27:40  skesti
+ * Renumbered candela
+ *
+ * Revision 1.11  2005/07/01  09:11:03  09:11:03  skesti (Sami Kesti)
+ * Check in mjk changes
+ * 
+ * Revision 1.10  2004/05/18 11:52:42  mjk
+ * Added some Doxygen tags.
+ *
+ * Revision 1.9  2003/10/23 08:38:05  mjk
+ * Fixed headers to work on Lynxos.
+ *
+ * Revision 1.8  2003/06/27 14:52:29  mjk
+ * Fixed header problem in linux.
+ *
+ * Revision 1.7  2003/01/23 15:25:55  mjk
+ * Fixed FIFFC_DATA_OFFSET and some comments having FIFF_ instead of FIFFV_.
+ *
+ * Revision 1.6  2002/12/18 15:36:45  mjk
+ * Added extractable comments.
+ *
+ * Revision 1.5  2002/08/23  22:47:40  22:47:40  mjk (Matti Kajola)
+ * Rev 1.5.1
+ * 
+ * Revision 1.4  2002/08/19  11:56:42  11:56:42  mjk (Matti Kajola)
+ * Librev 1.5.0
+ * 
+ * Revision 1.3  2001/09/18  09:36:25  09:36:25  mjk (Matti Kajola)
+ * Trying to close 1.4.0.
+ * 
+ *----------------------------------------------------------------------*/
 /** \file  fiff_types.h
-*  \brief Definitions for describing the objects in a FIFF file.
-*
-* This header file defines all the structures used in the FIFF files,
-* and some structures used by the fiff library. The structures
-* are defind with a name starting with a undescore, and a typedef
-* is used to give the names that are intended to be used in the programs.
-* For the documentation of the records themselves, use the name with
-* the undescore.
-* 
-*/
+ *  \brief Definitions for describing the objects in a FIFF file.
+ *
+ * This header file defines all the structures used in the FIFF files,
+ * and some structures used by the fiff library. The structures
+ * are defind with a name starting with a undescore, and a typedef
+ * is used to give the names that are intended to be used in the programs.
+ * For the documentation of the records themselves, use the name with
+ * the undescore.
+ * 
+ */
 
 #ifndef _fiff_types_h
 #define _fiff_types_h
@@ -103,15 +103,20 @@ typedef __int16 int16_t;
 typedef unsigned __int16 uint16_t;
 #endif
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
 #include <qglobal.h>
 
-//*************************************************************************************************************
+
+//=============================================================================================================
+// DEFINE NAMESPACE FIFFLIB
+//=============================================================================================================
+
+namespace FIFFLIB
+{
+
 //=============================================================================================================
 // TYPEDEFS Primitive building blocks:
 //=============================================================================================================
@@ -129,28 +134,26 @@ typedef double               fiff_double_t;
 typedef quint16              fiff_dau_pack13_t;
 typedef quint16              fiff_dau_pack14_t;
 typedef qint16               fiff_dau_pack16_t;
-typedef qint32               fiff_julian_t;
+typedef qint64               fiff_julian_t;
 typedef char                 fiff_data_t; //unsig char instead of void -> avoid void in C++ cause of its undefined behaviour using delete -> this can happen during lots of casting
 
+/*----------------------------------------------------------------------
+ * 
+ * Primitive building blocks:
+ *
+ *---------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------
-* 
-* Primitive building blocks:
-*
-*---------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------
-*
-* Structured types
-*
-*---------------------------------------------------------------------*/
+ *
+ * Structured types
+ *
+ *---------------------------------------------------------------------*/
 
 /**
-* FIFF data tag
-* 
-* Tags are used in front of data items to tell what they are.
-*/
+ * FIFF data tag
+ * 
+ * Tags are used in front of data items to tell what they are.
+ */
 
 typedef struct _fiffTagRec {
  fiff_int_t  kind;		/**< Tag number.
@@ -182,7 +185,6 @@ typedef struct _fiffTimeRec {
  fiff_int_t usecs;          /**< Fraction of seconds in microseconds */
 } *fiffTime, fiffTimeRec;   /**< Accurate time stamps used in FIFF files.*/
 
-
 /** Structure representing digitized strings. */
 
 typedef struct _fiffDigStringRec {
@@ -203,13 +205,12 @@ typedef struct _fiff_event_bits {
  fiff_int_t to_state;          /**< to state */
 } *fiffEventBits, fiffEventBitsRec;
 
-
 /**
-* A file ID.
-* 
-* These universially unique identifiers are also
-* used to identify blocks within fthe files.
-*/
+ * A file ID.
+ * 
+ * These universially unique identifiers are also
+ * used to identify blocks within fthe files.
+ */
 
 typedef struct _fiffIdRec {
  fiff_int_t version;	   /**< File version */
@@ -232,8 +233,8 @@ typedef fiffIdRec fiff_id_t;
 #define FIFFV_MISC_CH  502
 #define FIFFV_RESP_CH  602		     /* Respiration monitoring */
 /*
-* Quaternion channels for head position monitoring
-*/
+ * Quaternion channels for head position monitoring
+ */
 #define FIFFV_QUAT_0   700                 /* Quaternion parameter q0; obsolete for unit quaternion */
 #define FIFFV_QUAT_1   701                 /* Quaternion parameter q1; rotation */
 #define FIFFV_QUAT_2   702                 /* Quaternion parameter q2; rotation */
@@ -263,8 +264,8 @@ typedef struct _fiffChPosRec {
 typedef fiffChPosRec fiff_ch_pos_t;
 
 /*
-* Coil types
-*/
+ * Coil types
+ */
 
 /* \def FIFFV_COIL_NONE */
 
@@ -292,42 +293,39 @@ typedef fiffChPosRec fiff_ch_pos_t;
 #define FIFFV_COIL_VV_MAG_T2          3023  /**< Vectorview SQ20483-A magnetometer */
 #define FIFFV_COIL_VV_MAG_T3          3024  /**< Vectorview SQ20950N magnetometer */
 
-
 #define FIFFV_COIL_MAGNES_MAG         4001  /**< Magnes WH magnetometer */
 #define FIFFV_COIL_MAGNES_GRAD        4002  /**< Magnes WH gradiometer  */
 #define FIFFV_COIL_CTF_GRAD           5001  /**< CTF axial gradiometer */
 
 #define FIFFM_IS_VV_COIL(c) ((c)/1000 == 3)
 
-
 /** Description of one channel */
 
-typedef struct _fiffChInfoRec {
- fiff_int_t    scanNo;		/**< Scanning order number */
- fiff_int_t    logNo;		/**< Logical channel # */
- fiff_int_t    kind;		/**< Kind of channel */
- fiff_float_t  range;		/**< Voltmeter range (-1 = auto ranging) */
- fiff_float_t  cal;		/**< Calibration from volts to units used */
- fiff_ch_pos_t chpos;		/**< Channel location */
- fiff_int_t    unit;		/**< Unit of measurement */
- fiff_int_t    unit_mul;	/**< Unit multiplier exponent */
- fiff_char_t   ch_name[16];	/**< Descriptive name for the channel */
-} fiffChInfoRec,*fiffChInfo;	/**< Description of one channel */
+//typedef struct _fiffChInfoRec {
+// fiff_int_t    scanNo;		/**< Scanning order number */
+// fiff_int_t    logNo;		/**< Logical channel # */
+// fiff_int_t    kind;		/**< Kind of channel */
+// fiff_float_t  range;		/**< Voltmeter range (-1 = auto ranging) */
+// fiff_float_t  cal;		/**< Calibration from volts to units used */
+// fiff_ch_pos_t chpos;		/**< Channel location */
+// fiff_int_t    unit;		/**< Unit of measurement */
+// fiff_int_t    unit_mul;	/**< Unit multiplier exponent */
+// fiff_char_t   ch_name[16];	/**< Descriptive name for the channel */
+//} fiffChInfoRec,*fiffChInfo;	/**< Description of one channel */
 
-/** Alias for fiffChInfoRec */
-typedef fiffChInfoRec fiff_ch_info_t;
+///** Alias for fiffChInfoRec */
+//typedef fiffChInfoRec fiff_ch_info_t;
 
 #define FIFFM_CHPOS(x) &((x)->chpos)
 
 /*
-* Units of measurement
-*/
-
+ * Units of measurement
+ */
 
 #define FIFF_UNIT_NONE -1
 /*
-* 1. SI base units
-*/
+ * 1. SI base units
+ */
 #define FIFF_UNIT_M   1
 #define FIFF_UNIT_KG  2
 #define FIFF_UNIT_SEC 3
@@ -335,17 +333,17 @@ typedef fiffChInfoRec fiff_ch_info_t;
 #define FIFF_UNIT_K   5
 #define FIFF_UNIT_MOL 6
 /*
-* 2. SI Supplementary units
-*/
+ * 2. SI Supplementary units
+ */
 #define FIFF_UNIT_RAD 7
 #define FIFF_UNIT_SR  8
 /*
-* 1. SI base candela
-*/
+ * 1. SI base candela
+ */
 #define FIFF_UNIT_CD  9
 /*
-* 3. SI derived units
-*/
+ * 3. SI derived units
+ */
 #define FIFF_UNIT_HZ  101
 #define FIFF_UNIT_N   102
 #define FIFF_UNIT_PA  103
@@ -363,13 +361,13 @@ typedef fiffChInfoRec fiff_ch_info_t;
 #define FIFF_UNIT_LM  115
 #define FIFF_UNIT_LX  116
 /*
-* 4. Others we need
-*/
+ * 4. Others we need
+ */
 #define FIFF_UNIT_T_M 201	/* T/m */
 #define FIFF_UNIT_AM  202	/* Am  */
 /*
-* 5. Multipliers
-*/
+ * 5. Multipliers
+ */
 #define FIFF_UNITM_E   18
 #define FIFF_UNITM_PET 15
 #define FIFF_UNITM_T   12
@@ -386,7 +384,6 @@ typedef fiffChInfoRec fiff_ch_info_t;
 #define FIFF_UNITM_P  -12
 #define FIFF_UNITM_F  -15
 #define FIFF_UNITM_A  -18
-
 
 /** Directories are composed of these structures. */
 
@@ -413,9 +410,7 @@ typedef struct _fiffDigPointRec {
  fiff_float_t r[3];		 /**< Point location */
 } *fiffDigPoint,fiffDigPointRec; /**< Digitization point description */
 
-
 /** Structure representing digitized strings. */
-
 
 typedef fiffDigPointRec  fiff_dig_point_t;
 typedef fiffDigStringRec fiff_dig_string_t;
@@ -430,9 +425,9 @@ typedef fiffDigStringRec fiff_dig_string_t;
 #define FIFFV_POINT_NASION   2
 #define FIFFV_POINT_RPA      3
 /*
-* These are the cardinal points for MCG data 
-* Left and right are supposed to be located below the sternum point
-*/
+ * These are the cardinal points for MCG data 
+ * Left and right are supposed to be located below the sternum point
+ */
 #define FIFFV_POINT_CHEST_LEFT      1
 #define FIFFV_POINT_CHEST_STERNUM   2
 #define FIFFV_POINT_CHEST_RIGHT     3
@@ -471,8 +466,8 @@ typedef fiffCoordTransRec fiff_coord_trans_t;
 #define FIFFV_MOVE         1
 #define FIFFV_NO_MOVE      0
 /*
-* Artefact removal parameters
-*/
+ * Artefact removal parameters
+ */
 #define FIFFV_ARTEF_MAX   100
 #define FIFFV_ARTEF_NONE   -1
 #define FIFFV_ARTEF_KEEP   0
@@ -480,8 +475,8 @@ typedef fiffCoordTransRec fiff_coord_trans_t;
 #define FIFFV_ARTEF_NOJUMP 2
 
 /*
-* The layered sphere model
-*/
+ * The layered sphere model
+ */
 
 /** Layer descriptor for a layered sphere model */
 
@@ -500,9 +495,9 @@ typedef fiffCoordTransRec fiff_coord_trans_t;
 #define FIFFV_XFIT_MAP_SURF_SPHERE  2  /**< Xfit contours on a spherical surface */
 
 /*----------------------------------------------------------------------
-* Following types are used by the fiff library. They are not used
-* within the files.
-*---------------------------------------------------------------------*/
+ * Following types are used by the fiff library. They are not used
+ * within the files.
+ *---------------------------------------------------------------------*/
 
 /** Directory tree structure used by the fiff library routines. */
 
@@ -524,7 +519,6 @@ typedef fiffCoordTransRec fiff_coord_trans_t;
 // int                 nchild;	 /**< Number of child nodes */
 //} fiffDirNodeRec,*fiffDirNode; 	 /**< Directory tree structure used by the fiff library routines. */
 
-
 /** FIFF file handle returned by fiff_open(). */
 
 //typedef struct _fiffFileRec {
@@ -539,7 +533,6 @@ typedef fiffCoordTransRec fiff_coord_trans_t;
 //  char        *ext_file_name;	/**< Name of the file holding the external data */
 //  FILE        *ext_fd;		/**< The file descriptor of the above file if open  */
 //} *fiffFile,fiffFileRec;	/**< FIFF file handle. fiff_open() returns this. */
-
 
 /** Structure for sparse matrices */
 
@@ -557,7 +550,6 @@ typedef fiffSparseMatrixRec  fiff_sparse_matrix_t;
 
 /** Structure for event bits */
 
-
 /** Structure for hpi coil */
 
 typedef struct _fiff_hpi_coil {
@@ -573,7 +565,6 @@ typedef struct _fiff_hpi_subsys {
  fiffHpiCoil  coils;           /**< hpi coils */
 } *fiffHpiSubsys, fiffHpiSubsysRec;
 
-
 typedef struct _fiff_data_ref {
     fiff_int_t      type;       /**< Type of the data */
     fiff_int_t      endian;     /**< Are the data in the little or big endian byte order */
@@ -581,6 +572,6 @@ typedef struct _fiff_data_ref {
     fiff_long_t     offset;     /**< Offset to the data in the external file  */
 } *fiffDataRef,fiffDataRefRec;
 
-
+} // NAMESPACE
 
 #endif

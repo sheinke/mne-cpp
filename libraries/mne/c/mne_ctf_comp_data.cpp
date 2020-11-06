@@ -1,40 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_ctf_comp_data.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MneCTFCompData Class.
-*
-*/
+ * @file     mne_ctf_comp_data.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MneCTFCompData Class.
+ *
+ */
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -44,11 +43,9 @@
 #include <fiff/fiff_constants.h>
 #include <fiff/fiff_tag.h>
 
-
 #include <QFile>
 
 #include <Eigen/Core>
-
 
 #ifndef TRUE
 #define TRUE 1
@@ -66,12 +63,9 @@
 #define OK 0
 #endif
 
-
 #define MALLOC_31(x,t) (t *)malloc((x)*sizeof(t))
 
-
 #define FREE_31(x) if ((char *)(x) != NULL) free((char *)(x))
-
 
 #define MNE_CTFV_COMP_UNKNOWN -1
 #define MNE_CTFV_COMP_NONE    0
@@ -81,8 +75,6 @@
 #define MNE_CTFV_COMP_G2OI    0x47324f49
 #define MNE_CTFV_COMP_G3OI    0x47334f49
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -91,8 +83,6 @@ using namespace Eigen;
 using namespace FIFFLIB;
 using namespace MNELIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -108,11 +98,9 @@ MneCTFCompData::MneCTFCompData()
 ,comp_data(NULL)
 ,postsel_data(NULL)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneCTFCompData::MneCTFCompData(const MneCTFCompData& comp)
 :kind(MNE_CTFV_COMP_UNKNOWN)
@@ -134,8 +122,7 @@ MneCTFCompData::MneCTFCompData(const MneCTFCompData& comp)
     postsel    = new FiffSparseMatrix(*comp.postsel);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneCTFCompData::~MneCTFCompData()
 {
@@ -150,13 +137,12 @@ MneCTFCompData::~MneCTFCompData()
     FREE_31(comp_data);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-int MneCTFCompData::mne_calibrate_ctf_comp(MneCTFCompData *one, fiffChInfo chs, int nch, int do_it)
+int MneCTFCompData::mne_calibrate_ctf_comp(MneCTFCompData *one, const QList<FIFFLIB::FiffChInfo>& chs, int nch, int do_it)
 /*
-    * Calibrate or decalibrate a compensation data set
-    */
+     * Calibrate or decalibrate a compensation data set
+     */
 {
     float *col_cals,*row_cals;
     int   j,k,p,found;

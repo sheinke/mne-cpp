@@ -1,60 +1,53 @@
 //=============================================================================================================
 /**
-* @file     babymeginfo.cpp
-* @author   Limin Sun <liminsun@nmr.mgh.harvard.edu>;
-*           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     April, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Limin Sun, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief     BabyMEGInfo class definition.
-*
-*/
+ * @file     babymeginfo.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Limin Sun <limin.sun@childrens.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     April, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Christoph Dinh, Limin Sun, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief     BabyMEGInfo class definition.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "babymeginfo.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -62,27 +55,25 @@
 using namespace BABYMEGPLUGIN;
 using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
 BabyMEGInfo::BabyMEGInfo()
-: g_maxlen(500)
-, chnNum(0)
+: chnNum(0)
 , dataLength(0)
 , sfreq(0)
+, g_maxlen(500)
 {
 }
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGInfo::MGH_LM_Send_CMDPackage(QByteArray DATA)
 {
 //    qDebug()<<"[BabyMEGInfo]CMD Size:"<<DATA.size();
     emit SendCMDPackage(DATA);
 }
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGInfo::MGH_LM_Send_DataPackage(QByteArray DATA)
 {
@@ -90,7 +81,7 @@ void BabyMEGInfo::MGH_LM_Send_DataPackage(QByteArray DATA)
     emit SendDataPackage(DATA);
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 QByteArray BabyMEGInfo::MGH_LM_Get_Field(QByteArray cmdstr)
 {
@@ -121,10 +112,9 @@ QByteArray BabyMEGInfo::MGH_LM_Get_Field(QByteArray cmdstr)
     }
 
     return cmdstr.mid(bPos,ePos-bPos);
-
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 QStringList BabyMEGInfo::MGH_LM_Exact_Single_Channel_Info(QByteArray cmdstr)
 {
@@ -145,10 +135,9 @@ QStringList BabyMEGInfo::MGH_LM_Exact_Single_Channel_Info(QByteArray cmdstr)
     }
 
     return sList;
-
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGInfo::MGH_LM_Get_Channel_Info(QByteArray cmdstr)
 {
@@ -175,7 +164,6 @@ void BabyMEGInfo::MGH_LM_Get_Channel_Info(QByteArray cmdstr)
     lm_ch_coiltype.clear();
     lm_ch_calicoef.clear();
     lm_ch_gain.clear();
-
 
     // parse the information for each channel
     for(qint32 k =0; k<sList.size(); k++)
@@ -224,7 +212,7 @@ void BabyMEGInfo::MGH_LM_Get_Channel_Info(QByteArray cmdstr)
     return;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGInfo::MGH_LM_Parse_Para(QByteArray cmdstr)
 {
@@ -293,8 +281,7 @@ void BabyMEGInfo::MGH_LM_Parse_Para(QByteArray cmdstr)
         //qDebug()<<t_ch.ch_name;
         t_ch.scanNo = i;
         t_ch.logNo = i+1;
-        t_ch.cal = lm_ch_calicoef.at(i).toDouble();
-        t_ch.unit_mul = 1.0;//lm_ch_scales.at(i).toFloat();
+        t_ch.cal = lm_ch_calicoef.at(i).toFloat();
         t_ch.range =1.0f/lm_ch_gain.at(i).toFloat();//1; // set gain
 
         //qDebug()<<i<<":="<<t_ch.ch_name<<","<<t_ch.range<<","<<t_ch.cal;
@@ -393,7 +380,6 @@ void BabyMEGInfo::MGH_LM_Parse_Para(QByteArray cmdstr)
             break;
         }
 
-
         /*  Add the coiltrans for each sensor */
         /* x-axis normal vector */
         t_ch.coil_trans(0,0) = t_ch.chpos.ex[0];
@@ -428,7 +414,7 @@ void BabyMEGInfo::MGH_LM_Parse_Para(QByteArray cmdstr)
     return;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGInfo::MGH_LM_Get_Channel_Infg(QByteArray cmdstr)
 {
@@ -440,7 +426,6 @@ void BabyMEGInfo::MGH_LM_Get_Channel_Infg(QByteArray cmdstr)
 
     lm_ch_names.clear();
     lm_ch_gain.clear();
-
 
     // parse the information for each channel
     for(qint32 k =0; k<sList.size(); k++)
@@ -465,7 +450,7 @@ void BabyMEGInfo::MGH_LM_Get_Channel_Infg(QByteArray cmdstr)
     return;
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void BabyMEGInfo::MGH_LM_Parse_Para_Infg(QByteArray cmdstr)
 {
@@ -494,7 +479,6 @@ void BabyMEGInfo::MGH_LM_Parse_Para_Infg(QByteArray cmdstr)
         //qDebug()<<"cmdstr"<<cmdstr;
         // Start to acquire the channel's name and channel's scale
         MGH_LM_Get_Channel_Infg(cmdstr);
-
 
         //emit gain info
         emit GainInfoUpdate(lm_ch_gain);

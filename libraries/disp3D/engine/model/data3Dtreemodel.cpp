@@ -1,39 +1,40 @@
 //=============================================================================================================
 /**
-* @file     data3Dtreemodel.cpp
-* @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     May, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Lorenz Esch and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Data3DTreeModel class definition.
-*
-*/
+ * @file     data3Dtreemodel.cpp
+ * @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+ *           Gabriel B Motta <gabrielbenmotta@gmail.com>;
+ *           Juan Garcia-Prieto <juangpc@gmail.com>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     May, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lars Debor, Gabriel B Motta, Juan Garcia-Prieto, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Data3DTreeModel class definition.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -57,26 +58,19 @@
 
 #include <fiff/fiff_dig_point_set.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
 
 #include <QSharedPointer>
-
 #include <Qt3DCore/QEntity>
-
 #include <QSurfaceFormat>
+#include <QGLFormat>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -86,9 +80,9 @@ using namespace MNELIB;
 using namespace DISP3DLIB;
 using namespace INVERSELIB;
 using namespace CONNECTIVITYLIB;
+using namespace Eigen;
+using namespace FIFFLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -103,8 +97,7 @@ Data3DTreeModel::Data3DTreeModel(QObject* parent)
     initMetatypes();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QVariant Data3DTreeModel::data(const QModelIndex& index,
                                int role) const
@@ -120,17 +113,16 @@ QVariant Data3DTreeModel::data(const QModelIndex& index,
     return QStandardItemModel::data(index, role);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int Data3DTreeModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 2;
+    // Return 2 to activate item description in tree view
+    return 1;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QVariant Data3DTreeModel::headerData(int section, Qt::Orientation orientation,
                                      int role) const
@@ -149,8 +141,7 @@ QVariant Data3DTreeModel::headerData(int section, Qt::Orientation orientation,
     return QVariant();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Qt::ItemFlags Data3DTreeModel::flags(const QModelIndex &index) const
 {
@@ -162,8 +153,7 @@ Qt::ItemFlags Data3DTreeModel::flags(const QModelIndex &index) const
     return QStandardItemModel::flags(index);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QList<FsSurfaceTreeItem*> Data3DTreeModel::addSurfaceSet(const QString& sSubject,
                                                          const QString& sMriSetName,
@@ -183,8 +173,7 @@ QList<FsSurfaceTreeItem*> Data3DTreeModel::addSurfaceSet(const QString& sSubject
     return returnItemList;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FsSurfaceTreeItem* Data3DTreeModel::addSurface(const QString& subject,
                                                const QString& sMriSetName,
@@ -211,14 +200,13 @@ FsSurfaceTreeItem* Data3DTreeModel::addSurface(const QString& subject,
     return pReturnItem;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-SourceSpaceTreeItem* Data3DTreeModel::addSourceSpace(const QString& sSubject,
-                                                     const QString& sMeasurementSetName,
-                                                     const MNESourceSpace& sourceSpace)
+QList<SourceSpaceTreeItem*> Data3DTreeModel::addSourceSpace(const QString& sSubject,
+                                                            const QString& sMeasurementSetName,
+                                                            const MNESourceSpace& sourceSpace)
 {
-    SourceSpaceTreeItem* pReturnItem = Q_NULLPTR;
+    QList<SourceSpaceTreeItem*> pReturnItem;
 
     //Handle subject item
     SubjectTreeItem* pSubjectItem = addSubject(sSubject);
@@ -238,41 +226,33 @@ SourceSpaceTreeItem* Data3DTreeModel::addSourceSpace(const QString& sSubject,
     return pReturnItem;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-SourceSpaceTreeItem* Data3DTreeModel::addForwardSolution(const QString& sSubject,
-                                                         const QString& sMeasurementSetName,
-                                                         const MNEForwardSolution& forwardSolution)
+QList<SourceSpaceTreeItem*> Data3DTreeModel::addForwardSolution(const QString& sSubject,
+                                                                const QString& sMeasurementSetName,
+                                                                const MNEForwardSolution& forwardSolution)
 {
     return this->addSourceSpace(sSubject, sMeasurementSetName, forwardSolution.src);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MneEstimateTreeItem* Data3DTreeModel::addSourceData(const QString& sSubject,
-                                                    const QString& sMeasurementSetName,
-                                                    const MNESourceEstimate& tSourceEstimate,
-                                                    const MNELIB::MNEForwardSolution& tForwardSolution,
-                                                    const FSLIB::SurfaceSet& tSurfSet,
-                                                    const FSLIB::AnnotationSet& tAnnotSet,
-                                                    const QSurfaceFormat &tSurfaceFormat)
+MneDataTreeItem* Data3DTreeModel::addSourceData(const QString& sSubject,
+                                                const QString& sMeasurementSetName,
+                                                const MNESourceEstimate& tSourceEstimate,
+                                                const MNELIB::MNEForwardSolution& tForwardSolution,
+                                                const FSLIB::SurfaceSet& tSurfSet,
+                                                const FSLIB::AnnotationSet& tAnnotSet)
 {
     bool bUseGPU = false;
 
     // Only support CPU support until we figured out the QBuffer memory problem when dealing with large matrices
-//    //Test for OpenGL version 4.3
-//    if((tSurfaceFormat.majorVersion() == 4
-//            && tSurfaceFormat.minorVersion() >= 3
-//            || tSurfaceFormat.majorVersion() > 4))
-//    {
-//        //use compute shader version
+//    if(QGLFormat::openGLVersionFlags() >= QGLFormat::OpenGL_Version_4_3) {
 //        bUseGPU = true;
 //        qDebug("Using compute shader version for 3D visualization.");
 //    }
 
-    MneEstimateTreeItem* pReturnItem = Q_NULLPTR;
+    MneDataTreeItem* pReturnItem = Q_NULLPTR;
 
     //Handle subject item
     SubjectTreeItem* pSubjectItem = addSubject(sSubject);
@@ -304,8 +284,7 @@ MneEstimateTreeItem* Data3DTreeModel::addSourceData(const QString& sSubject,
     return pReturnItem;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 EcdDataTreeItem* Data3DTreeModel::addDipoleFitData(const QString& sSubject,
                                                    const QString& sSet,
@@ -333,8 +312,24 @@ EcdDataTreeItem* Data3DTreeModel::addDipoleFitData(const QString& sSubject,
     return pReturnItem;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+QList<NetworkTreeItem*> Data3DTreeModel::addConnectivityData(const QString& sSubject,
+                                                             const QString& sMeasurementSetName,
+                                                             const QList<Network>& networkData)
+{
+    QList<NetworkTreeItem*> returnList;
+
+    for(int i = 0; i < networkData.size(); ++i) {
+        returnList.append(addConnectivityData(sSubject,
+                                              sMeasurementSetName,
+                                              networkData.at(i)));
+    }
+
+    return returnList;
+}
+
+//=============================================================================================================
 
 NetworkTreeItem* Data3DTreeModel::addConnectivityData(const QString& sSubject,
                                                       const QString& sMeasurementSetName,
@@ -361,8 +356,7 @@ NetworkTreeItem* Data3DTreeModel::addConnectivityData(const QString& sSubject,
     return pReturnItem;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 BemTreeItem* Data3DTreeModel::addBemData(const QString& sSubject,
                                          const QString& sBemSetName,
@@ -388,13 +382,13 @@ BemTreeItem* Data3DTreeModel::addBemData(const QString& sSubject,
     return pReturnItem;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SensorSetTreeItem* Data3DTreeModel::addMegSensorInfo(const QString& sSubject,
                                                      const QString& sSensorSetName,
                                                      const QList<FIFFLIB::FiffChInfo>& lChInfo,
-                                                     const MNELIB::MNEBem& sensor)
+                                                     const MNELIB::MNEBem& sensor,
+                                                     const QStringList& bads)
 {
     SensorSetTreeItem* pReturnItem = Q_NULLPTR;
 
@@ -406,22 +400,26 @@ SensorSetTreeItem* Data3DTreeModel::addMegSensorInfo(const QString& sSubject,
 
     if(!itemList.isEmpty() && (itemList.first()->type() == Data3DTreeModelItemTypes::SensorSetItem)) {
         pReturnItem = dynamic_cast<SensorSetTreeItem*>(itemList.first());
-        pReturnItem->addData(sensor, lChInfo, "MEG", m_pModelEntity);
+        if(pReturnItem == Q_NULLPTR){
+            qDebug()<<"Dynamic cast failed, returning null pointer";
+        } else {
+            pReturnItem->addData(sensor, lChInfo, "MEG", bads, m_pModelEntity);
+        }
     } else {
         pReturnItem = new SensorSetTreeItem(Data3DTreeModelItemTypes::SensorSetItem, sSensorSetName);
         AbstractTreeItem::addItemWithDescription(pSubjectItem, pReturnItem);
-        pReturnItem->addData(sensor, lChInfo, "MEG", m_pModelEntity);
+        pReturnItem->addData(sensor, lChInfo, "MEG", bads, m_pModelEntity);
     }
 
     return pReturnItem;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SensorSetTreeItem* Data3DTreeModel::addEegSensorInfo(const QString& sSubject,
                                                      const QString& sSensorSetName,
-                                                     const QList<FIFFLIB::FiffChInfo>& lChInfo)
+                                                     const QList<FIFFLIB::FiffChInfo>& lChInfo,
+                                                     const QStringList& bads)
 {
     SensorSetTreeItem* pReturnItem = Q_NULLPTR;
 
@@ -435,18 +433,22 @@ SensorSetTreeItem* Data3DTreeModel::addEegSensorInfo(const QString& sSubject,
 
     if(!itemList.isEmpty() && (itemList.first()->type() == Data3DTreeModelItemTypes::SensorSetItem)) {
         pReturnItem = dynamic_cast<SensorSetTreeItem*>(itemList.first());
-        pReturnItem->addData(tempBem, lChInfo, "EEG", m_pModelEntity);
+        if(pReturnItem == Q_NULLPTR){
+            qDebug() << "Dynamic cast failed, returning null pointer";
+            pReturnItem = Q_NULLPTR;
+        } else {
+            pReturnItem->addData(tempBem, lChInfo, "EEG", bads, m_pModelEntity);
+        }
     } else {
         pReturnItem = new SensorSetTreeItem(Data3DTreeModelItemTypes::SensorSetItem, sSensorSetName);
         AbstractTreeItem::addItemWithDescription(pSubjectItem, pReturnItem);
-        pReturnItem->addData(tempBem, lChInfo, "EEG", m_pModelEntity);
+        pReturnItem->addData(tempBem, lChInfo, "EEG", bads, m_pModelEntity);
     }
 
     return pReturnItem;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 DigitizerSetTreeItem* Data3DTreeModel::addDigitizerData(const QString& sSubject,
                                                         const QString& sMeasurementSetName,
@@ -472,28 +474,21 @@ DigitizerSetTreeItem* Data3DTreeModel::addDigitizerData(const QString& sSubject,
     return pReturnItem;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SensorDataTreeItem* Data3DTreeModel::addSensorData(const QString& sSubject,
                                                    const QString& sMeasurementSetName,
                                                    const MatrixXd& matSensorData,
                                                    const MNEBemSurface& tBemSurface,
                                                    const FiffInfo& fiffInfo,
-                                                   const QString& sDataType,
-                                                   const QSurfaceFormat &tSurfaceFormat)
+                                                   const QString& sDataType)
 {
     bool bUseGPU = false;
 
     // Only support CPU support until we figured out the QBuffer memory problem when dealing with large matrices
-//    //Test for OpenGL version 4.3
-//    if((tSurfaceFormat.majorVersion() == 4
-//            && tSurfaceFormat.minorVersion() >= 3
-//            || tSurfaceFormat.majorVersion() > 4))
-//    {
-//        //use compute shader version
+//    if(QGLFormat::openGLVersionFlags() >= QGLFormat::OpenGL_Version_4_3) {
 //        bUseGPU = true;
-//        qDebug("Using compute shader version of SensorDataTreeItem.");
+//        qDebug("Using compute shader version for 3D visualization.");
 //    }
 
     SensorDataTreeItem* pReturnItem = Q_NULLPTR;
@@ -528,16 +523,14 @@ SensorDataTreeItem* Data3DTreeModel::addSensorData(const QString& sSubject,
     return pReturnItem;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QPointer<Qt3DCore::QEntity> Data3DTreeModel::getRootEntity()
 {
     return m_pModelEntity;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SubjectTreeItem* Data3DTreeModel::addSubject(const QString& sSubject)
 {
@@ -559,18 +552,16 @@ SubjectTreeItem* Data3DTreeModel::addSubject(const QString& sSubject)
     return pReturnItem;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Data3DTreeModel::initMetatypes()
 {
     //Init metatypes
     qRegisterMetaType<QVector<QVector<int> > >();
+    qRegisterMetaType<QVector<int> >();
 
     qRegisterMetaType<QVector<Vector3f> >();
     qRegisterMetaType<QVector<Eigen::Vector3f> >();
-
-    qRegisterMetaType<QVector<qint32> >();
 
     qRegisterMetaType<QList<FSLIB::Label> >();
     qRegisterMetaType<QList<Label> >();
@@ -586,6 +577,9 @@ void Data3DTreeModel::initMetatypes()
 
     qRegisterMetaType<Eigen::MatrixX3f>();
     qRegisterMetaType<MatrixX3f>();
+
+    qRegisterMetaType<Eigen::MatrixX4f>();
+    qRegisterMetaType<MatrixX4f>();
 
     qRegisterMetaType<Eigen::VectorXf>();
     qRegisterMetaType<VectorXf>();

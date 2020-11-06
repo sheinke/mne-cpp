@@ -1,63 +1,56 @@
 //=============================================================================================================
 /**
-* @file     ioutils.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-* @version  1.0
-* @date     March, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the IOUtils class.
-*
-*/
+ * @file     ioutils.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     March, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Lorenz Esch, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the IOUtils class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "ioutils.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QDataStream>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -65,8 +58,6 @@
 using namespace Eigen;
 using namespace UTILSLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -80,8 +71,7 @@ qint32 IOUtils::fread3(QDataStream &p_qStream)
     return int3;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 VectorXi IOUtils::fread3_many(QDataStream &p_qStream, qint32 count)
 {
@@ -93,8 +83,7 @@ VectorXi IOUtils::fread3_many(QDataStream &p_qStream, qint32 count)
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 //fiff_combat
 qint16 IOUtils::swap_short(qint16 source)
 {
@@ -107,8 +96,7 @@ qint16 IOUtils::swap_short(qint16 source)
     return (result);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 qint32 IOUtils::swap_int(qint32 source)
 {
@@ -123,8 +111,7 @@ qint32 IOUtils::swap_int(qint32 source)
     return (result);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void IOUtils::swap_intp(qint32 *source)
 
@@ -143,8 +130,7 @@ void IOUtils::swap_intp(qint32 *source)
   return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 qint64 IOUtils::swap_long(qint64 source)
 {
@@ -163,8 +149,7 @@ qint64 IOUtils::swap_long(qint64 source)
     return (result);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void IOUtils::swap_longp(qint64 *source)
 {
@@ -190,8 +175,7 @@ void IOUtils::swap_longp(qint64 *source)
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 float IOUtils::swap_float(float source)
 {
@@ -206,7 +190,7 @@ float IOUtils::swap_float(float source)
     return (result);
 }
 
-//*************************************************************************************************************
+//=============================================================================================================
 
 void IOUtils::swap_floatp(float *source)
 
@@ -224,8 +208,7 @@ void IOUtils::swap_floatp(float *source)
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void IOUtils::swap_doublep(double *source)
 
@@ -252,8 +235,7 @@ void IOUtils::swap_doublep(double *source)
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QStringList IOUtils::get_new_chnames_conventions(const QStringList& chNames)
 {
@@ -269,8 +251,7 @@ QStringList IOUtils::get_new_chnames_conventions(const QStringList& chNames)
     return result;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QStringList IOUtils::get_old_chnames_conventions(const QStringList& chNames)
 {
@@ -293,8 +274,7 @@ QStringList IOUtils::get_old_chnames_conventions(const QStringList& chNames)
     return result;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool IOUtils::check_matching_chnames_conventions(const QStringList& chNamesA, const QStringList& chNamesB, bool bCheckForNewNamingConvention)
 {

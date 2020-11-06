@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fiff_info.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FiffInfo Class.
-*
-*/
+ * @file     fiff_info.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FiffInfo Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -44,17 +44,14 @@
 
 #include <utils/ioutils.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace FIFFLIB;
 using namespace UTILSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -62,52 +59,51 @@ using namespace UTILSLIB;
 FiffInfo::FiffInfo()
 : FiffInfoBase()//nchan(-1)
 , sfreq(-1.0)
+, linefreq(-1.0)
 , highpass(-1.0)
 , lowpass(-1.0)
+, gantry_angle(-1)
 , acq_pars("")
 , acq_stim("")
 {
     meas_date[0] = -1;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffInfo::FiffInfo(const FiffInfo& p_FiffInfo)
 : FiffInfoBase(p_FiffInfo)
 , file_id(p_FiffInfo.file_id)
 , sfreq(p_FiffInfo.sfreq)
+, linefreq(p_FiffInfo.linefreq)
 , highpass(p_FiffInfo.highpass)
 , lowpass(p_FiffInfo.lowpass)
+, proj_id(p_FiffInfo.proj_id)
+, proj_name(p_FiffInfo.proj_name)
+, xplotter_layout(p_FiffInfo.xplotter_layout)
+, experimenter(p_FiffInfo.experimenter)
+, description(p_FiffInfo.description)
+, utc_offset(p_FiffInfo.utc_offset)
+, gantry_angle(p_FiffInfo.gantry_angle)
 , dev_ctf_t(p_FiffInfo.dev_ctf_t)
+, dig(p_FiffInfo.dig)
 , dig_trans(p_FiffInfo.dig_trans)
+, projs(p_FiffInfo.projs)
+, comps(p_FiffInfo.comps)
 , acq_pars(p_FiffInfo.acq_pars)
 , acq_stim(p_FiffInfo.acq_stim)
 {
     meas_date[0] = p_FiffInfo.meas_date[0];
     meas_date[1] = p_FiffInfo.meas_date[1];
-
-    qint32 i;
-    for(i = 0; i < p_FiffInfo.dig.size(); ++i)
-        dig.append(FiffDigPoint(p_FiffInfo.dig[i]));
-
-    for(i = 0; i < p_FiffInfo.projs.size(); ++i)
-        projs.append(p_FiffInfo.projs[i]);
-
-    for(i = 0; i < p_FiffInfo.comps.size(); ++i)
-        comps.append(p_FiffInfo.comps[i]);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffInfo::~FiffInfo()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffInfo::clear()
 {
@@ -115,8 +111,16 @@ void FiffInfo::clear()
     file_id = FiffId();
     meas_date[0] = -1;
     sfreq = -1.0;
+    linefreq = -1.0;
     highpass = -1.0;
     lowpass = -1.0;
+    proj_id = -1;
+    proj_name = "";
+    xplotter_layout = "";
+    experimenter = "";
+    description = "";
+    utc_offset = "";         /**< UTC offset of related meas_date (sHH:MM).*/
+    gantry_angle = -1;
     dev_ctf_t.clear();
     dig.clear();
     dig_trans.clear();
@@ -126,8 +130,7 @@ void FiffInfo::clear()
     acq_stim = "";
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 qint32 FiffInfo::get_current_comp()
 {
@@ -149,8 +152,7 @@ qint32 FiffInfo::get_current_comp()
     return comp;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffInfo::make_compensator(fiff_int_t from, fiff_int_t to, FiffCtfComp& ctf_comp, bool exclude_comp_chs) const
 {
@@ -225,14 +227,13 @@ bool FiffInfo::make_compensator(fiff_int_t from, fiff_int_t to, FiffCtfComp& ctf
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool FiffInfo::make_compensator(fiff_int_t kind, MatrixXd& this_comp) const//private method
 {
     FiffNamedMatrix::SDPtr this_data;
     MatrixXd presel, postsel;
-    qint32 k, col, c, ch, row, row_ch=0, channelAvailable;
+    qint32 k, col, c, ch=0, row, row_ch=0, channelAvailable;
 
     for (k = 0; k < this->comps.size(); ++k)
     {
@@ -302,8 +303,7 @@ bool FiffInfo::make_compensator(fiff_int_t kind, MatrixXd& this_comp) const//pri
     return false;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffInfo FiffInfo::pick_info(const RowVectorXi &sel) const
 {
@@ -322,37 +322,35 @@ FiffInfo FiffInfo::pick_info(const RowVectorXi &sel) const
         res.chs.append(this->chs[idx]);
         res.ch_names.append(this->ch_names[idx]);
     }
-    res.nchan  = sel.size();
+    res.nchan  = static_cast<int>(sel.size());
 
     return res;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-QList<FiffChInfo> FiffInfo::set_current_comp(QList<FiffChInfo>& chs, fiff_int_t value)
+QList<FiffChInfo> FiffInfo::set_current_comp(QList<FiffChInfo>& listFiffChInfo, fiff_int_t value)
 {
-    QList<FiffChInfo> new_chs;
+    QList<FiffChInfo> newList;
     qint32 k;
     fiff_int_t coil_type;
 
-    for(k = 0; k < chs.size(); ++k)
-        new_chs.append(chs[k]);
+    for(k = 0; k < listFiffChInfo.size(); ++k)
+        newList.append(listFiffChInfo[k]);
 
     qint32 lower_half = 65535;// hex2dec('FFFF');
-    for (k = 0; k < chs.size(); ++k)
+    for (k = 0; k < listFiffChInfo.size(); ++k)
     {
-        if (chs[k].kind == FIFFV_MEG_CH)
+        if (listFiffChInfo[k].kind == FIFFV_MEG_CH)
         {
-            coil_type = chs[k].chpos.coil_type & lower_half;
-            new_chs[k].chpos.coil_type = (coil_type | (value << 16));
+            coil_type = listFiffChInfo[k].chpos.coil_type & lower_half;
+            newList[k].chpos.coil_type = (coil_type | (value << 16));
         }
     }
-    return new_chs;
+    return newList;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffInfo::writeToStream(FiffStream* p_pStream) const
 {
@@ -446,8 +444,15 @@ void FiffInfo::writeToStream(FiffStream* p_pStream) const
     //    General
     //
     p_pStream->write_float(FIFF_SFREQ,&this->sfreq);
+    p_pStream->write_float(FIFF_LINE_FREQ,&this->linefreq);
     p_pStream->write_float(FIFF_HIGHPASS,&this->highpass);
     p_pStream->write_float(FIFF_LOWPASS,&this->lowpass);
+    p_pStream->write_string(FIFF_EXPERIMENTER,this->experimenter);
+    p_pStream->write_string(FIFF_DESCRIPTION,this->description);
+    p_pStream->write_string(FIFF_UNIT_C,this->utc_offset);
+    p_pStream->write_string(FIFF_PROJ_NAME,this->proj_name);
+    p_pStream->write_int(FIFF_PROJ_ID,&this->proj_id);
+    p_pStream->write_int(FIFF_GANTRY_ANGLE,&this->gantry_angle);
     p_pStream->write_int(FIFF_NCHAN,&nchan);
     p_pStream->write_int(FIFF_DATA_PACK,&data_type);
     if (this->meas_date[0] != -1)
@@ -464,7 +469,7 @@ void FiffInfo::writeToStream(FiffStream* p_pStream) const
         //
         chs[k].scanNo = k+1;//+1 because
 //        chs[k].range  = 1.0f;//Why? -> cause its already calibrated through reading
-        cals(0,k) = chs[k].cal; //ToDo whats going on with cals?
+        cals(0,k) = static_cast<double>(chs[k].cal); //ToDo whats going on with cals?
         p_pStream->write_ch_info(chs[k]);
     }
     //

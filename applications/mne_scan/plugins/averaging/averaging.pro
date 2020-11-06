@@ -1,14 +1,14 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     averaging.pro
 # @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+#           Lorenz Esch <lesch@mgh.harvard.edu>
+# @since    0.1.0
 # @date     July, 2014
 #
 # @section  LICENSE
 #
-# Copyright (C) 2014, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2014, Christoph Dinh, Lorenz Esch. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,83 +31,103 @@
 #
 # @brief    This project file generates the makefile for the averaging plug-in.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(../../../../mne-cpp.pri)
 
 TEMPLATE = lib
 
-CONFIG += plugin
-
-DEFINES += AVERAGING_LIBRARY
-
 QT += core widgets
+
+CONFIG += skip_target_version_ext plugin
+
+DEFINES += AVERAGING_PLUGIN
+
+DESTDIR = $${MNE_BINARY_DIR}/mne_scan_plugins
 
 TARGET = averaging
 CONFIG(debug, debug|release) {
     TARGET = $$join(TARGET,,,d)
 }
 
-LIBS += -L$${MNE_LIBRARY_DIR}
-CONFIG(debug, debug|release) {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utilsd \
-            -lMNE$${MNE_LIB_VERSION}Fsd \
-            -lMNE$${MNE_LIB_VERSION}Fiffd \
-            -lMNE$${MNE_LIB_VERSION}Mned \
-            -lMNE$${MNE_LIB_VERSION}Fwdd \
-            -lMNE$${MNE_LIB_VERSION}Inversed \
-            -lMNE$${MNE_LIB_VERSION}Realtimed \
-            -lscMeasd \
-            -lscDispd \
-            -lscSharedd
-}
-else {
-    LIBS += -lMNE$${MNE_LIB_VERSION}Utils \
-            -lMNE$${MNE_LIB_VERSION}Fs \
-            -lMNE$${MNE_LIB_VERSION}Fiff \
-            -lMNE$${MNE_LIB_VERSION}Mne \
-            -lMNE$${MNE_LIB_VERSION}Fwd \
-            -lMNE$${MNE_LIB_VERSION}Inverse \
-            -lMNE$${MNE_LIB_VERSION}Realtime \
-            -lscMeas \
-            -lscDisp \
-            -lscShared
+contains(MNECPP_CONFIG, static) {
+    CONFIG += staticlib
+    DEFINES += STATICBUILD
+} else {
+    CONFIG += shared
 }
 
-DESTDIR = $${MNE_BINARY_DIR}/mne_scan_plugins
+LIBS += -L$${MNE_LIBRARY_DIR}
+CONFIG(debug, debug|release) {
+    LIBS += -lscSharedd \
+            -lscDispd \
+            -lscMeasd \
+            -lmnecppDispd \
+            -lmnecppRtProcessingd \
+            -lmnecppConnectivityd \
+            -lmnecppInversed \
+            -lmnecppFwdd \
+            -lmnecppMned \
+            -lmnecppFiffd \
+            -lmnecppFsd \
+            -lmnecppUtilsd \
+} else {
+    LIBS += -lscShared \
+            -lscDisp \
+            -lscMeas \
+            -lmnecppDisp \
+            -lmnecppRtProcessing \
+            -lmnecppConnectivity \
+            -lmnecppInverse \
+            -lmnecppFwd \
+            -lmnecppMne \
+            -lmnecppFiff \
+            -lmnecppFs \
+            -lmnecppUtils \
+}
 
 SOURCES += \
     averaging.cpp \
     FormFiles/averagingsetupwidget.cpp \
-    FormFiles/averagingaboutwidget.cpp \
-    FormFiles/averagingsettingswidget.cpp
 
 HEADERS += \
     averaging_global.h \
     averaging.h \
     FormFiles/averagingsetupwidget.h \
-    FormFiles/averagingaboutwidget.h \
-    FormFiles/averagingsettingswidget.h
 
 FORMS += \
     FormFiles/averagingsetup.ui \
-    FormFiles/averagingabout.ui \
-    FormFiles/averagingsettingswidget.ui
+
+RESOURCES += \
+    averaging.qrc
+
+OTHER_FILES += \
+    averaging.json
 
 INCLUDEPATH += $${EIGEN_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_INCLUDE_DIR}
 INCLUDEPATH += $${MNE_SCAN_INCLUDE_DIR}
 
-OTHER_FILES += \
-    averaging.json
+unix:!macx {
+    QMAKE_RPATHDIR += $ORIGIN/../../lib
+}
 
-# Put generated form headers into the origin --> cause other src is pointing at them
-UI_DIR = $$PWD
+# Activate FFTW backend in Eigen for non-static builds only
+contains(MNECPP_CONFIG, useFFTW):!contains(MNECPP_CONFIG, static) {
+    DEFINES += EIGEN_FFTW_DEFAULT
+    INCLUDEPATH += $$shell_path($${FFTW_DIR_INCLUDE})
+    LIBS += -L$$shell_path($${FFTW_DIR_LIBS})
 
-unix: QMAKE_CXXFLAGS += -isystem $$EIGEN_INCLUDE_DIR
+    win32 {
+        # On Windows
+        LIBS += -llibfftw3-3 \
+                -llibfftw3f-3 \
+                -llibfftw3l-3 \
+    }
 
-# suppress visibility warnings
-unix: QMAKE_CXXFLAGS += -Wno-attributes
-
-RESOURCES += \
-    averaging.qrc
+    unix:!macx {
+        # On Linux
+        LIBS += -lfftw3 \
+                -lfftw3_threads \
+    }
+}

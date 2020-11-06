@@ -1,38 +1,37 @@
 //=============================================================================================================
 /**
-* @file     abstract3Dtreeitem.cpp
-* @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     November, 2015
-*
-* @section  LICENSE
-*
-* Copyright (C) 2015, Lorenz Esch and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Abstract3DTreeItem class definition.
-*
-*/
-//*************************************************************************************************************
+ * @file     abstract3Dtreeitem.cpp
+ * @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     November, 2015
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2015, Lars Debor, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Abstract3DTreeItem class definition.
+ *
+ */
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -40,30 +39,22 @@
 #include "abstract3Dtreeitem.h"
 #include "../common/metatreeitem.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <Qt3DExtras/QPhongMaterial>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace DISP3DLIB;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -76,8 +67,7 @@ Abstract3DTreeItem::Abstract3DTreeItem(QEntity* p3DEntityParent, int iType, cons
     initItem();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Abstract3DTreeItem::initItem()
 {
@@ -147,7 +137,7 @@ void Abstract3DTreeItem::initItem()
     list << new QStandardItem("The color options");
     this->appendRow(list);
 
-    float fAlpha = 0.35f;
+    float fAlpha = 0.75f;
     MetaTreeItem *itemAlpha = new MetaTreeItem(MetaTreeItemTypes::AlphaValue, QString("%1").arg(fAlpha));
     connect(itemAlpha, &MetaTreeItem::dataChanged,
             this, &Abstract3DTreeItem::onAlphaChanged);
@@ -174,8 +164,7 @@ void Abstract3DTreeItem::initItem()
                 this, &Abstract3DTreeItem::onCheckStateChanged);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Abstract3DTreeItem::setData(const QVariant& value, int role)
 {
@@ -189,16 +178,14 @@ void Abstract3DTreeItem::setData(const QVariant& value, int role)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int Abstract3DTreeItem::type() const
 {
     return m_iType;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QList<QStandardItem*> Abstract3DTreeItem::findChildren(int type)
 {
@@ -217,8 +204,7 @@ QList<QStandardItem*> Abstract3DTreeItem::findChildren(int type)
     return itemList;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QList<QStandardItem*> Abstract3DTreeItem::findChildren(const QString& text)
 {
@@ -237,8 +223,7 @@ QList<QStandardItem*> Abstract3DTreeItem::findChildren(const QString& text)
     return itemList;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Abstract3DTreeItem& Abstract3DTreeItem::operator<<(Abstract3DTreeItem* newItem)
 {
@@ -247,8 +232,7 @@ Abstract3DTreeItem& Abstract3DTreeItem::operator<<(Abstract3DTreeItem* newItem)
     return *this;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Abstract3DTreeItem& Abstract3DTreeItem::operator<<(Abstract3DTreeItem& newItem)
 {
@@ -257,24 +241,23 @@ Abstract3DTreeItem& Abstract3DTreeItem::operator<<(Abstract3DTreeItem& newItem)
     return *this;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-Eigen::MatrixX3f Abstract3DTreeItem::createVertColor(int numVert, const QColor& color)
+Eigen::MatrixX4f Abstract3DTreeItem::createVertColor(int numVert, const QColor& color)
 {
-    Eigen::MatrixX3f matColor(numVert,3);
+    Eigen::MatrixX4f matColor(numVert,4);
 
     for(int i = 0; i < numVert; ++i) {
         matColor(i,0) = color.redF();
         matColor(i,1) = color.greenF();
         matColor(i,2) = color.blueF();
+        matColor(i,3) = color.alphaF();
     }
 
     return matColor;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Abstract3DTreeItem::setAlpha(float fAlpha)
 {
@@ -284,8 +267,7 @@ void Abstract3DTreeItem::setAlpha(float fAlpha)
     onAlphaChanged(data);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Abstract3DTreeItem::onCheckStateChanged(const Qt::CheckState& checkState)
 {
@@ -298,8 +280,7 @@ void Abstract3DTreeItem::onCheckStateChanged(const Qt::CheckState& checkState)
     this->setVisible(checkState == Qt::Unchecked ? false : true);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Abstract3DTreeItem::onTranslationXChanged(const QVariant& fTransX)
 {
@@ -310,8 +291,7 @@ void Abstract3DTreeItem::onTranslationXChanged(const QVariant& fTransX)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Abstract3DTreeItem::onTranslationYChanged(const QVariant& fTransY)
 {
@@ -322,8 +302,7 @@ void Abstract3DTreeItem::onTranslationYChanged(const QVariant& fTransY)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Abstract3DTreeItem::onTranslationZChanged(const QVariant& fTransZ)
 {
@@ -334,8 +313,7 @@ void Abstract3DTreeItem::onTranslationZChanged(const QVariant& fTransZ)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Abstract3DTreeItem::onScaleChanged(const QVariant& fScale)
 {
@@ -344,8 +322,7 @@ void Abstract3DTreeItem::onScaleChanged(const QVariant& fScale)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Abstract3DTreeItem::onColorChanged(const QVariant& color)
 {
@@ -353,8 +330,7 @@ void Abstract3DTreeItem::onColorChanged(const QVariant& color)
     this->setMaterialParameter(color, "ka");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void Abstract3DTreeItem::onAlphaChanged(const QVariant& fAlpha)
 {

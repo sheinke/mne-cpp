@@ -1,39 +1,38 @@
 //=============================================================================================================
 /**
-* @file     plugingui.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     August, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief     PluginGui class implementation
-*
-*/
+ * @file     plugingui.cpp
+ * @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     August, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Christoph Dinh, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief     PluginGui class implementation
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -44,15 +43,12 @@
 #include "pluginitem.h"
 #include "pluginscene.h"
 
-#include <scShared/Interfaces/IPlugin.h>
-#include <scShared/Interfaces/ISensor.h>
-#include <scShared/Interfaces/IAlgorithm.h>
-#include <scShared/Interfaces/IIO.h>
+#include <scShared/Plugins/abstractplugin.h>
+#include <scShared/Plugins/abstractsensor.h>
+#include <scShared/Plugins/abstractalgorithm.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QtWidgets>
@@ -62,28 +58,24 @@
 #include <QDir>
 #include <QSettings>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace MNESCAN;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-PluginGui::PluginGui(SCSHAREDLIB::PluginManager *pPluginManager, SCSHAREDLIB::PluginSceneManager *pPluginSceneManager)
+PluginGui::PluginGui(SCSHAREDLIB::PluginManager *pPluginManager,
+                     SCSHAREDLIB::PluginSceneManager *pPluginSceneManager)
 : m_pPluginManager(pPluginManager)
 , m_pPluginSceneManager(pPluginSceneManager)
 , m_pCurrentPlugin(0)
 , m_pGraphicsView(Q_NULLPTR)
 , m_pSensorToolButton(Q_NULLPTR)
 , m_pAlgorithmToolButton(Q_NULLPTR)
-, m_pIOToolButton(Q_NULLPTR)
 , m_pToolBarPlugins(Q_NULLPTR)
 , m_pPointerButton(Q_NULLPTR)
 , m_pLinePointerButton(Q_NULLPTR)
@@ -110,7 +102,7 @@ PluginGui::PluginGui(SCSHAREDLIB::PluginManager *pPluginManager, SCSHAREDLIB::Pl
     setUnifiedTitleAndToolBarOnMac(true);
 
     //To prevent deadlock on loading with a broken plugin -> save loading state
-    QSettings settings;
+    QSettings settings("MNECPP");
     bool loadingState = settings.value(QString("MNEScan/loadingState"), false).toBool();
 
     if(loadingState)
@@ -125,8 +117,7 @@ PluginGui::PluginGui(SCSHAREDLIB::PluginManager *pPluginManager, SCSHAREDLIB::Pl
     m_pGraphicsView->ensureVisible(m_pPluginScene->itemsBoundingRect());
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 PluginGui::~PluginGui()
 {
@@ -142,8 +133,6 @@ PluginGui::~PluginGui()
         delete m_pSensorToolButton;
     if(m_pAlgorithmToolButton)
         delete m_pAlgorithmToolButton;
-    if(m_pIOToolButton)
-        delete m_pIOToolButton;
     if(m_pToolBarPlugins)
         delete m_pToolBarPlugins;
     //Pointers Toolbar
@@ -161,8 +150,7 @@ PluginGui::~PluginGui()
         delete m_pGraphicsView;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::clearScene()
 {
@@ -180,8 +168,7 @@ void PluginGui::clearScene()
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::loadConfig(const QString& sPath, const QString& sFileName)
 {
@@ -295,8 +282,7 @@ void PluginGui::loadConfig(const QString& sPath, const QString& sFileName)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::saveConfig(const QString& sPath, const QString& sFileName)
 {
@@ -310,7 +296,7 @@ void PluginGui::saveConfig(const QString& sPath, const QString& sFileName)
     //
     QDomElement plugins = doc.createElement("Plugins");
     root.appendChild(plugins);
-    SCSHAREDLIB::IPlugin::SPtr pPlugin;
+    SCSHAREDLIB::AbstractPlugin::SPtr pPlugin;
     foreach (QGraphicsItem *item, m_pPluginScene->items())
     {
         if(item->type() == PluginItem::Type)
@@ -359,9 +345,7 @@ void PluginGui::saveConfig(const QString& sPath, const QString& sFileName)
     out << xml;
 }
 
-
-//*************************************************************************************************************
-
+//=============================================================================================================
 
 void PluginGui::uiSetupRunningState(bool state)
 {
@@ -379,10 +363,9 @@ void PluginGui::uiSetupRunningState(bool state)
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-bool PluginGui::removePlugin(SCSHAREDLIB::IPlugin::SPtr pPlugin)
+bool PluginGui::removePlugin(SCSHAREDLIB::AbstractPlugin::SPtr pPlugin)
 {
     bool bRemoved = m_pPluginSceneManager->removePlugin(pPlugin);
 
@@ -412,11 +395,12 @@ bool PluginGui::removePlugin(SCSHAREDLIB::IPlugin::SPtr pPlugin)
         selectedPluginChanged(m_pCurrentPlugin);
     }
 
+    saveConfig(QStandardPaths::writableLocation(QStandardPaths::DataLocation),"default.xml");
+
     return bRemoved;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::actionGroupTriggered(QAction* action)
 {
@@ -424,22 +408,26 @@ void PluginGui::actionGroupTriggered(QAction* action)
     m_pPluginScene->setMode(PluginScene::InsertPluginItem);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::itemInserted(PluginItem *item)
 {
-    Q_UNUSED(item);
+    if(item) {
+        m_pCurrentPlugin = item->plugin();
+        emit selectedPluginChanged(m_pCurrentPlugin);
+    }
+
     m_pButtonGroupPointers->button(int(PluginScene::MovePluginItem))->setChecked(true);
     m_pPluginScene->setMode(PluginScene::Mode(m_pButtonGroupPointers->checkedId()));
+
+    saveConfig(QStandardPaths::writableLocation(QStandardPaths::DataLocation),"default.xml");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::newItemSelected()
 {
-    SCSHAREDLIB::IPlugin::SPtr pPlugin;
+    SCSHAREDLIB::AbstractPlugin::SPtr pPlugin;
     SCSHAREDLIB::PluginConnectorConnection::SPtr pConnection;
 
     foreach (QGraphicsItem *item, m_pPluginScene->selectedItems())
@@ -460,13 +448,12 @@ void PluginGui::newItemSelected()
     else if(!pConnection.isNull() && pConnection != m_pCurrentConnection)
     {
         m_pCurrentConnection = pConnection;
-        m_pCurrentPlugin = SCSHAREDLIB::IPlugin::SPtr();
+        m_pCurrentPlugin = SCSHAREDLIB::AbstractPlugin::SPtr();
         emit selectedConnectionChanged(m_pCurrentConnection);
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::deleteItem()
 {
@@ -499,16 +486,14 @@ void PluginGui::deleteItem()
      }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::pointerGroupClicked(int)
 {
     m_pPluginScene->setMode(PluginScene::Mode(m_pButtonGroupPointers->checkedId()));
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::bringToFront()
 {
@@ -526,8 +511,7 @@ void PluginGui::bringToFront()
     selectedItem->setZValue(zValue);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::sendToBack()
 {
@@ -545,8 +529,7 @@ void PluginGui::sendToBack()
     selectedItem->setZValue(zValue);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::createActions()
 {
@@ -567,8 +550,7 @@ void PluginGui::createActions()
     connect(sendBackAction, &QAction::triggered, this, &PluginGui::sendToBack);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::createMenuItem()
 {
@@ -579,8 +561,7 @@ void PluginGui::createMenuItem()
     m_pMenuItem->addAction(sendBackAction);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void PluginGui::createToolbars()
 {
@@ -614,22 +595,9 @@ void PluginGui::createToolbars()
     m_pAlgorithmToolButton->setStatusTip(tr("Algorithm Plugins"));
     m_pAlgorithmToolButton->setToolTip(tr("Algorithm Plugins"));
 
-    //IOs
-    m_pIOToolButton = new QToolButton;
-    QMenu *menuIo = new QMenu;
-    for(qint32 i = 0; i < m_pPluginManager->getIOPlugins().size(); ++i)
-        createItemAction(m_pPluginManager->getIOPlugins()[i]->getName(), menuIo);
-
-    m_pIOToolButton->setMenu(menuIo);
-    m_pIOToolButton->setPopupMode(QToolButton::InstantPopup);
-    m_pIOToolButton->setIcon(QIcon(":/images/io.png"));
-    m_pIOToolButton->setStatusTip(tr("I/O Plugins"));
-    m_pIOToolButton->setToolTip(tr("I/O Plugins"));
-
     m_pToolBarPlugins = new QToolBar(tr("Plugins"), this);
     m_pToolBarPlugins->addWidget(m_pSensorToolButton);
     m_pToolBarPlugins->addWidget(m_pAlgorithmToolButton);
-    m_pToolBarPlugins->addWidget(m_pIOToolButton);
 
     m_pToolBarPlugins->setAllowedAreas(Qt::LeftToolBarArea);
     m_pToolBarPlugins->setFloatable(false);
@@ -685,8 +653,7 @@ void PluginGui::createToolbars()
     addToolBar(Qt::LeftToolBarArea, m_pToolBarItem);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QAction* PluginGui::createItemAction(QString name, QMenu* menu)
 {

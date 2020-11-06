@@ -1,42 +1,42 @@
 //=============================================================================================================
 /**
-* @file     dipole_fit_data.h
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     December, 2016
-*
-* @section  LICENSE
-*
-* Copyright (C) 2016, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Dipole Fit Data class declaration.
-*
-*/
+ * @file     dipole_fit_data.h
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     December, 2016
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2016, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Dipole Fit Data class declaration.
+ *
+ */
 
 #ifndef DIPOLEFITDATA_H
 #define DIPOLEFITDATA_H
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -50,18 +50,14 @@
 #include <fwd/fwd_bem_model.h>
 #include "dipole_forward.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QSharedPointer>
@@ -71,6 +67,12 @@
 #define COLUMN_NORM_COMP 1	    /* Componentwise normalization */
 #define COLUMN_NORM_LOC  2	    /* Dipole locationwise normalization */
 
+//=============================================================================================================
+// DEFINE NAMESPACE INVERSELIB
+//=============================================================================================================
+
+namespace INVERSELIB
+{
 
 /*
  * These are the type definitions for dipole fitting
@@ -91,18 +93,6 @@ typedef struct {
   mneUserFreeFunc eeg_client_free;
 } *dipoleFitFuncs,dipoleFitFuncsRec;
 
-
-
-
-//*************************************************************************************************************
-//=============================================================================================================
-// DEFINE NAMESPACE INVERSELIB
-//=============================================================================================================
-
-namespace INVERSELIB
-{
-
-//*************************************************************************************************************
 //=============================================================================================================
 // FORWARD DECLARATIONS
 //=============================================================================================================
@@ -110,14 +100,12 @@ namespace INVERSELIB
 class GuessData;
 class ECD;
 
-
-
 //=============================================================================================================
 /**
-* Implements the dipole fit data parser (Replaces *dipoleFitData,dipoleFitDataRec struct of MNE-C fit_types.h).
-*
-* @brief Dipole Fit Data implementation
-*/
+ * Implements the dipole fit data parser (Replaces *dipoleFitData,dipoleFitDataRec struct of MNE-C fit_types.h).
+ *
+ * @brief Dipole Fit Data implementation
+ */
 class INVERSESHARED_EXPORT DipoleFitData
 {
 public:
@@ -126,27 +114,20 @@ public:
 
     //=========================================================================================================
     /**
-    * Default Constructor
-    */
+     * Default Constructor
+     */
     explicit DipoleFitData();
 
     //=========================================================================================================
     /**
-    * Destructs the Dipole Fit Data
-    * Refactored: free_dipole_fit_data (dipole_fit_setup.c)
-    */
+     * Destructs the Dipole Fit Data
+     * Refactored: free_dipole_fit_data (dipole_fit_setup.c)
+     */
     virtual ~DipoleFitData();
-
-
-
 
     //============================= dipole_fit_setup.c =============================
 
-
     static int setup_forward_model(DipoleFitData* d, MNELIB::MneCTFCompDataSet* comp_data, FWDLIB::FwdCoilSet* comp_coils);
-
-
-
 
     static MNELIB::MneCovMatrix* ad_hoc_noise(FWDLIB::FwdCoilSet* meg,          /* Channel name lists to define which channels are gradiometers */
                                      FWDLIB::FwdCoilSet* eeg,
@@ -154,30 +135,17 @@ public:
                                      float      mag_std,
                                      float      eeg_std);
 
-
     //ToDo  move to mneProjOp class
     static int make_projection(const QList<QString>& projnames,
-                               FIFFLIB::fiffChInfo chs,
+                               const QList<FIFFLIB::FiffChInfo>& chs,
                                int        nch,
                                MNELIB::MneProjOp*  *res);
 
-
-
     static int scale_noise_cov(DipoleFitData* f,int nave);
-
-
-
 
     static int scale_dipole_fit_noise_cov(DipoleFitData* f,int nave);
 
-
-
-
     static int select_dipole_fit_noise_cov(DipoleFitData* f, mshMegEegData d);
-
-
-
-
 
     static DipoleFitData* setup_dipole_fit_data(   const QString& mriname,         /**< This gives the MRI/head transform */
                                             const QString& measname,        /**< This gives the MEG/head transform and sensor locations */
@@ -198,23 +166,19 @@ public:
                                             int   include_meg,              /**< Include MEG in the fitting? */
                                             int   include_eeg);
 
-
-
     //=========================================================================================================
     /**
-    * Fit a single dipole to the given data
-    * Refactored: fit_one (fit_dipoles.c)
-    *
-    * @param[in] fit        Precomputed fitting data
-    * @param[in] guess      The initial guesses
-    * @param[in] time       Which time is it?
-    * @param[in] B          The field to fit
-    * @param[in] verbose
-    * @param[in] res        The fitted dipole
-    */
+     * Fit a single dipole to the given data
+     * Refactored: fit_one (fit_dipoles.c)
+     *
+     * @param[in] fit        Precomputed fitting data
+     * @param[in] guess      The initial guesses
+     * @param[in] time       Which time is it?
+     * @param[in] B          The field to fit
+     * @param[in] verbose
+     * @param[in] res        The fitted dipole
+     */
     static bool fit_one(DipoleFitData* fit, GuessData* guess, float time, float *B, int verbose, ECD& res);
-
-
 
 //============================= dipole_forward.c
 
@@ -226,17 +190,11 @@ public:
                                      float         *rd,
                                      DipoleForward* old);
 
-
-
-
-
-
-
 public:
       FIFFLIB::FiffCoordTransOld*    mri_head_t; /**< MRI <-> head coordinate transformation */
       FIFFLIB::FiffCoordTransOld*    meg_head_t; /**< MEG <-> head coordinate transformation */
       int               coord_frame;        /**< Common coordinate frame */
-      FIFFLIB::fiffChInfo        chs;       /**< Channels */
+      QList<FIFFLIB::FiffChInfo>        chs;       /**< Channels */
       int               nmeg;               /**< How many MEG */
       int               neeg;               /**< How many EEG */
       QStringList       ch_names;           /**< List of all channel names */
@@ -300,15 +258,11 @@ public:
 //      void              *user;	      /* User data for anything we need */
 //      fitUserFreeFunc   user_free;	      /* Function to free the above */
 //    } *dipoleFitData,dipoleFitDataRec;
-
 };
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INLINE DEFINITIONS
 //=============================================================================================================
-
-
 } //NAMESPACE
 
 #endif // DIPOLEFITDATA_H

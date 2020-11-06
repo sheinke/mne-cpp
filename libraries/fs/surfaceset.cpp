@@ -1,74 +1,67 @@
 //=============================================================================================================
 /**
-* @file     surfaceset.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
-* @version  1.0
-* @date     March, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2013, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the SurfaceSet class.
-*
-*/
+ * @file     surfaceset.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     March, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the SurfaceSet class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "surfaceset.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QStringList>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace FSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
 SurfaceSet::SurfaceSet()
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SurfaceSet::SurfaceSet(const QString &subject_id, qint32 hemi, const QString &surf, const QString &subjects_dir)
 {
@@ -89,8 +82,7 @@ SurfaceSet::SurfaceSet(const QString &subject_id, qint32 hemi, const QString &su
     calcOffset();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SurfaceSet::SurfaceSet(const QString &path, qint32 hemi, const QString &surf)
 {
@@ -111,8 +103,7 @@ SurfaceSet::SurfaceSet(const QString &path, qint32 hemi, const QString &surf)
     calcOffset();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SurfaceSet::SurfaceSet(const Surface& p_LHSurface, const Surface& p_RHSurface)
 {
@@ -129,8 +120,7 @@ SurfaceSet::SurfaceSet(const Surface& p_LHSurface, const Surface& p_RHSurface)
     calcOffset();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SurfaceSet::SurfaceSet(const QString& p_sLHFileName, const QString& p_sRHFileName)
 {
@@ -139,23 +129,20 @@ SurfaceSet::SurfaceSet(const QString& p_sLHFileName, const QString& p_sRHFileNam
         *this = t_SurfaceSet;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 SurfaceSet::~SurfaceSet()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SurfaceSet::clear()
 {
     m_qMapSurfs.clear();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SurfaceSet::insert(const Surface& p_Surface)
 {
@@ -168,8 +155,7 @@ void SurfaceSet::insert(const Surface& p_Surface)
     m_qMapSurfs.insert(hemi, p_Surface);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool SurfaceSet::read(const QString& p_sLHFileName, const QString& p_sRHFileName, SurfaceSet &p_SurfaceSet)
 {
@@ -197,8 +183,7 @@ bool SurfaceSet::read(const QString& p_sLHFileName, const QString& p_sRHFileName
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const Surface& SurfaceSet::operator[] (qint32 idx) const
 {
@@ -213,8 +198,7 @@ const Surface& SurfaceSet::operator[] (qint32 idx) const
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Surface& SurfaceSet::operator[] (qint32 idx)
 {
@@ -229,8 +213,7 @@ Surface& SurfaceSet::operator[] (qint32 idx)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 const Surface& SurfaceSet::operator[] (QString idt) const
 {
@@ -245,8 +228,7 @@ const Surface& SurfaceSet::operator[] (QString idt) const
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 Surface& SurfaceSet::operator[] (QString idt)
 {
@@ -261,8 +243,7 @@ Surface& SurfaceSet::operator[] (QString idt)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void SurfaceSet::calcOffset()
 {

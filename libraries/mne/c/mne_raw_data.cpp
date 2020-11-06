@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_raw_data.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MneRawData Class.
-*
-*/
+ * @file     mne_raw_data.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MneRawData Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -44,15 +44,9 @@
 
 #include <Eigen/Core>
 
-
-
-
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -60,9 +54,6 @@
 using namespace Eigen;
 using namespace FIFFLIB;
 using namespace MNELIB;
-
-
-
 
 #ifndef TRUE
 #define TRUE 1
@@ -72,7 +63,6 @@ using namespace MNELIB;
 #define FALSE 0
 #endif
 
-
 #ifndef FAIL
 #define FAIL -1
 #endif
@@ -81,15 +71,10 @@ using namespace MNELIB;
 #define OK 0
 #endif
 
-
 #define MALLOC_36(x,t) (t *)malloc((x)*sizeof(t))
 #define REALLOC_36(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
 
-
-
 #define ALLOC_CMATRIX_36(x,y) mne_cmatrix_36((x),(y))
-
-
 
 #if defined(_WIN32) || defined(_WIN64)
 #define snprintf _snprintf
@@ -97,10 +82,6 @@ using namespace MNELIB;
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 #endif
-
-
-
-
 
 static void matrix_error(int kind, int nr, int nc)
 
@@ -119,7 +100,6 @@ static void matrix_error(int kind, int nr, int nc)
     exit(1);
 }
 
-
 float **mne_cmatrix_36(int nr,int nc)
 
 {
@@ -137,19 +117,9 @@ float **mne_cmatrix_36(int nr,int nc)
     return m;
 }
 
-
-
-
-
-
-
 #define FREE_36(x) if ((char *)(x) != NULL) free((char *)(x))
 
-
 #define FREE_CMATRIX_36(m) mne_free_cmatrix_36((m))
-
-
-
 
 void mne_free_cmatrix_36 (float **m)
 {
@@ -159,10 +129,8 @@ void mne_free_cmatrix_36 (float **m)
     }
 }
 
-
-
-
-
+namespace MNELIB
+{
 
 typedef struct {
     int   size;		        /* Size of this buffer in floats */
@@ -176,7 +144,7 @@ typedef struct {
     int        next;
 } *ringBuf_36,ringBufRec_36;
 
-
+}
 
 void mne_free_ring_buffer_36(void *thisp)
 
@@ -193,7 +161,6 @@ void mne_free_ring_buffer_36(void *thisp)
     FREE_36(this_buf);
     return;
 }
-
 
 void mne_free_event(mneEvent e)
 {
@@ -217,12 +184,10 @@ void mne_free_event_list_36(mneEventList list)
     return;
 }
 
-
-
 void mne_free_name_list_36(char **list, int nlist)
 /*
-* Free a name list array
-*/
+ * Free a name list array
+ */
 {
     int k;
     if (list == NULL || nlist == 0)
@@ -237,42 +202,28 @@ void mne_free_name_list_36(char **list, int nlist)
     return;
 }
 
-
-
-
-
-
 //============================= misc_util.c =============================
-
-
 
 void mne_string_to_name_list(const QString& s, QStringList& listp,int &nlistp)
 /*
-* Convert a colon-separated list into a string array
-*/
+ * Convert a colon-separated list into a string array
+ */
 {
     QStringList list;
 
     if (!s.isEmpty() && s.size() > 0) {
-        list = s.split(":");
+        list = FIFFLIB::FiffStream::split_name_list(s);
+        //list = s.split(":");
     }
     listp  = list;
     nlistp = list.size();
     return;
 }
 
-
-
-
-
-
-
-
-
 QString mne_name_list_to_string(const QStringList& list)
 /*
-* Convert a string array to a colon-separated string
-*/
+ * Convert a string array to a colon-separated string
+ */
 {
     int nlist = list.size();
     QString res;
@@ -287,11 +238,11 @@ QString mne_name_list_to_string(const QStringList& list)
     return res;
 }
 
-
-QString mne_channel_names_to_string(fiffChInfo chs, int nch)
+QString mne_channel_names_to_string(const QList<FIFFLIB::FiffChInfo>& chs,
+                                    int nch)
 /*
-* Make a colon-separated string out of channel names
-*/
+ * Make a colon-separated string out of channel names
+ */
 {
     QStringList names;
     QString res;
@@ -303,10 +254,10 @@ QString mne_channel_names_to_string(fiffChInfo chs, int nch)
     return res;
 }
 
-
-
-void mne_channel_names_to_name_list(fiffChInfo chs, int nch,
-                                    QStringList& listp, int &nlistp)
+void mne_channel_names_to_name_list(const QList<FIFFLIB::FiffChInfo>& chs,
+                                    int nch,
+                                    QStringList& listp,
+                                    int &nlistp)
 
 {
     QString s = mne_channel_names_to_string(chs,nch);
@@ -314,14 +265,10 @@ void mne_channel_names_to_name_list(fiffChInfo chs, int nch,
     return;
 }
 
-
-
-
-
-
-
 //============================= mne_apply_filter.c =============================
 
+namespace MNELIB
+{
 
 typedef struct {
     float *freq_resp;		/* Frequency response */
@@ -330,6 +277,8 @@ typedef struct {
     int   np;			/* Length */
     float nprec;
 } *filterData,filterDataRec;
+
+}
 
 static void filter_data_free(void *datap)
 
@@ -376,15 +325,7 @@ int mne_compare_filters(mneFilterDef f1,
         return 0;
 }
 
-
-
-
-
-
-
-
 //============================= mne_fft.c =============================
-
 
 void mne_fft_ana(float *data,int np, float **precalcp)
 /*
@@ -408,7 +349,6 @@ void mne_fft_ana(float *data,int np, float **precalcp)
         FREE_36(precalc);
     return;
 }
-
 
 void mne_fft_syn(float *data,int np, float **precalcp)
 /*
@@ -439,12 +379,6 @@ void mne_fft_syn(float *data,int np, float **precalcp)
         FREE_36(precalc);
     return;
 }
-
-
-
-
-
-
 
 int mne_apply_filter(mneFilterDef filter, void *datap, float *data, int ns, int zero_pad, float dc_offset, int kind)
 /*
@@ -517,10 +451,6 @@ int mne_apply_filter(mneFilterDef filter, void *datap, float *data, int ns, int 
     return OK;
 }
 
-
-
-
-
 void mne_create_filter_response(mneFilterDef    filter,
                                 float           sfreq,
                                 void            **filter_datap,
@@ -551,7 +481,7 @@ void mne_create_filter_response(mneFilterDef    filter,
         filter_data->freq_resp[k]     = 1.0;
         filter_data->eog_freq_resp[k] = 1.0;
     }
-    *highpass_effective = FALSE;
+     *highpass_effective = FALSE;
 
     for (f = 0; f < 2; f++) {
         highpass       = f == 0 ? filter->highpass  : filter->eog_highpass;
@@ -628,16 +558,15 @@ void mne_create_filter_response(mneFilterDef    filter,
         else
             fprintf(stderr,"NOTE: Filter is presently switched off.\n");
     }
-    *filter_datap      = filter_data;
-    *filter_data_freep = filter_data_free;
+     *filter_datap      = filter_data;
+     *filter_data_freep = filter_data_free;
     return;
 }
 
-
-
-
-
 //============================= mne_ringbuffer.c =============================
+
+namespace MNELIB
+{
 
 typedef struct {
     int   size;		        /* Size of this buffer in floats */
@@ -651,6 +580,7 @@ typedef struct {
     int        next;
 } *ringBuf,ringBufRec;
 
+}
 
 void mne_free_ring_buffer(void *thisp)
 
@@ -716,7 +646,7 @@ void mne_allocate_from_ring(void *ringp, int nrow, int ncol, float ***res)
         FREE_36(*buf->datap);
         *buf->datap = NULL;
     }
-    *res = mat = MALLOC_36(nrow,float *);
+     *res = mat = MALLOC_36(nrow,float *);
     if (buf->size < nrow*ncol)
         buf->data = REALLOC_36(buf->data,nrow*ncol,float);
 
@@ -728,12 +658,7 @@ void mne_allocate_from_ring(void *ringp, int nrow, int ncol, float ***res)
     return;
 }
 
-
-
-
 //============================= mne_raw_routines.c =============================
-
-
 
 int mne_read_raw_buffer_t(//fiffFile     in,        /* Input file */
                           FiffStream::SPtr& stream,
@@ -741,7 +666,7 @@ int mne_read_raw_buffer_t(//fiffFile     in,        /* Input file */
                           float        **data,      /* Allocated for npick x nsamp samples */
                           int          nchan,       /* Number of channels in the data */
                           int          nsamp,       /* Expected number of samples */
-                          fiffChInfo   chs,         /* Channel info for ALL channels */
+                          const QList<FIFFLIB::FiffChInfo>&   chs,         /* Channel info for ALL channels */
                           int          *pickno,     /* Which channels to pick */
                           int          npick)       /* How many */
 
@@ -831,12 +756,6 @@ bad : {
     }
 }
 
-
-
-
-
-
-
 //============================= mne_process_bads.c =============================
 
 int mne_read_bad_channel_list_from_node(FiffStream::SPtr& stream,
@@ -887,13 +806,6 @@ int mne_read_bad_channel_list(const QString& name, QStringList& listp, int& nlis
     return res;
 }
 
-
-
-
-
-
-
-
 int  mne_sparse_vec_mult2(FiffSparseMatrix* mat,     /* The sparse matrix */
                           float           *vector, /* Vector to be multiplied */
                           float           *res)    /* Result of the multiplication */
@@ -924,10 +836,6 @@ int  mne_sparse_vec_mult2(FiffSparseMatrix* mat,     /* The sparse matrix */
         return -1;
     }
 }
-
-
-
-
 
 int  mne_sparse_mat_mult2(FiffSparseMatrix* mat,     /* The sparse matrix */
                           float           **mult,  /* Matrix to be multiplied */
@@ -966,21 +874,10 @@ int  mne_sparse_mat_mult2(FiffSparseMatrix* mat,     /* The sparse matrix */
     return 0;
 }
 
-
-
-
-
-
-
-
-
 #define APPROX_RING_BUF_SIZE (600*1024*1024)
 
 static int approx_ring_buf_size = APPROX_RING_BUF_SIZE;
 
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -1017,11 +914,9 @@ MneRawData::MneRawData()
 ,comp_now(MNE_CTFV_NOGRAD)
 ,sss(NULL)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneRawData::~MneRawData()
 {
@@ -1062,8 +957,7 @@ MneRawData::~MneRawData()
     FREE_36(this->deriv_offsets);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MneRawData::mne_raw_add_filter_response(MneRawData *data, int *highpass_effective)
 /*
@@ -1094,8 +988,7 @@ void MneRawData::mne_raw_add_filter_response(MneRawData *data, int *highpass_eff
                                highpass_effective);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MneRawData::setup_filter_bufs(MneRawData *data)
 /*
@@ -1154,8 +1047,7 @@ void MneRawData::setup_filter_bufs(MneRawData *data)
     return;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneRawData::load_one_buffer(MneRawData *data, MneRawBufDef *buf)
 /*
@@ -1192,8 +1084,7 @@ int MneRawData::load_one_buffer(MneRawData *data, MneRawBufDef *buf)
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneRawData::compensate_buffer(MneRawData *data, MneRawBufDef *buf)
 /*
@@ -1244,8 +1135,7 @@ bad :
     return FAIL;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneRawData::mne_raw_pick_data(MneRawData *data, mneChSelection sel, int firsts, int ns, float **picked)
 /*
@@ -1397,8 +1287,7 @@ int MneRawData::mne_raw_pick_data(MneRawData *data, mneChSelection sel, int firs
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneRawData::mne_raw_pick_data_proj(MneRawData *data, mneChSelection sel, int firsts, int ns, float **picked)
 /*
@@ -1527,8 +1416,7 @@ int MneRawData::mne_raw_pick_data_proj(MneRawData *data, mneChSelection sel, int
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneRawData::load_one_filt_buf(MneRawData *data, MneRawBufDef *buf)
 /*
@@ -1566,8 +1454,7 @@ int MneRawData::load_one_filt_buf(MneRawData *data, MneRawBufDef *buf)
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneRawData::mne_raw_pick_data_filt(MneRawData *data, mneChSelection sel, int firsts, int ns, float **picked)
 /*
@@ -1785,10 +1672,13 @@ bad : {
     }
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-MneRawData *MneRawData::mne_raw_open_file_comp(const QString& name, int omit_skip, int allow_maxshield, mneFilterDef filter, int comp_set)
+MneRawData *MneRawData::mne_raw_open_file_comp(const QString& name,
+                                               int omit_skip,
+                                               int allow_maxshield,
+                                               mneFilterDef filter,
+                                               int comp_set)
 /*
      * Open a raw data file
      */
@@ -1804,7 +1694,7 @@ MneRawData *MneRawData::mne_raw_open_file_comp(const QString& name, int omit_ski
     QList<FiffDirEntry::SPtr> dir0;
     //    fiffTagRec   tag;
     FiffTag::SPtr t_pTag;
-    fiffChInfo   ch;
+    FiffChInfo   ch;
     MneRawBufDef* bufs;
     int k, b, nbuf, ndir, nnames;
     int current_dir0 = 0;
@@ -1815,20 +1705,20 @@ MneRawData *MneRawData::mne_raw_open_file_comp(const QString& name, int omit_ski
         goto bad;
 
     for (k = 0; k < info->nchan; k++) {
-        ch = info->chInfo+k;
-        if (QString::compare(ch->ch_name,MNE_DEFAULT_TRIGGER_CH) == 0) {
-            if (std::fabs(1.0 - ch->range) > 1e-5) {
-                ch->range = 1.0;
-                fprintf(stderr,"%s range set to %f\n",MNE_DEFAULT_TRIGGER_CH,ch->range);
+        ch = info->chInfo.at(k);
+        if (QString::compare(ch.ch_name,MNE_DEFAULT_TRIGGER_CH) == 0) {
+            if (std::fabs(1.0 - ch.range) > 1e-5) {
+                ch.range = 1.0;
+                fprintf(stderr,"%s range set to %f\n",MNE_DEFAULT_TRIGGER_CH,ch.range);
             }
         }
         /*
          * Take care of the nonzero unit multiplier
          */
-        if (ch->unit_mul != 0) {
-            ch->cal = pow(10.0,(double)(ch->unit_mul))*ch->cal;
-            fprintf(stderr,"Ch %s unit multiplier %d -> 0\n",ch->ch_name,ch->unit_mul);
-            ch->unit_mul = 0;
+        if (ch.unit_mul != 0) {
+            ch.cal = pow(10.0,(double)(ch.unit_mul))*ch.cal;
+            fprintf(stderr,"Ch %s unit multiplier %d -> 0\n",ch.ch_name.toLatin1().data(),ch.unit_mul);
+            ch.unit_mul = 0;
         }
     }
     //    if ((in = fiff_open(name)) == NULL)
@@ -1843,7 +1733,10 @@ MneRawData *MneRawData::mne_raw_open_file_comp(const QString& name, int omit_ski
     /*
        * Add the channel name list
        */
-    mne_channel_names_to_name_list(info->chInfo,info->nchan,data->ch_names,nnames);
+    mne_channel_names_to_name_list(info->chInfo,
+                                   info->nchan,
+                                   data->ch_names,
+                                   nnames);
     if (nnames != info->nchan) {
         printf("Channel names were not translated correctly into a name list");
         goto bad;
@@ -1868,7 +1761,12 @@ MneRawData *MneRawData::mne_raw_open_file_comp(const QString& name, int omit_ski
     else
         data->comp_now = comp_set;
 
-    if (MneCTFCompDataSet::mne_ctf_set_compensation(data->comp,data->comp_now,data->info->chInfo,data->info->nchan,NULL,0) == FAIL)
+    if (MneCTFCompDataSet::mne_ctf_set_compensation(data->comp,
+                                                    data->comp_now,
+                                                    data->info->chInfo,
+                                                    data->info->nchan,
+                                                    QList<FIFFLIB::FiffChInfo>(),
+                                                    0) == FAIL)
         goto bad;
     /*
        * SSS data
@@ -2028,7 +1926,7 @@ MneRawData *MneRawData::mne_raw_open_file_comp(const QString& name, int omit_ski
        * Initialize the filter buffers
        */
     data->filter  = MALLOC_36(1,mneFilterDefRec);
-    *data->filter = *filter;
+     *data->filter = *filter;
     setup_filter_bufs(data);
 
     {
@@ -2061,8 +1959,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneRawData *MneRawData::mne_raw_open_file(const QString& name, int omit_skip, int allow_maxshield, mneFilterDef filter)
 /*

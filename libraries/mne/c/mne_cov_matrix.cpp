@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     mne_cov_matrix.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     January, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the MneCovMatrix Class.
-*
-*/
+ * @file     mne_cov_matrix.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     January, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the MneCovMatrix Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -43,13 +43,9 @@
 #include "mne_proj_item.h"
 #include "mne_proj_op.h"
 
-
-
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -57,8 +53,6 @@
 using namespace Eigen;
 using namespace FIFFLIB;
 using namespace MNELIB;
-
-
 
 #ifndef FAIL
 #define FAIL -1
@@ -68,18 +62,13 @@ using namespace MNELIB;
 #define OK 0
 #endif
 
-
-
 #define MALLOC_30(x,t) (t *)malloc((x)*sizeof(t))
 #define REALLOC_30(x,y,t) (t *)((x == NULL) ? malloc((y)*sizeof(t)) : realloc((x),(y)*sizeof(t)))
-
 
 #define FREE_30(x) if ((char *)(x) != NULL) free((char *)(x))
 
 #define FREE_CMATRIX_30(m) mne_free_cmatrix_30((m))
 #define FREE_DCMATRIX_30(m) mne_free_dcmatrix_30((m))
-
-
 
 void mne_free_cmatrix_30 (float **m)
 {
@@ -88,7 +77,6 @@ void mne_free_cmatrix_30 (float **m)
         FREE_30(m);
     }
 }
-
 
 void mne_free_dcmatrix_30 (double **m)
 
@@ -99,17 +87,9 @@ void mne_free_dcmatrix_30 (double **m)
     }
 }
 
-
-
-
 #define ALLOC_CMATRIX_30(x,y) mne_cmatrix_30((x),(y))
 
-
 #define ALLOC_DCMATRIX_30(x,y) mne_dmatrix_30((x),(y))
-
-
-
-
 
 static void matrix_error_30(int kind, int nr, int nc)
 
@@ -128,9 +108,6 @@ static void matrix_error_30(int kind, int nr, int nc)
     exit(1);
 }
 
-
-
-
 float **mne_cmatrix_30(int nr,int nc)
 
 {
@@ -147,8 +124,6 @@ float **mne_cmatrix_30(int nr,int nc)
         m[i] = whole + i*nc;
     return m;
 }
-
-
 
 double **mne_dmatrix_30(int nr, int nc)
 
@@ -167,11 +142,7 @@ double **mne_dmatrix_30(int nr, int nc)
     return m;
 }
 
-
-
-
 //============================= mne_decompose.c =============================
-
 
 int mne_decompose_eigen (double *mat,
                          double *lambda,
@@ -211,7 +182,6 @@ int mne_decompose_eigen (double *mat,
     for (k = 0; k < np; k++)
         dmat[k] = mat[k]*scale;
 //    dspev(compz,uplo,&dim,dmat,w,z,&dim,work,&info);
-
 
 // dspev workaround begin
     MatrixXd dmat_tmp = MatrixXd::Zero(dim,dim);
@@ -259,12 +229,6 @@ int mne_decompose_eigen (double *mat,
         return -1;
 }
 
-
-
-
-
-
-
 double **mne_dmatt_dmat_mult2 (double **m1,double **m2, int d1,int d2,int d3)
 /* Matrix multiplication
       * result(d1 x d3) = m1(d2 x d1)^T * m2(d2 x d3) */
@@ -296,10 +260,6 @@ double **mne_dmatt_dmat_mult2 (double **m1,double **m2, int d1,int d2,int d3)
 #endif
 }
 
-
-
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -328,11 +288,9 @@ MneCovMatrix::MneCovMatrix(int p_kind,
 ,sss(NULL)
 ,nbad(0)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneCovMatrix::~MneCovMatrix()
 {
@@ -353,8 +311,7 @@ MneCovMatrix::~MneCovMatrix()
     bads.clear();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MneCovMatrix *MneCovMatrix::mne_dup_cov(MneCovMatrix *c)
 {
@@ -395,16 +352,14 @@ MneCovMatrix *MneCovMatrix::mne_dup_cov(MneCovMatrix *c)
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneCovMatrix::mne_is_diag_cov(MneCovMatrix *c)
 {
     return c->cov_diag != NULL;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneCovMatrix::mne_add_inv_cov(MneCovMatrix *c)
 /*
@@ -428,8 +383,7 @@ int MneCovMatrix::mne_add_inv_cov(MneCovMatrix *c)
     return OK;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneCovMatrix::condition_cov(MneCovMatrix *c, float rank_threshold, int use_rank)
 {
@@ -555,8 +509,7 @@ int MneCovMatrix::condition_cov(MneCovMatrix *c, float rank_threshold, int use_r
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneCovMatrix::mne_decompose_eigen_cov_small(MneCovMatrix *c, float p_small, int use_rank)
 /*
@@ -628,8 +581,7 @@ bad : {
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneCovMatrix::mne_decompose_eigen_cov(MneCovMatrix *c)
 
@@ -637,8 +589,7 @@ int MneCovMatrix::mne_decompose_eigen_cov(MneCovMatrix *c)
     return mne_decompose_eigen_cov_small(c,-1.0,-1);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MneCovMatrix::mne_lt_packed_index(int j, int k)
 

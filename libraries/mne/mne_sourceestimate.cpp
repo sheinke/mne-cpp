@@ -1,59 +1,62 @@
 //=============================================================================================================
 /**
-* @file     mne_sourceestimate.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     February, 2013
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the SourceEstimate Class.
-*
-*/
+ * @file     mne_sourceestimate.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     February, 2013
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2013, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the SourceEstimate Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "mne_sourceestimate.h"
 
+//=============================================================================================================
+// QT INCLUDES
+//=============================================================================================================
+
 #include <QFile>
 #include <QDataStream>
 #include <QSharedPointer>
+#include <QDebug>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
 
 using namespace MNELIB;
+using namespace FSLIB;
+using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -64,8 +67,7 @@ MNESourceEstimate::MNESourceEstimate()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate::MNESourceEstimate(const MatrixXd &p_sol, const VectorXi &p_vertices, float p_tmin, float p_tstep)
 : data(p_sol)
@@ -76,8 +78,7 @@ MNESourceEstimate::MNESourceEstimate(const MatrixXd &p_sol, const VectorXi &p_ve
     this->update_times();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate::MNESourceEstimate(const MNESourceEstimate& p_SourceEstimate)
 : data(p_SourceEstimate.data)
@@ -86,11 +87,9 @@ MNESourceEstimate::MNESourceEstimate(const MNESourceEstimate& p_SourceEstimate)
 , tmin(p_SourceEstimate.tmin)
 , tstep(p_SourceEstimate.tstep)
 {
-
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate::MNESourceEstimate(QIODevice &p_IODevice)
 : tmin(0)
@@ -103,8 +102,7 @@ MNESourceEstimate::MNESourceEstimate(QIODevice &p_IODevice)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNESourceEstimate::clear()
 {
@@ -115,8 +113,7 @@ void MNESourceEstimate::clear()
     tstep = 0;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate MNESourceEstimate::reduce(qint32 start, qint32 n)
 {
@@ -135,8 +132,7 @@ MNESourceEstimate MNESourceEstimate::reduce(qint32 start, qint32 n)
     return p_sourceEstimateReduced;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNESourceEstimate::read(QIODevice &p_IODevice, MNESourceEstimate& p_stc)
 {
@@ -156,21 +152,21 @@ bool MNESourceEstimate::read(QIODevice &p_IODevice, MNESourceEstimate& p_stc)
         printf("Reading source estimate...");
 
     // read start time in ms
-    *t_pStream >> p_stc.tmin;
+     *t_pStream >> p_stc.tmin;
     p_stc.tmin /= 1000;
     // read sampling rate in ms
-    *t_pStream >> p_stc.tstep;
+     *t_pStream >> p_stc.tstep;
     p_stc.tstep /= 1000;
     // read number of vertices
     quint32 t_nVertices;
-    *t_pStream >> t_nVertices;
+     *t_pStream >> t_nVertices;
     p_stc.vertices = VectorXi(t_nVertices);
     // read the vertex indices
     for(quint32 i = 0; i < t_nVertices; ++i)
         *t_pStream >> p_stc.vertices[i];
     // read the number of timepts
     quint32 t_nTimePts;
-    *t_pStream >> t_nTimePts;
+     *t_pStream >> t_nTimePts;
     //
     // read the data
     //
@@ -193,8 +189,7 @@ bool MNESourceEstimate::read(QIODevice &p_IODevice, MNESourceEstimate& p_stc)
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 bool MNESourceEstimate::write(QIODevice &p_IODevice)
 {
@@ -218,16 +213,16 @@ bool MNESourceEstimate::write(QIODevice &p_IODevice)
         printf("Write source estimate...");
 
     // write start time in ms
-    *t_pStream << (float)1000*this->tmin;
+     *t_pStream << (float)1000*this->tmin;
     // write sampling rate in ms
-    *t_pStream << (float)1000*this->tstep;
+     *t_pStream << (float)1000*this->tstep;
     // write number of vertices
-    *t_pStream << (quint32)this->vertices.size();
+     *t_pStream << (quint32)this->vertices.size();
     // write the vertex indices
     for(qint32 i = 0; i < this->vertices.size(); ++i)
         *t_pStream << (quint32)this->vertices[i];
     // write the number of timepts
-    *t_pStream << (quint32)this->data.cols();
+     *t_pStream << (quint32)this->data.cols();
     //
     // write the data
     //
@@ -241,8 +236,7 @@ bool MNESourceEstimate::write(QIODevice &p_IODevice)
     return true;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void MNESourceEstimate::update_times()
 {
@@ -257,8 +251,7 @@ void MNESourceEstimate::update_times()
         this->times = RowVectorXf();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 MNESourceEstimate& MNESourceEstimate::operator= (const MNESourceEstimate &rhs)
 {
@@ -274,10 +267,56 @@ MNESourceEstimate& MNESourceEstimate::operator= (const MNESourceEstimate &rhs)
     return *this;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 int MNESourceEstimate::samples() const
 {
     return data.cols();
+}
+
+//=============================================================================================================
+
+VectorXi MNESourceEstimate::getIndicesByLabel(const QList<Label> &lPickedLabels, bool bIsClustered) const
+{
+    VectorXi vIndexSourceLabels;
+
+    if(lPickedLabels.isEmpty()) {
+        qWarning() << "MNESourceEstimate::getIndicesByLabel - picked label list is empty. Returning.";
+        return  vIndexSourceLabels;
+    }
+
+    if(bIsClustered) {
+        for(int i = 0; i < this->vertices.rows(); i++) {
+            for(int k = 0; k < lPickedLabels.size(); k++) {
+                if(this->vertices(i) == lPickedLabels.at(k).label_id) {
+                    vIndexSourceLabels.conservativeResize(vIndexSourceLabels.rows()+1,1);
+                    vIndexSourceLabels(vIndexSourceLabels.rows()-1) = i;
+                    break;
+                }
+            }
+        }
+    } else {
+        int hemi = 0;
+
+        for(int i = 0; i < this->vertices.rows(); i++) {
+            // Detect left right hemi separation
+            if(i > 0){
+                if(this->vertices(i) < this->vertices(i-1)){
+                    hemi = 1;
+                }
+            }
+
+            for(int k = 0; k < lPickedLabels.size(); k++) {
+                for(int l = 0; l < lPickedLabels.at(k).vertices.rows(); l++) {
+                    if(this->vertices(i) == lPickedLabels.at(k).vertices(l) && lPickedLabels.at(k).hemi == hemi) {
+                        vIndexSourceLabels.conservativeResize(vIndexSourceLabels.rows()+1,1);
+                        vIndexSourceLabels(vIndexSourceLabels.rows()-1) = i;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return vIndexSourceLabels;
 }

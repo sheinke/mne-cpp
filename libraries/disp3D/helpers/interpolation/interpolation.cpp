@@ -1,47 +1,43 @@
 //=============================================================================================================
 /**
-* @file     interpolation.cpp
-* @author   Lars Debor <lars.debor@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     May, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Lars Debor and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Interpolation class definition.
-*
-*/
+ * @file     interpolation.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     May, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Interpolation class definition.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
 #include "interpolation.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // QT INCLUDES
 //=============================================================================================================
@@ -49,14 +45,10 @@
 #include <QSet>
 #include <QDebug>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -64,29 +56,23 @@
 using namespace DISP3DLIB;
 using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE GLOBAL METHODS
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // INITIALIZE STATIC MEMBER
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
 
-QSharedPointer<SparseMatrix<float> > Interpolation::createInterpolationMat(const QVector<qint32> &vecProjectedSensors,
+QSharedPointer<SparseMatrix<float> > Interpolation::createInterpolationMat(const QVector<int> &vecProjectedSensors,
                                                                            const QSharedPointer<MatrixXd> matDistanceTable,
                                                                            double (*interpolationFunction) (double),
                                                                            const double dCancelDist,
-                                                                           const QVector<qint32> &vecExcludeIndex)
+                                                                           const QVector<int> &vecExcludeIndex)
 {
 
     if(matDistanceTable->rows() == 0 && matDistanceTable->cols() == 0) {
@@ -149,48 +135,58 @@ QSharedPointer<SparseMatrix<float> > Interpolation::createInterpolationMat(const
     return matInterpolationMatrix;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 VectorXf Interpolation::interpolateSignal(const QSharedPointer<SparseMatrix<float> > matInterpolationMatrix,
-                                          const VectorXd &vecMeasurementData)
+                                          const QSharedPointer<VectorXf> &vecMeasurementData)
 {
-    if (matInterpolationMatrix->cols() != vecMeasurementData.rows()) {
+    if (matInterpolationMatrix->cols() != vecMeasurementData->rows()) {
         qDebug() << "[WARNING] Interpolation::interpolateSignal - Dimension mismatch. Return null pointer...";
         return VectorXf();
     }
 
-    VectorXf pOutVec = *matInterpolationMatrix * vecMeasurementData.cast<float>();
+    VectorXf pOutVec = *matInterpolationMatrix * (*vecMeasurementData);
 
     return pOutVec;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+VectorXf Interpolation::interpolateSignal(const SparseMatrix<float> &matInterpolationMatrix,
+                                          const VectorXf &vecMeasurementData)
+{
+    if (matInterpolationMatrix.cols() != vecMeasurementData.rows()) {
+        qDebug() << "[WARNING] Interpolation::interpolateSignal - Dimension mismatch. Return null pointer...";
+        return VectorXf();
+    }
+
+    VectorXf pOutVec = matInterpolationMatrix * vecMeasurementData;
+
+    return pOutVec;
+}
+
+//=============================================================================================================
 
 double Interpolation::linear(const double dIn)
 {
     return dIn;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 double Interpolation::gaussian(const double dIn)
 {
     return exp(-((dIn * dIn) / 2.0));
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 double Interpolation::square(const double dIn)
 {
     return std::max((-(1.0f / 9.0f) * (dIn * dIn) + 1), 0.0);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 double Interpolation::cubic(const double dIn)
 {

@@ -1,39 +1,39 @@
 //=============================================================================================================
 /**
-* @file     fiff_cov.cpp
-* @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     July, 2012
-*
-* @section  LICENSE
-*
-* Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    Implementation of the FiffCov Class.
-*
-*/
+ * @file     fiff_cov.cpp
+ * @author   Lorenz Esch <lesch@mgh.harvard.edu>;
+ *           Matti Hamalainen <msh@nmr.mgh.harvard.edu>;
+ *           Christoph Dinh <chdinh@nmr.mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     July, 2012
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2012, Lorenz Esch, Matti Hamalainen, Christoph Dinh. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    Definition of the FiffCov Class.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -45,24 +45,18 @@
 
 #include <utils/mnemath.h>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
 #include <QPair>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/SVD>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -71,8 +65,6 @@ using namespace FIFFLIB;
 using namespace UTILSLIB;
 using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -83,11 +75,11 @@ FiffCov::FiffCov()
 , dim(-1)
 , nfree(-1)
 {
-
+    qRegisterMetaType<QSharedPointer<FIFFLIB::FiffCov> >("QSharedPointer<FIFFLIB::FiffCov>");
+    qRegisterMetaType<FIFFLIB::FiffCov>("FIFFLIB::FiffCov");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCov::FiffCov(QIODevice &p_IODevice)
 : kind(-1)
@@ -105,10 +97,12 @@ FiffCov::FiffCov(QIODevice &p_IODevice)
 
     if(!t_pStream->read_cov(t_pStream->dirtree(), FIFFV_MNE_NOISE_COV, *this))
         printf("\tFiff covariance not found.\n");//ToDo Throw here
+
+    qRegisterMetaType<QSharedPointer<FIFFLIB::FiffCov> >("QSharedPointer<FIFFLIB::FiffCov>");
+    qRegisterMetaType<FIFFLIB::FiffCov>("FIFFLIB::FiffCov");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCov::FiffCov(const FiffCov &p_FiffCov)
 : QSharedData(p_FiffCov)
@@ -123,18 +117,17 @@ FiffCov::FiffCov(const FiffCov &p_FiffCov)
 , eig(p_FiffCov.eig)
 , eigvec(p_FiffCov.eigvec)
 {
-
+    qRegisterMetaType<QSharedPointer<FIFFLIB::FiffCov> >("QSharedPointer<FIFFLIB::FiffCov>");
+    qRegisterMetaType<FIFFLIB::FiffCov>("FIFFLIB::FiffCov");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCov::~FiffCov()
 {
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void FiffCov::clear()
 {
@@ -150,8 +143,7 @@ void FiffCov::clear()
     eigvec = MatrixXd();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCov FiffCov::pick_channels(const QStringList &p_include, const QStringList &p_exclude)
 {
@@ -179,8 +171,7 @@ FiffCov FiffCov::pick_channels(const QStringList &p_include, const QStringList &
     return res;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCov FiffCov::prepare_noise_cov(const FiffInfo &p_Info, const QStringList &p_ChNames) const
 {
@@ -327,8 +318,7 @@ FiffCov FiffCov::prepare_noise_cov(const FiffInfo &p_Info, const QStringList &p_
     return p_NoiseCov;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCov FiffCov::regularize(const FiffInfo& p_info, double p_fRegMag, double p_fRegGrad, double p_fRegEeg, bool p_bProj, QStringList p_exclude) const
 {
@@ -343,9 +333,14 @@ FiffCov FiffCov::regularize(const FiffInfo& p_info, double p_fRegMag, double p_f
     }
 
     //Allways exclude all STI channels from covariance computation
-    for(int i=0; i<p_info.chs.size(); i++)
-        if(p_info.chs[i].kind == FIFFV_STIM_CH)
+    int iNoStimCh = 0;
+
+    for(int i=0; i<p_info.chs.size(); i++) {
+        if(p_info.chs[i].kind == FIFFV_STIM_CH) {
             p_exclude << p_info.chs[i].ch_name;
+            iNoStimCh++;
+        }
+    }
 
     RowVectorXi sel_eeg = p_info.pick_types(false, true, false, defaultQStringList, p_exclude);
     RowVectorXi sel_mag = p_info.pick_types(QString("mag"), false, false, defaultQStringList, p_exclude);
@@ -378,8 +373,10 @@ FiffCov FiffCov::regularize(const FiffInfo& p_info, double p_fRegMag, double p_f
 
     MatrixXd C(cov_good.data);
 
-    if((unsigned) C.rows() != idx_eeg.size() + idx_mag.size() + idx_grad.size())
+    //Subtract number of found stim channels because they are still in C but not the idx_eeg, idx_mag or idx_grad
+    if((unsigned) C.rows() - iNoStimCh != idx_eeg.size() + idx_mag.size() + idx_grad.size()) {
         printf("Error in FiffCov::regularize: Channel dimensions do not fit.\n");//ToDo Throw
+    }
 
     QList<FiffProj> t_listProjs;
     if(p_bProj)
@@ -460,8 +457,7 @@ FiffCov FiffCov::regularize(const FiffInfo& p_info, double p_fRegMag, double p_f
     return cov;
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 FiffCov& FiffCov::operator= (const FiffCov &rhs)
 {

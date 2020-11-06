@@ -1,14 +1,14 @@
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 #
 # @file     mne-cpp.pro
 # @author   Christoph Dinh <chdinh@nmr.mgh.harvard.edu>;
-#           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-# @version  1.0
+#           Lorenz Esch <lesch@mgh.harvard.edu>
+# @since    0.1.0
 # @date     July, 2012
 #
 # @section  LICENSE
 #
-# Copyright (C) 2012, Christoph Dinh and Matti Hamalainen. All rights reserved.
+# Copyright (C) 2012, Christoph Dinh, Lorenz Esch. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -31,21 +31,18 @@
 #
 # @brief    This project file builds all libraries and examples of the mne-cpp project.
 #
-#--------------------------------------------------------------------------------------------------------------
+#==============================================================================================================
 
 include(mne-cpp.pri)
 
 TEMPLATE = subdirs
 
-#At least version 5.2.1
-!minQtVersion(5, 2, 1) {
-    message("Cannot build MNE-CPP with Qt version $${QT_VERSION}.")
-    error("Use at least Qt 5.2.1. Please note that you may only be able to build the minimal MNE-CPP version.")
-}
-
 SUBDIRS += \
     libraries \
-    applications
+
+!contains(MNECPP_CONFIG, noApplications) {
+    SUBDIRS += applications
+}
 
 !contains(MNECPP_CONFIG, noExamples) {
     SUBDIRS += examples
@@ -55,4 +52,16 @@ SUBDIRS += \
     SUBDIRS += testframes
 }
 
-CONFIG += ordered
+# Overwrite SUBDIRS if wasm flag was defined
+contains(MNECPP_CONFIG, wasm) {
+    SUBDIRS = \
+        libraries \
+        applications
+}
+
+# Specify library dependencies
+libraries.depends =
+applications.depends = libraries
+examples.depends = libraries
+testframes.depends = libraries
+

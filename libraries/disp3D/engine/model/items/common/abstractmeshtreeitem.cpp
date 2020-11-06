@@ -1,39 +1,38 @@
 //=============================================================================================================
 /**
-* @file     abstractmeshtreeitem.cpp
-* @author   Lorenz Esch <Lorenz.Esch@tu-ilmenau.de>;
-*           Matti Hamalainen <msh@nmr.mgh.harvard.edu>
-* @version  1.0
-* @date     March, 2017
-*
-* @section  LICENSE
-*
-* Copyright (C) 2017, Lorenz Esch and Matti Hamalainen. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that
-* the following conditions are met:
-*     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-*       following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-*       the following disclaimer in the documentation and/or other materials provided with the distribution.
-*     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
-*       to endorse or promote products derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-* PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*
-* @brief    AbstractMeshTreeItem class definition.
-*
-*/
+ * @file     abstractmeshtreeitem.cpp
+ * @author   Lars Debor <Lars.Debor@tu-ilmenau.de>;
+ *           Lorenz Esch <lesch@mgh.harvard.edu>
+ * @since    0.1.0
+ * @date     March, 2017
+ *
+ * @section  LICENSE
+ *
+ * Copyright (C) 2017, Lars Debor, Lorenz Esch. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ *       following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ *       the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *     * Neither the name of MNE-CPP authors nor the names of its contributors may be used
+ *       to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * @brief    AbstractMeshTreeItem class definition.
+ *
+ */
 
-//*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
@@ -46,22 +45,16 @@
 #include "../../materials/shownormalsmaterial.h"
 #include "../../3dhelpers/custommesh.h"
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Qt INCLUDES
+// QT INCLUDES
 //=============================================================================================================
 
-
-//*************************************************************************************************************
 //=============================================================================================================
-// Eigen INCLUDES
+// EIGEN INCLUDES
 //=============================================================================================================
 
 #include <Eigen/Core>
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // USED NAMESPACES
 //=============================================================================================================
@@ -69,8 +62,6 @@
 using namespace DISP3DLIB;
 using namespace Eigen;
 
-
-//*************************************************************************************************************
 //=============================================================================================================
 // DEFINE MEMBER METHODS
 //=============================================================================================================
@@ -83,24 +74,24 @@ AbstractMeshTreeItem::AbstractMeshTreeItem(QEntity* p3DEntityParent, int iType, 
     initItem();
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 QPointer<CustomMesh> AbstractMeshTreeItem::getCustomMesh()
 {
     return m_pCustomMesh;
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
-
-void AbstractMeshTreeItem::setVertColor(const QVariant& vertColor)
+void AbstractMeshTreeItem::setVertColor(const MatrixX4f& vertColor)
 {
-    this->setData(vertColor, Data3DTreeModelItemRoles::SurfaceCurrentColorVert);
+    QVariant data;
+    data.setValue(vertColor);
+
+    this->setData(data, Data3DTreeModelItemRoles::SurfaceCurrentColorVert);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void AbstractMeshTreeItem::initItem()
 {
@@ -173,8 +164,7 @@ void AbstractMeshTreeItem::initItem()
     this->addComponent(m_pCustomMesh);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void AbstractMeshTreeItem::setData(const QVariant& value, int role)
 {
@@ -183,7 +173,7 @@ void AbstractMeshTreeItem::setData(const QVariant& value, int role)
     switch(role) {
         case Data3DTreeModelItemRoles::SurfaceCurrentColorVert:
             if(m_pCustomMesh) {
-                m_pCustomMesh->setColor(value.value<MatrixX3f>());
+                m_pCustomMesh->setColor(value.value<MatrixX4f>());
             }
             break;
 
@@ -192,8 +182,7 @@ void AbstractMeshTreeItem::setData(const QVariant& value, int role)
     }
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void AbstractMeshTreeItem::setMaterial(Qt3DRender::QMaterial* pMaterial)
 {
@@ -212,45 +201,61 @@ void AbstractMeshTreeItem::setMaterial(Qt3DRender::QMaterial* pMaterial)
     this->addComponent(m_pMaterial);
 }
 
+//=============================================================================================================
 
-//*************************************************************************************************************
+void AbstractMeshTreeItem::setMeshData(const MatrixX3f& tMatVert,
+                                       const MatrixX3f& tMatNorm,
+                                       const MatrixXi& tMatTris,
+                                       const MatrixX4f& tMatColors,
+                                       Qt3DRender::QGeometryRenderer::PrimitiveType primitiveType)
+{
+    if(m_pCustomMesh) {
+        m_pCustomMesh->setMeshData(tMatVert,
+                                   tMatNorm,
+                                   tMatTris,
+                                   tMatColors,
+                                   primitiveType);
+
+        int iNumVerts = tMatVert.rows();
+
+        this->setData(QVariant(iNumVerts), Data3DTreeModelItemRoles::NumberVertices);
+    }
+}
+
+//=============================================================================================================
 
 void AbstractMeshTreeItem::onSurfaceTessInnerChanged(const QVariant& fTessInner)
 {
     this->setMaterialParameter(fTessInner.toFloat(), "innerTess");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void AbstractMeshTreeItem::onSurfaceTessOuterChanged(const QVariant& fTessOuter)
 {
     this->setMaterialParameter(fTessOuter.toFloat(), "outerTess");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void AbstractMeshTreeItem::onSurfaceTriangleScaleChanged(const QVariant& fTriangleScale)
 {
     this->setMaterialParameter(fTriangleScale.toFloat(), "triangleScale");
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void AbstractMeshTreeItem::onColorChanged(const QVariant& color)
 {
     QVariant data;
-    MatrixX3f matNewVertColor = createVertColor(this->data(Data3DTreeModelItemRoles::NumberVertices).toInt(),
+    MatrixX4f matNewVertColor = createVertColor(this->data(Data3DTreeModelItemRoles::NumberVertices).toInt(),
                                                 color.value<QColor>());
 
     data.setValue(matNewVertColor);
     this->setData(data, Data3DTreeModelItemRoles::SurfaceCurrentColorVert);
 }
 
-
-//*************************************************************************************************************
+//=============================================================================================================
 
 void AbstractMeshTreeItem::onSurfaceMaterialChanged(const QVariant& sMaterial)
 {
